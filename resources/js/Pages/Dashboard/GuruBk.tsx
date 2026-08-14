@@ -14,6 +14,7 @@ import {
   UserPlus,
   ChevronRight,
   Lock,
+  Save,
 } from "lucide-react"
 import { Link } from "@inertiajs/react"
 import { AppLayout } from "@/Layouts/AppLayout"
@@ -24,6 +25,7 @@ import { EwsStatusBadge, type EwsStatus } from "@/components/ews/EwsStatusBadge"
 import { PillarIndicators, type PillarStatuses } from "@/components/ews/PillarIndicators"
 import { LinearScale } from "@/components/forms/LinearScale"
 import { StudentAutocomplete, type StudentOption } from "@/components/forms/StudentAutocomplete"
+import { AiBkStructuringModal, type AiBkStructuredResult } from "@/components/ews/AiBkStructuringModal"
 import { toast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 
@@ -51,11 +53,13 @@ interface HolisticStudentItem {
 
 const mockAllStudents: StudentOption[] = [
   { id: 1, name: "Ahmad Fauzi", nisn: "0089218821", class_name: "10-MIPA-1", ews_status: "WASPADA" },
+  { id: 2, name: "Annisa Larasati", nisn: "0089218822", class_name: "10-MIPA-1", ews_status: "NORMAL" },
+  { id: 3, name: "Budi Santoso", nisn: "0089218823", class_name: "10-MIPA-1", ews_status: "BERISIKO" },
+  { id: 4, name: "Citra Dewi", nisn: "0089218824", class_name: "10-MIPA-1", ews_status: "NORMAL" },
   { id: 5, name: "Dimas Pratama", nisn: "0089218825", class_name: "11-IPS-2", ews_status: "KRITIS" },
+  { id: 6, name: "Eka Putri", nisn: "0089218826", class_name: "10-MIPA-1", ews_status: "NORMAL" },
   { id: 7, name: "Reza Mahendra", nisn: "0089218827", class_name: "10-MIPA-3", ews_status: "KRITIS" },
   { id: 8, name: "Siti Nurhaliza", nisn: "0089218828", class_name: "11-MIPA-2", ews_status: "WASPADA" },
-  { id: 9, name: "Fajar Ramadhan", nisn: "0089218829", class_name: "12-IPS-1", ews_status: "BERISIKO" },
-  { id: 10, name: "Putri Anggraini", nisn: "0089218830", class_name: "10-IPS-1", ews_status: "NORMAL" },
 ]
 
 const mockWatchlist = [
@@ -94,7 +98,7 @@ const mockRecentCases: BkCaseItem[] = [
     severity: "SEDANG",
     status: "DALAM_PROSES",
     date: "14 Agu 2026",
-    counselor: "Budi Pratama, M.Kons",
+    counselor: "Rahmawati, M.Psi.",
   },
   {
     id: 102,
@@ -104,7 +108,7 @@ const mockRecentCases: BkCaseItem[] = [
     severity: "BERAT",
     status: "DIESKALASI_KE_KEPSEK",
     date: "13 Agu 2026",
-    counselor: "Budi Pratama, M.Kons",
+    counselor: "Rahmawati, M.Psi.",
   },
   {
     id: 103,
@@ -114,7 +118,7 @@ const mockRecentCases: BkCaseItem[] = [
     severity: "RINGAN",
     status: "DALAM_PROSES",
     date: "12 Agu 2026",
-    counselor: "Budi Pratama, M.Kons",
+    counselor: "Rahmawati, M.Psi.",
   },
   {
     id: 104,
@@ -124,7 +128,7 @@ const mockRecentCases: BkCaseItem[] = [
     severity: "SEDANG",
     status: "SELESAI",
     date: "10 Agu 2026",
-    counselor: "Budi Pratama, M.Kons",
+    counselor: "Rahmawati, M.Psi.",
   },
 ]
 
@@ -170,14 +174,14 @@ const mockHolisticMatrix: HolisticStudentItem[] = [
     trigger_reason: "Kehadiran menurun pasca pemulihan",
   },
   {
-    id: 9,
-    name: "Fajar Ramadhan",
-    nisn: "0089218829",
-    class_name: "12-IPS-1",
-    grade: "XII",
-    pillars: { ak: "BERISIKO", kh: "NORMAL", pr: "NORMAL", bk: "NORMAL" },
+    id: 3,
+    name: "Budi Santoso",
+    nisn: "0089218823",
+    class_name: "10-MIPA-1",
+    grade: "X",
+    pillars: { ak: "BERISIKO", kh: "NORMAL", pr: "BERISIKO", bk: "NORMAL" },
     ews_status: "BERISIKO",
-    trigger_reason: "Nilai ujian tryout di bawah KKM",
+    trigger_reason: "Nilai ulangan di bawah KKM & pasif",
   },
 ]
 
@@ -200,9 +204,70 @@ export default function GuruBk() {
   const [referPsychologist, setReferPsychologist] = React.useState(false)
   const [escalateKepsek, setEscalateKepsek] = React.useState(false)
 
+  // AI BK Modal State
+  const [isAiModalOpen, setIsAiModalOpen] = React.useState(false)
+  const [isAiLoading, setIsAiLoading] = React.useState(false)
+  const [aiBkData, setAiBkData] = React.useState<AiBkStructuredResult>({
+    student_name: "Dimas Pratama",
+    raw_text: confidentialNotes,
+    case_category: "TEKANAN_AKADEMIK",
+    urgency_level: "SEDANG",
+    psychosocial_summary: "Terdeteksi beban mental terkait ekspektasi akademik dan hambatan interaksi sosial di kelas.",
+    counselor_intervention: "Bimbingan regulasi emosi dan kontrak komitmen presensi 100% dalam 2 pekan.",
+    follow_up_action: "Panggil orang tua dan pemantauan wali kelas.",
+    confidence_score: 95,
+  })
+
   // Filters
   const [gradeFilter, setGradeFilter] = React.useState<string>("ALL")
   const [statusFilter, setStatusFilter] = React.useState<string>("ALL")
+
+  const handleStructureWithAi = async () => {
+    if (!selectedStudent) {
+      toast({
+        title: "Pilih Siswa Terlebih Dahulu",
+        description: "Pilih siswa melalui kolom pencarian sebelum menstrukturkan dengan AI.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!confidentialNotes.trim()) {
+      toast({
+        title: "Catatan Konseling Masih Kosong",
+        description: "Tuliskan catatan verbatim konseling sebelum menstrukturkan dengan AI.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsAiLoading(true)
+
+    // Local / Heuristic AI Structuring for BK
+    setTimeout(() => {
+      setAiBkData({
+        student_name: selectedStudent.name,
+        raw_text: confidentialNotes,
+        case_category: urgencyScore >= 4 ? "KEDISIPLINAN_TATA_TERTIB" : "PSIKOSOSIAL_ADAPTASI",
+        urgency_level: urgencyScore >= 4 ? "BERAT" : urgencyScore === 3 ? "SEDANG" : "RINGAN",
+        psychosocial_summary: `Siswa menunjukkan indeks keterbukaan (${rapportScore}/5) dengan progres resolusi (${resolutionProgress}%). Diperlukan tindak lanjut terarah terkait kehadiran dan beban belajar.`,
+        counselor_intervention: "Lanjutkan konseling individu lanjutan, koordinasikan dengan wali kelas untuk pemantauan harian, dan pertimbangkan mediasi keluarga jika diperlukan.",
+        follow_up_action: callParent ? "Konferensi kasus dengan orang tua" : "Konseling lanjutan pekan depan",
+        confidence_score: 94,
+      })
+      setIsAiLoading(false)
+      setIsAiModalOpen(true)
+    }, 600)
+  }
+
+  const handleConfirmAiData = (data: AiBkStructuredResult) => {
+    toast({
+      title: "Log Sesi BK Berhasil Distrukturkan & Disimpan",
+      description: `Rekam konseling untuk ${data.student_name} telah diperbarui dengan enkripsi AES-256.`,
+      variant: "success",
+    })
+    setConfidentialNotes("")
+  }
 
   const handleSaveCounselingSession = (e: React.FormEvent) => {
     e.preventDefault()
@@ -216,10 +281,11 @@ export default function GuruBk() {
     }
 
     toast({
-      title: "Sesi Konseling Berhasil Dicatat",
+      title: "Sesi Konseling Berhasil Disimpan",
       description: `Log konseling untuk ${selectedStudent.name} tersimpan aman dengan enkripsi AES-256.`,
       variant: "success",
     })
+    setConfidentialNotes("")
   }
 
   const filteredMatrix = mockHolisticMatrix.filter((item) => {
@@ -235,207 +301,225 @@ export default function GuruBk() {
       title="Portofolio Bimbingan Konseling & Watchlist EWS"
       subtitle="Pemantauan siswa berisiko tinggi dan penanganan kasus lintas kelas sekolah"
     >
-      {/* Top 4 Elevated Stat Cards - Responsive Grid for 14" Laptop */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[112px] hover:border-slate-300 transition-all">
+      {/* Top 4 Elevated Stat Cards - Scaled for 14"-16" screens */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[126px] hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Kasus Aktif
             </span>
-            <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
-              <HeartHandshake className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+              <HeartHandshake className="w-5 h-5" />
             </div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-slate-900 tracking-tight">14 Kasus</div>
-            <p className="text-[11px] text-slate-400 mt-0.5">Lintas Kelas X, XI, XII</p>
+            <div className="text-3xl font-bold text-slate-900 tracking-tight font-mono">14 Kasus</div>
+            <p className="text-xs text-slate-500 mt-0.5">Lintas Kelas X, XI, XII</p>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[112px] hover:border-slate-300 transition-all">
+        <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[126px] hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Status Kritis
             </span>
-            <div className="w-8 h-8 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600">
-              <AlertOctagon className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600">
+              <AlertOctagon className="w-5 h-5" />
             </div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-slate-900 tracking-tight text-rose-600">
+            <div className="text-3xl font-bold text-rose-600 tracking-tight font-mono">
               2 Siswa
             </div>
-            <p className="text-[11px] text-slate-400 mt-0.5">Perlu Penanganan Khusus</p>
+            <p className="text-xs text-slate-500 mt-0.5">Perlu Penanganan Khusus</p>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[112px] hover:border-slate-300 transition-all">
+        <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[126px] hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Dalam Mediasi
             </span>
-            <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
-              <Clock className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+              <Clock className="w-5 h-5" />
             </div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-slate-900 tracking-tight">5 Kasus</div>
-            <p className="text-[11px] text-slate-400 mt-0.5">Sesi Berjalan Pekan Ini</p>
+            <div className="text-3xl font-bold text-slate-900 tracking-tight font-mono">5 Kasus</div>
+            <p className="text-xs text-slate-500 mt-0.5">Sesi Berjalan Pekan Ini</p>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[112px] hover:border-slate-300 transition-all">
+        <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[126px] hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Kasus Selesai
             </span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
-              <CheckCircle className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+              <CheckCircle className="w-5 h-5" />
             </div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-slate-900 tracking-tight">28 Kasus</div>
-            <p className="text-[11px] text-slate-400 mt-0.5">Semester Berjalan</p>
+            <div className="text-3xl font-bold text-slate-900 tracking-tight font-mono">28 Kasus</div>
+            <p className="text-xs text-slate-500 mt-0.5">Semester Berjalan</p>
           </div>
         </div>
       </div>
 
-      {/* Input Panel Kasus & Sesi Konseling Baru (Guru BK Scope) */}
+      {/* Main Action Panel: Linear Top-to-Bottom Layout with AI Structuring for Guru BK */}
       <section
         id="kasus"
-        className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-5 scroll-mt-20"
+        className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-6 scroll-mt-20"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center shrink-0">
-              <UserPlus className="w-4 h-4" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center shrink-0">
+              <UserPlus className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
                 Pencatatan Sesi Konseling &amp; Penanganan Kasus
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                  Konselor BK
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  Konselor BK &bull; AI
                 </span>
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Dokumentasi terenkripsi rekam bimbingan dan tindak lanjut psikososial siswa
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Dokumentasi terenkripsi rekam bimbingan dan tindak lanjut psikososial siswa tersusun linear
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 text-xs">
-            <Lock className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Kerahasiaan Data Terjamin (UU PDP)</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold">
+            <Lock className="w-4 h-4 text-emerald-600" />
+            <span>Kerahasiaan Data Terjamin (UU PDP No. 27/2022)</span>
           </div>
         </div>
 
         <form onSubmit={handleSaveCounselingSession} className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left Column: Cross-Class Autocomplete & Scales */}
-            <div className="lg:col-span-5 space-y-4">
-              <StudentAutocomplete
-                students={mockAllStudents}
-                selectedStudent={selectedStudent}
-                onSelect={setSelectedStudent}
-                label="Pilih Siswa (Lintas Seluruh Kelas):"
-                placeholder="Cari siswa seluruh sekolah..."
-              />
+          {/* LINEAR STEP 1: Cross-Class Autocomplete */}
+          <div className="space-y-2">
+            <Label className="text-xs sm:text-sm font-bold text-slate-800">
+              1. Pilih Siswa (Lintas Seluruh Kelas):
+            </Label>
+            <StudentAutocomplete
+              students={mockAllStudents}
+              selectedStudent={selectedStudent}
+              onSelect={setSelectedStudent}
+              placeholder="Cari siswa seluruh sekolah berdasarkan nama atau NISN..."
+            />
+          </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-700">
-                  Jenis Layanan / Sesi Konseling:
-                </Label>
-                <select
-                  value={sessionType}
-                  onChange={(e) => setSessionType(e.target.value)}
-                  className="w-full h-10 px-3 rounded-xl neo-inset bg-[#F0F3F8] text-xs font-semibold text-slate-800 border-slate-200"
-                >
-                  <option value="KONSELING_INDIVIDU">Konseling Individu Personal</option>
-                  <option value="MEDIASI_PEER">Mediasi Konflik Teman Sebaya</option>
-                  <option value="BIMBINGAN_KELOMPOK">Bimbingan Kelompok Terarah</option>
-                  <option value="KONFERENSI_ORTU">Konferensi Kasus Bersama Wali Murid</option>
-                </select>
-              </div>
+          {/* LINEAR STEP 2: Service Type Selection */}
+          <div className="space-y-2">
+            <Label className="text-xs sm:text-sm font-bold text-slate-800">
+              2. Jenis Layanan / Sesi Konseling:
+            </Label>
+            <select
+              value={sessionType}
+              onChange={(e) => setSessionType(e.target.value)}
+              className="w-full h-11 px-4 rounded-xl bg-slate-50 text-xs sm:text-sm font-semibold text-slate-800 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            >
+              <option value="KONSELING_INDIVIDU">Konseling Individu Personal</option>
+              <option value="MEDIASI_PEER">Mediasi Konflik Teman Sebaya</option>
+              <option value="BIMBINGAN_KELOMPOK">Bimbingan Kelompok Terarah</option>
+              <option value="KONFERENSI_ORTU">Konferensi Kasus Bersama Wali Murid</option>
+            </select>
+          </div>
 
-              {/* Linear Scales in Guru BK Scope */}
-              <div className="p-4 rounded-2xl neo-card-subtle bg-slate-50/70 border border-slate-200/80 space-y-4">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
-                  Skala Evaluasi Konseling BK
-                </span>
-
-                {/* 1. Urgensi Kasus Scale */}
-                <LinearScale
-                  label="Tingkat Urgensi / Keparahan Kasus"
-                  description="Penilaian ancaman terhadap iklim belajar dan psikososial"
-                  min={1}
-                  max={5}
-                  value={urgencyScore}
-                  onChange={setUrgencyScore}
-                  minLabel="1 (Rutin)"
-                  midLabel="3 (Perhatian)"
-                  maxLabel="5 (Kritis)"
-                />
-
-                {/* 2. Indeks Keterbukaan Siswa */}
-                <LinearScale
-                  label="Indeks Keterbukaan &amp; Rapport Siswa"
-                  description="Tingkat kooperatif dan refleksi diri saat sesi berlangsung"
-                  min={1}
-                  max={5}
-                  value={rapportScore}
-                  onChange={setRapportScore}
-                  minLabel="Resisten"
-                  midLabel="Kooperatif"
-                  maxLabel="Sangat Terbuka"
-                />
-
-                {/* 3. Progres Resolusi Kasus */}
-                <LinearScale
-                  label="Progres Resolusi Kasus"
-                  description="Persentase pemulihan dan pencapaian target komitmen"
-                  min={0}
-                  max={100}
-                  step={10}
-                  mode="continuous"
-                  value={resolutionProgress}
-                  onChange={setResolutionProgress}
-                  minLabel="0% (Baru)"
-                  maxLabel="100% (Tuntas)"
-                />
-              </div>
+          {/* LINEAR STEP 3: Confidential Verbatim Notes with AI Button in Bottom Right */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="confidentialNotes" className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                <Lock className="w-4 h-4 text-emerald-600" />
+                <span>3. Catatan Sesi Konseling Verbatim (Enkripsi Berlapis):</span>
+              </Label>
+              <span className="text-xs text-slate-500">
+                Akses konselor BK
+              </span>
             </div>
 
-            {/* Right Column: Confidential Notes & Follow-up actions */}
-            <div className="lg:col-span-7 space-y-4 flex flex-col justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="confidentialNotes" className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                    <Lock className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Catatan Sesi Konseling Rahasia (Encrypted Inset Box)</span>
-                  </Label>
-                  <span className="text-[11px] text-slate-400">
-                    Akses dibatasi sesuai UU PDP
-                  </span>
-                </div>
+            {/* Relative Container for Textarea with AI Button in Bottom Right */}
+            <div className="relative rounded-2xl border border-slate-200 bg-slate-50/80 focus-within:bg-white focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all p-1">
+              <Textarea
+                id="confidentialNotes"
+                rows={5}
+                value={confidentialNotes}
+                onChange={(e) => setConfidentialNotes(e.target.value)}
+                placeholder="Tuliskan catatan verbatim konseling, dinamika psikososial, dan observasi afektif siswa..."
+                className="w-full p-4 pb-14 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 leading-relaxed border-0 bg-transparent focus:ring-0 focus:outline-none resize-y min-h-[150px]"
+              />
 
-                <Textarea
-                  id="confidentialNotes"
-                  rows={6}
-                  value={confidentialNotes}
-                  onChange={(e) => setConfidentialNotes(e.target.value)}
-                  placeholder="Catatan verbatim konseling, dinamika psikososial, dan observasi afektif siswa..."
-                  className="w-full p-4 rounded-2xl neo-inset bg-[#F0F3F8] text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 leading-relaxed border-slate-200 min-h-[160px] focus:ring-2 focus:ring-indigo-500/30"
-                />
+              {/* AI Structuring Button inside the bottom-right corner of the textarea */}
+              <div className="absolute right-3 bottom-3 flex items-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleStructureWithAi}
+                  disabled={isAiLoading}
+                  className="bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-xl shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-60 transition-all"
+                >
+                  <Sparkles className={cn("w-4 h-4 text-white", isAiLoading && "animate-spin")} />
+                  <span>{isAiLoading ? "Menganalisis..." : "Strukturkan dengan AI"}</span>
+                </Button>
               </div>
+            </div>
+          </div>
 
-              {/* Tindak Lanjut Checkboxes */}
-              <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100 space-y-2">
-                <span className="text-xs font-bold text-slate-800 block">
-                  Rencana Tindak Lanjut &amp; Eskalasi:
+          {/* LINEAR STEP 4: Evaluation Scales & Follow-Up Plans */}
+          <div className="space-y-4 pt-2">
+            <Label className="text-xs sm:text-sm font-bold text-slate-800 block">
+              4. Parameter Evaluasi Konseling BK:
+            </Label>
+
+            <div className="p-5 sm:p-6 rounded-2xl bg-slate-50/80 border border-slate-200 space-y-5">
+              {/* Scale 1: Urgensi Kasus */}
+              <LinearScale
+                label="Tingkat Urgensi / Keparahan Kasus"
+                description="Penilaian ancaman terhadap iklim belajar dan psikososial siswa"
+                min={1}
+                max={5}
+                value={urgencyScore}
+                onChange={setUrgencyScore}
+                minLabel="1 (Rutin)"
+                midLabel="3 (Perhatian)"
+                maxLabel="5 (Kritis)"
+              />
+
+              {/* Scale 2: Indeks Keterbukaan */}
+              <LinearScale
+                label="Indeks Keterbukaan &amp; Rapport Siswa"
+                description="Tingkat kooperatif, kejujuran narasi, dan refleksi diri saat sesi berlangsung"
+                min={1}
+                max={5}
+                value={rapportScore}
+                onChange={setRapportScore}
+                minLabel="1 (Resisten)"
+                midLabel="3 (Kooperatif)"
+                maxLabel="5 (Sangat Terbuka)"
+              />
+
+              {/* Scale 3: Progres Resolusi */}
+              <LinearScale
+                label="Progres Resolusi Kasus"
+                description="Persentase pemulihan dan pencapaian target komitmen yang disepakati"
+                min={0}
+                max={100}
+                step={10}
+                mode="continuous"
+                value={resolutionProgress}
+                onChange={setResolutionProgress}
+                minLabel="0% (Baru)"
+                maxLabel="100% (Tuntas)"
+              />
+
+              {/* Rencana Tindak Lanjut Checkboxes */}
+              <div className="p-4 rounded-xl bg-indigo-50/60 border border-indigo-100 space-y-2.5">
+                <span className="text-xs sm:text-sm font-bold text-slate-800 block">
+                  Rencana Tindak Lanjut &amp; Eskalasi Kasus:
                 </span>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
+                  <label className="flex items-center gap-2.5 text-xs sm:text-sm font-medium text-slate-700 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={callParent}
@@ -445,7 +529,7 @@ export default function GuruBk() {
                     <span>Panggil Orang Tua</span>
                   </label>
 
-                  <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
+                  <label className="flex items-center gap-2.5 text-xs sm:text-sm font-medium text-slate-700 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={referPsychologist}
@@ -455,84 +539,89 @@ export default function GuruBk() {
                     <span>Rujuk ke Psikolog/PPA</span>
                   </label>
 
-                  <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
+                  <label className="flex items-center gap-2.5 text-xs sm:text-sm font-bold text-rose-700 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={escalateKepsek}
                       onChange={(e) => setEscalateKepsek(e.target.checked)}
                       className="rounded text-rose-600 focus:ring-rose-500 w-4 h-4"
                     />
-                    <span className="font-semibold text-rose-700">Eskalasi ke Kepsek</span>
+                    <span>Eskalasi ke Kepala Sekolah</span>
                   </label>
                 </div>
               </div>
+            </div>
+          </div>
 
-              {/* Action Bar */}
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <Button
-                  type="submit"
-                  size="sm"
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer"
-                >
-                  <CheckCircle className="w-4 h-4" />
-                  <span>Simpan Catatan Konseling</span>
-                </Button>
-              </div>
+          {/* LINEAR STEP 5: Bottom Action Bar with Simpan Manual & Submit */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100">
+            <p className="text-xs text-slate-500">
+              Sesi yang tersimpan akan memperbarui Pilar BK dalam skor EWS siswa secara otomatis.
+            </p>
+
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <Button
+                type="submit"
+                className="flex-1 sm:flex-none h-11 px-6 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Save className="w-4 h-4 text-white" />
+                <span>Simpan Catatan Konseling</span>
+              </Button>
             </div>
           </div>
         </form>
       </section>
 
-      {/* Split Section: Watchlist & Recent Cases Feed - Optimized for 14" screens */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      {/* Split Section: Watchlist & Recent Cases Feed */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
         {/* Left: Priority EWS Watchlist */}
-        <div className="lg:col-span-6 p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="lg:col-span-6 p-6 sm:p-7 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
                 Siswa Prioritas Penanganan (Watchlist)
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
                   {mockWatchlist.length} Siswa
                 </span>
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
                 Siswa berstatus Kritis &amp; Waspada yang memerlukan perhatian khusus
               </p>
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             {mockWatchlist.map((item) => (
               <div
                 key={item.id}
-                className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between gap-2.5 hover:border-slate-300 transition-all"
+                className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 flex flex-col justify-between gap-3 hover:border-slate-300 transition-all"
               >
-                <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-xs sm:text-sm text-slate-900">{item.name}</span>
-                      <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-slate-200 text-slate-700">
+                      <span className="font-bold text-sm sm:text-base text-slate-900">{item.name}</span>
+                      <span className="px-2 py-0.5 rounded text-xs font-bold bg-slate-200 text-slate-700">
                         {item.class_name}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-600 mt-1">
-                      Faktor Pemicu: <span className="text-slate-800 font-medium">{item.trigger}</span>
+                    <p className="text-xs sm:text-sm text-slate-600 mt-1">
+                      Faktor Pemicu: <span className="text-slate-900 font-semibold">{item.trigger}</span>
                     </p>
                   </div>
 
                   <EwsStatusBadge status={item.status} size="sm" />
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 text-xs">
-                  <span className="text-[11px] text-amber-700 font-semibold">
+                <div className="flex items-center justify-between pt-2.5 border-t border-slate-200 text-xs sm:text-sm">
+                  <span className="text-xs text-amber-700 font-bold">
                     {item.urgency}
                   </span>
                   <Link
                     href={`/students/${item.id}`}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800"
+                    className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-indigo-600 hover:text-indigo-800"
                   >
                     <span>Buka Lembar BK</span>
-                    <ArrowUpRight className="w-3.5 h-3.5" />
+                    <ArrowUpRight className="w-4 h-4" />
                   </Link>
                 </div>
               </div>
@@ -541,35 +630,35 @@ export default function GuruBk() {
         </div>
 
         {/* Right: Recent Counseling Case Feed */}
-        <div className="lg:col-span-6 p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="lg:col-span-6 p-6 sm:p-7 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 tracking-tight">
+              <h3 className="text-base font-bold text-slate-900 tracking-tight">
                 Riwayat Sesi Konseling Terkini
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
                 Progres penanganan dan status tindak lanjut kasus siswa
               </p>
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             {mockRecentCases.map((caseItem) => (
               <div
                 key={caseItem.id}
-                className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2 hover:bg-slate-100/60 transition-all"
+                className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2 hover:bg-slate-100/70 transition-all"
               >
-                <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h4 className="text-xs font-bold text-slate-900">{caseItem.title}</h4>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
+                    <h4 className="text-xs sm:text-sm font-bold text-slate-900">{caseItem.title}</h4>
+                    <p className="text-xs text-slate-500 mt-0.5">
                       {caseItem.student_name} ({caseItem.class_name}) &bull; {caseItem.date}
                     </p>
                   </div>
 
                   <span
                     className={cn(
-                      "px-2 py-0.5 rounded-md text-[10px] font-bold uppercase",
+                      "px-2.5 py-0.5 rounded-md text-xs font-bold uppercase",
                       caseItem.status === "DIESKALASI_KE_KEPSEK"
                         ? "bg-rose-50 text-rose-700 border border-rose-200"
                         : caseItem.status === "DALAM_PROSES"
@@ -581,12 +670,12 @@ export default function GuruBk() {
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-200/50">
+                <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-200/60">
                   <span>Konselor: {caseItem.counselor}</span>
                   <span
                     className={cn(
-                      "font-semibold",
-                      caseItem.severity === "BERAT" ? "text-rose-600" : "text-slate-600"
+                      "font-bold",
+                      caseItem.severity === "BERAT" ? "text-rose-600" : "text-slate-700"
                     )}
                   >
                     Kategori: {caseItem.severity}
@@ -601,23 +690,23 @@ export default function GuruBk() {
       {/* Bottom Section: Holistic Student Matrix Across School */}
       <section
         id="matriks"
-        className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4 scroll-mt-20"
+        className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-5 scroll-mt-20"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
               Matriks Siswa Seluruh Sekolah (Cross-Class EWS)
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
               Konsolidasi 4 pilar EWS di seluruh jenjang kelas (X, XI, XII)
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
             <select
               value={gradeFilter}
               onChange={(e) => setGradeFilter(e.target.value)}
-              className="h-8 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="h-10 px-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             >
               <option value="ALL">Semua Jenjang</option>
               <option value="X">Kelas X</option>
@@ -628,7 +717,7 @@ export default function GuruBk() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-8 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="h-10 px-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             >
               <option value="ALL">Semua Status EWS</option>
               <option value="NORMAL">Normal</option>
@@ -639,56 +728,56 @@ export default function GuruBk() {
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-slate-200/80 neo-card-subtle bg-white">
-          <table className="w-full text-xs text-left">
-            <thead className="bg-[#F0F3F8] text-slate-600 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+        <div className="overflow-x-auto rounded-2xl border border-slate-200/90 bg-white">
+          <table className="w-full text-xs sm:text-sm text-left">
+            <thead className="bg-[#F0F3F8] text-slate-600 font-bold uppercase tracking-wider text-xs border-b border-slate-200">
               <tr>
-                <th className="py-3 px-4">Siswa</th>
-                <th className="py-3 px-3">Kelas / Jenjang</th>
-                <th className="py-3 px-3">Pilar AK</th>
-                <th className="py-3 px-3">Pilar KH</th>
-                <th className="py-3 px-3">Pilar PR</th>
-                <th className="py-3 px-3">Pilar BK</th>
-                <th className="py-3 px-3">Status EWS</th>
-                <th className="py-3 px-4 text-right">Aksi</th>
+                <th className="py-3.5 px-4">Siswa</th>
+                <th className="py-3.5 px-3">Kelas / Jenjang</th>
+                <th className="py-3.5 px-3">Pilar AK</th>
+                <th className="py-3.5 px-3">Pilar KH</th>
+                <th className="py-3.5 px-3">Pilar PR</th>
+                <th className="py-3.5 px-3">Pilar BK</th>
+                <th className="py-3.5 px-3">Status EWS</th>
+                <th className="py-3.5 px-4 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredMatrix.map((student) => (
                 <tr key={student.id} className="hover:bg-indigo-50/40 transition-colors">
-                  <td className="py-3.5 px-4 font-bold text-slate-900">
+                  <td className="py-4 px-4 font-bold text-slate-900">
                     {student.name}
-                    <span className="block text-[11px] text-slate-400 font-normal font-mono">
+                    <span className="block text-xs text-slate-400 font-normal font-mono">
                       NISN: {student.nisn}
                     </span>
                   </td>
-                  <td className="py-3.5 px-3">
-                    <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700">
+                  <td className="py-4 px-3">
+                    <span className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-slate-100 text-slate-700">
                       {student.class_name}
                     </span>
                   </td>
-                  <td className="py-3.5 px-3">
+                  <td className="py-4 px-3">
                     <EwsStatusBadge status={student.pillars.ak} size="sm" showDot={false} />
                   </td>
-                  <td className="py-3.5 px-3">
+                  <td className="py-4 px-3">
                     <EwsStatusBadge status={student.pillars.kh} size="sm" showDot={false} />
                   </td>
-                  <td className="py-3.5 px-3">
+                  <td className="py-4 px-3">
                     <EwsStatusBadge status={student.pillars.pr} size="sm" showDot={false} />
                   </td>
-                  <td className="py-3.5 px-3">
+                  <td className="py-4 px-3">
                     <EwsStatusBadge status={student.pillars.bk} size="sm" showDot={false} />
                   </td>
-                  <td className="py-3.5 px-3">
+                  <td className="py-4 px-3">
                     <EwsStatusBadge status={student.ews_status} size="sm" />
                   </td>
-                  <td className="py-3.5 px-4 text-right">
+                  <td className="py-4 px-4 text-right">
                     <Link
                       href={`/students/${student.id}`}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 p-1.5 rounded-lg hover:bg-indigo-50"
+                      className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-indigo-600 hover:text-indigo-800 p-2 rounded-xl hover:bg-indigo-50"
                     >
                       <span>Lembar Kasus</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
+                      <ChevronRight className="w-4 h-4" />
                     </Link>
                   </td>
                 </tr>
@@ -697,6 +786,14 @@ export default function GuruBk() {
           </table>
         </div>
       </section>
+
+      {/* AI BK Structuring Modal */}
+      <AiBkStructuringModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        onConfirm={handleConfirmAiData}
+        initialData={aiBkData}
+      />
     </AppLayout>
   )
 }

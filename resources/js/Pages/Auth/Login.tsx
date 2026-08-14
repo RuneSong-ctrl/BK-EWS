@@ -8,25 +8,25 @@ import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 
 export default function Login() {
-  const [identifier, setIdentifier] = React.useState("198204152006042001")
-  const [password, setPassword] = React.useState("password123")
+  const [identifier, setIdentifier] = React.useState("198501152010011005")
+  const [password, setPassword] = React.useState("password")
   const [remember, setRemember] = React.useState(false)
   const [selectedRole, setSelectedRole] = React.useState<"guru_kelas" | "guru_bk" | "kepsek">("guru_kelas")
 
   const handleQuickSelectRole = (role: "guru_kelas" | "guru_bk" | "kepsek") => {
     setSelectedRole(role)
     if (role === "guru_kelas") {
-      setIdentifier("198204152006042001") // Dra. Siti Rahmawati
+      setIdentifier("198501152010011005") // Budi Santoso (Guru Kelas)
     } else if (role === "guru_bk") {
-      setIdentifier("198907122014021003") // Budi Pratama
+      setIdentifier("198207102008012009") // Rahmawati (Guru BK)
     } else {
-      setIdentifier("197501011999031001") // Drs. I Made Rama
+      setIdentifier("197005121995031002") // Drs. H. Hartono (Kepala Sekolah)
     }
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Redirect to respective dashboard based on role
+    // Direct navigate to appropriate dashboard based on selected role
     if (selectedRole === "guru_kelas") {
       router.visit("/dashboard/guru-kelas")
     } else if (selectedRole === "guru_bk") {
@@ -39,26 +39,26 @@ export default function Login() {
   return (
     <AuthLayout
       title="Masuk ke Portal BK-EWS"
-      subtitle="Pilih peran atau masukkan NIP/Email terdaftar Anda"
+      subtitle="Silakan pilih peran untuk simulasi demo cepat atau masukkan kredensial akun Anda"
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Quick Role Selection Tabs */}
-        <div className="space-y-1.5">
-          <Label className="text-xs font-semibold text-slate-700">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Quick Role Selection Tabs with rich badges */}
+        <div className="space-y-2">
+          <Label className="text-xs sm:text-sm font-bold text-slate-800">
             Pilih Peran Akun (Simulasi Demo):
           </Label>
-          <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-slate-100 border border-slate-200/80">
+          <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-slate-100/90 border border-slate-200">
             <button
               type="button"
               onClick={() => handleQuickSelectRole("guru_kelas")}
               className={cn(
-                "py-2 px-1 rounded-lg text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer",
+                "py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold flex flex-col items-center gap-1.5 transition-all cursor-pointer",
                 selectedRole === "guru_kelas"
-                  ? "bg-white text-blue-700 shadow-xs border border-blue-200"
-                  : "text-slate-500 hover:text-slate-800"
+                  ? "bg-white text-blue-700 shadow-sm border border-blue-200"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
               )}
             >
-              <UserCheck className="w-3.5 h-3.5" />
+              <UserCheck className="w-4 h-4 text-blue-600" />
               <span>Guru Kelas</span>
             </button>
 
@@ -66,13 +66,13 @@ export default function Login() {
               type="button"
               onClick={() => handleQuickSelectRole("guru_bk")}
               className={cn(
-                "py-2 px-1 rounded-lg text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer",
+                "py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold flex flex-col items-center gap-1.5 transition-all cursor-pointer",
                 selectedRole === "guru_bk"
-                  ? "bg-white text-indigo-700 shadow-xs border border-indigo-200"
-                  : "text-slate-500 hover:text-slate-800"
+                  ? "bg-white text-indigo-700 shadow-sm border border-indigo-200"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
               )}
             >
-              <HeartHandshake className="w-3.5 h-3.5" />
+              <HeartHandshake className="w-4 h-4 text-indigo-600" />
               <span>Guru BK</span>
             </button>
 
@@ -80,21 +80,21 @@ export default function Login() {
               type="button"
               onClick={() => handleQuickSelectRole("kepsek")}
               className={cn(
-                "py-2 px-1 rounded-lg text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer",
+                "py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold flex flex-col items-center gap-1.5 transition-all cursor-pointer",
                 selectedRole === "kepsek"
-                  ? "bg-white text-amber-700 shadow-xs border border-amber-200"
-                  : "text-slate-500 hover:text-slate-800"
+                  ? "bg-white text-amber-700 shadow-sm border border-amber-200"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
               )}
             >
-              <Award className="w-3.5 h-3.5" />
+              <Award className="w-4 h-4 text-amber-600" />
               <span>Kepala Sekolah</span>
             </button>
           </div>
         </div>
 
         {/* NIP / Email Input */}
-        <div className="space-y-1.5">
-          <Label htmlFor="identifier" className="text-xs font-semibold text-slate-700">
+        <div className="space-y-2">
+          <Label htmlFor="identifier" className="text-xs sm:text-sm font-bold text-slate-800">
             NIP atau Alamat Email
           </Label>
           <div className="relative">
@@ -105,19 +105,19 @@ export default function Login() {
               required
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              placeholder="Contoh: 19820415..."
-              className="pl-10 h-11 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              placeholder="Contoh: 19850115..."
+              className="pl-11 h-12 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
             />
           </div>
         </div>
 
         {/* Password Input */}
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password" className="text-xs font-semibold text-slate-700">
+            <Label htmlFor="password" className="text-xs sm:text-sm font-bold text-slate-800">
               Kata Sandi
             </Label>
-            <a href="#forgot" className="text-[11px] text-blue-600 hover:underline">
+            <a href="#forgot" className="text-xs font-semibold text-blue-600 hover:underline">
               Lupa Sandi?
             </a>
           </div>
@@ -130,13 +130,13 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="pl-10 h-11 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              className="pl-11 h-12 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
             />
           </div>
         </div>
 
         {/* Remember Me */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2.5">
           <input
             type="checkbox"
             id="remember"
@@ -144,24 +144,24 @@ export default function Login() {
             onChange={(e) => setRemember(e.target.checked)}
             className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
           />
-          <Label htmlFor="remember" className="text-xs text-slate-600 font-normal cursor-pointer">
+          <Label htmlFor="remember" className="text-xs sm:text-sm text-slate-600 font-medium cursor-pointer">
             Ingat saya di perangkat ini
           </Label>
         </div>
 
-        {/* Submit Button - Solid Blue with White Text */}
+        {/* Submit Button */}
         <button
           type="submit"
-          className="w-full h-11 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm hover:shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all duration-150 active:scale-[0.98] border border-blue-600"
+          className="w-full h-12 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm sm:text-base font-bold rounded-xl shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all duration-150 active:scale-[0.99] border border-blue-600"
         >
           <span>Masuk ke Dashboard</span>
           <ArrowRight className="w-4 h-4 text-white" />
         </button>
 
         {/* Register Link */}
-        <div className="text-center pt-2 text-xs text-slate-500">
+        <div className="text-center pt-2 text-xs sm:text-sm text-slate-500">
           Belum memiliki akun terdaftar?{" "}
-          <Link href="/register" className="font-semibold text-blue-600 hover:underline">
+          <Link href="/register" className="font-bold text-blue-600 hover:underline">
             Daftar Staf Sekolah
           </Link>
         </div>
