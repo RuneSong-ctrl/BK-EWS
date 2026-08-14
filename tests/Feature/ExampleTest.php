@@ -10,6 +10,12 @@ class ExampleTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class]);
+    }
+
     public function test_the_application_login_page_is_accessible(): void
     {
         $response = $this->get('/login');

@@ -502,51 +502,55 @@ export default function GuruKelas({ schoolClass, students: initialStudents = [],
       {/* Roster Table Section */}
       <section
         id="rekap"
-        className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-5 scroll-mt-20"
+        className="p-5 sm:p-6 rounded-2xl neo-card space-y-4 scroll-mt-20"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/60 pb-3">
           <div>
-            <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-              Rekap Nilai, Presensi &amp; Status 4 Pilar EWS
+            <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+              Matriks Siswa &amp; Evaluasi 4 Pilar EWS
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              Daftar siswa kelas 10-MIPA-1 beserta pemantauan kesehatan akademik dan perilaku
+            <p className="text-xs text-slate-500 mt-0.5">
+              Daftar seluruh siswa binaan kelas {className} dan status deterministik
             </p>
           </div>
 
           {/* Table Filters */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <input
               type="text"
               placeholder="Cari siswa di kelas..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-10 px-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 w-48 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="h-9 px-3 rounded-xl neo-inset bg-[#EEF2F7] text-xs text-slate-800 placeholder:text-slate-400 w-44 focus:outline-none"
             />
 
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-10 px-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="h-9 px-3 rounded-xl neo-inset bg-[#EEF2F7] text-xs font-semibold text-slate-700 cursor-pointer focus:outline-none"
             >
-              <Filter className="w-3.5 h-3.5 mr-1.5" />
-              Filter Status
-            </Button>
+              <option value="ALL">Semua Status EWS</option>
+              <option value="NORMAL">Normal</option>
+              <option value="BERISIKO">Berisiko</option>
+              <option value="WASPADA">Waspada</option>
+              <option value="KRITIS">Kritis</option>
+              <option value="DATA_BELUM_LENGKAP">Data Belum Lengkap</option>
+            </select>
           </div>
         </div>
 
         {/* Table Container */}
-        <div className="overflow-x-auto rounded-2xl border border-slate-200/90 bg-white">
-          <table className="w-full text-xs sm:text-sm text-left">
-            <thead className="bg-[#F0F3F8] text-slate-600 font-bold uppercase tracking-wider text-xs border-b border-slate-200">
+        <div className="overflow-x-auto rounded-2xl border border-slate-200/80 neo-card-subtle bg-white">
+          <table className="w-full text-xs text-left">
+            <thead className="bg-[#F0F3F8] text-slate-600 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
               <tr>
-                <th className="py-3.5 px-4">Nama Siswa</th>
-                <th className="py-3.5 px-3">NISN</th>
-                <th className="py-3.5 px-3">Rata Nilai</th>
-                <th className="py-3.5 px-3">% Kehadiran</th>
-                <th className="py-3.5 px-3">4 Pilar EWS</th>
-                <th className="py-3.5 px-3">Status EWS</th>
-                <th className="py-3.5 px-4 text-right">Aksi</th>
+                <th className="py-3 px-4">Nama Siswa</th>
+                <th className="py-3 px-3">NISN</th>
+                <th className="py-3 px-3">Rata Nilai</th>
+                <th className="py-3 px-3">% Kehadiran</th>
+                <th className="py-3 px-3">4 Pilar EWS</th>
+                <th className="py-3 px-3">Status EWS</th>
+                <th className="py-3 px-4 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -556,42 +560,30 @@ export default function GuruKelas({ schoolClass, students: initialStudents = [],
                     key={student.id}
                     className="hover:bg-blue-50/40 transition-colors group"
                   >
-                    <td className="py-4 px-4">
+                    <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center group-hover:border-blue-300">
+                        <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center group-hover:border-blue-300">
                           {student.name.charAt(0)}
                         </div>
                         <div>
-                          <span className="font-bold text-slate-900 block group-hover:text-blue-700 text-xs sm:text-sm">
+                          <span className="font-bold text-slate-900 block group-hover:text-blue-700">
                             {student.name}
                           </span>
-                          <span className="text-xs text-slate-400 font-mono">
+                          <span className="text-[11px] text-slate-400 font-mono">
                             {student.class_name}
                           </span>
                         </div>
                       </div>
                     </td>
 
-                    <td className="py-4 px-3 font-mono text-slate-600 text-xs sm:text-sm">
+                    <td className="py-3.5 px-3 font-mono text-slate-600">
                       {student.nisn}
                     </td>
 
-                    <td className="py-4 px-3">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold font-mono text-slate-800 text-xs sm:text-sm">
-                          {student.avg_score}
-                        </span>
-                        <span
-                          className={cn(
-                            "text-xs font-bold px-1.5 py-0.5 rounded",
-                            student.score_trend === "Naik"
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : student.score_trend === "Turun"
-                              ? "bg-rose-50 text-rose-700 border border-rose-200"
-                              : "bg-slate-100 text-slate-600"
-                          )}
-                        >
-                          {student.score_trend}
+                    <td className="py-3.5 px-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold font-mono text-slate-800">
+                          {student.avg_score !== null && student.avg_score !== undefined ? student.avg_score : "-"}
                         </span>
                         {student.score_trend !== "-" && (
                           <span
@@ -610,41 +602,41 @@ export default function GuruKelas({ schoolClass, students: initialStudents = [],
                       </div>
                     </td>
 
-                    <td className="py-4 px-3">
+                    <td className="py-3.5 px-3">
                       <div>
-                        <span className="font-bold font-mono text-slate-800 text-xs sm:text-sm">
-                          {student.attendance_rate}%
+                        <span className="font-bold font-mono text-slate-800">
+                          {student.attendance_rate !== null && student.attendance_rate !== undefined ? `${student.attendance_rate}%` : "-"}
                         </span>
                         {student.alpa_count > 0 && (
-                          <span className="block text-xs text-rose-600 font-bold">
+                          <span className="block text-[10px] text-rose-600 font-medium">
                             {student.alpa_count}x Alpa
                           </span>
                         )}
                       </div>
                     </td>
 
-                    <td className="py-4 px-3">
+                    <td className="py-3.5 px-3">
                       <PillarIndicators pillars={student.pillars} />
                     </td>
 
-                    <td className="py-4 px-3">
+                    <td className="py-3.5 px-3">
                       <EwsStatusBadge status={student.ews_status} size="sm" />
                     </td>
 
-                    <td className="py-4 px-4 text-right">
+                    <td className="py-3.5 px-4 text-right">
                       <Link
                         href={`/students/${student.id}`}
-                        className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-800 p-2 rounded-xl hover:bg-blue-50 transition-colors"
+                        className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800 p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
                       >
-                        <span>Detail Profil</span>
-                        <ChevronRight className="w-4 h-4" />
+                        <span>Detail</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
                       </Link>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-10 text-center text-sm text-slate-400">
+                  <td colSpan={7} className="py-8 text-center text-xs text-slate-400">
                     Tidak ada data siswa yang cocok dengan filter.
                   </td>
                 </tr>
