@@ -1,251 +1,211 @@
-import React, { useState } from 'react';
-import { Head } from '@inertiajs/react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { Head, Link } from '@inertiajs/react';
+import { motion } from 'framer-motion';
 import {
-    Zap,
+    Shield,
     Sparkles,
-    Layers,
-    Code2,
+    UserCheck,
+    HeartHandshake,
+    Award,
+    Users,
+    ArrowRight,
+    Lock,
+    Zap,
     CheckCircle2,
-    Rocket,
-    Box,
-    Cpu,
-    Flame,
-    Activity
+    LogIn,
+    UserPlus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { EwsStatusBadge } from '@/components/ews/EwsStatusBadge';
 
-interface WelcomeProps {
-    laravelVersion: string;
-    phpVersion: string;
-}
-
-export default function Welcome({ laravelVersion, phpVersion }: WelcomeProps) {
-    const [counter, setCounter] = useState(0);
-    const [activeTab, setActiveTab] = useState<'stack' | 'features' | 'architecture'>('stack');
-
-    const stackItems = [
+export default function Welcome() {
+    const roles = [
         {
-            name: 'Laravel 11',
-            desc: 'Backend framework kuat, aman, dan arsitektur super efisien.',
-            icon: Flame,
-            color: 'text-red-500',
-            bg: 'bg-red-500/10 border-red-500/20',
-            tag: `v${laravelVersion || '11.x'}`
+            title: 'Guru / Wali Kelas',
+            desc: 'Pencatatan observasi perilaku cepat berbantuan AI, skala linear partisipasi, dan pemantauan 4 pilar siswa kelas.',
+            href: '/dashboard/guru-kelas',
+            icon: UserCheck,
+            color: 'text-blue-600',
+            bg: 'bg-blue-50 border-blue-200',
+            badge: 'Kelas 10-MIPA-1',
         },
         {
-            name: 'React 19',
-            desc: 'UI library deklaratif modern dengan React Server Components ready.',
-            icon: Code2,
-            color: 'text-cyan-400',
-            bg: 'bg-cyan-500/10 border-cyan-500/20',
-            tag: 'v19.x'
+            title: 'Guru BK / Konselor',
+            desc: 'Konsolidasi portofolio konseling, watchlist siswa darurat, feed kasus, dan matriks holistik lintas jenjang sekolah.',
+            href: '/dashboard/guru-bk',
+            icon: HeartHandshake,
+            color: 'text-indigo-600',
+            bg: 'bg-indigo-50 border-indigo-200',
+            badge: 'Konselor Sekolah',
         },
         {
-            name: 'Inertia.js v2',
-            desc: 'The Modern Monolith. Jembatan tanpa overhead API/CORS/token ganda.',
-            icon: Layers,
-            color: 'text-purple-400',
-            bg: 'bg-purple-500/10 border-purple-500/20',
-            tag: 'Monolith'
-        },
-        {
-            name: 'Tailwind CSS v4',
-            desc: 'Engine CSS mutakhir dengan performa lightning-fast & CSS native tokens.',
-            icon: Zap,
-            color: 'text-sky-400',
-            bg: 'bg-sky-500/10 border-sky-500/20',
-            tag: 'v4.0'
-        },
-        {
-            name: 'shadcn/ui',
-            desc: 'Komponen UI berkualitas tinggi, fleksibel, dan accessible.',
-            icon: Box,
-            color: 'text-emerald-400',
-            bg: 'bg-emerald-500/10 border-emerald-500/20',
-            tag: 'Radix UI'
-        },
-        {
-            name: 'Framer Motion',
-            desc: 'Animasi gestur & transisi halaman yang halus dan dinamis.',
-            icon: Sparkles,
-            color: 'text-amber-400',
-            bg: 'bg-amber-500/10 border-amber-500/20',
-            tag: 'Motion v13'
+            title: 'Kepala Sekolah',
+            desc: 'Executive summary iklim sekolah, navigasi berbasis anomali siswa kritis, tren akademik vs absensi, dan disposisi.',
+            href: '/dashboard/kepsek',
+            icon: Award,
+            color: 'text-amber-600',
+            bg: 'bg-amber-50 border-amber-200',
+            badge: 'Pimpinan Eksekutif',
         },
     ];
 
     return (
         <>
-            <Head title="Setup Laravel + React + Tailwind v4 + shadcn/ui" />
+            <Head title="BK-EWS AI - Sistem Bimbingan Konseling & Early Warning System" />
 
-            <div className="relative min-h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white overflow-hidden">
-                {/* Subtle Background Glows */}
-                <div className="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
-                <div className="absolute top-1/3 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
-                <div className="absolute -bottom-40 left-1/3 w-96 h-96 bg-cyan-600/15 rounded-full blur-3xl pointer-events-none" />
+            <div className="relative min-h-screen bg-[#F0F3F8] text-slate-900 selection:bg-blue-600 selection:text-white font-sans antialiased overflow-hidden flex flex-col justify-between">
+                {/* Background Soft Glows */}
+                <div className="absolute -top-40 left-1/4 w-[500px] h-[500px] bg-blue-400/15 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute top-1/2 -right-40 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-3xl pointer-events-none" />
 
-                {/* Navbar */}
-                <header className="relative z-10 border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-xl sticky top-0">
-                    <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="size-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                                <Rocket className="size-5 text-white" />
+                {/* Top Navbar */}
+                <header className="relative z-10 border-b border-slate-200/80 bg-white/80 backdrop-blur-xl sticky top-0 px-6 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
+                            <Shield className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-base text-slate-900 tracking-tight">
+                                    BK-EWS AI
+                                </span>
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                                    PRO
+                                </span>
                             </div>
-                            <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-                                Laravel Monolith Stack
-                            </span>
+                            <p className="text-xs text-slate-500">SMA Negeri Terpadu</p>
                         </div>
+                    </div>
 
-                        <div className="flex items-center gap-3">
-                            <Badge variant="outline" className="border-slate-800 bg-slate-900/60 text-slate-300 gap-1.5 py-1 px-3">
-                                <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                                PHP {phpVersion}
-                            </Badge>
-                            <Badge variant="outline" className="border-slate-800 bg-slate-900/60 text-slate-300 gap-1.5 py-1 px-3">
-                                Laravel {laravelVersion}
-                            </Badge>
-                        </div>
+                    <div className="flex items-center gap-3">
+                        <Link
+                            href="/login"
+                            className="text-xs font-bold text-slate-700 hover:text-blue-600 px-3 py-2 rounded-xl transition-colors flex items-center gap-1.5"
+                        >
+                            <LogIn className="w-4 h-4" />
+                            <span>Masuk Sesi</span>
+                        </Link>
+
+                        <Link
+                            href="/register"
+                            className="neo-button bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-md flex items-center gap-1.5 transition-all"
+                        >
+                            <UserPlus className="w-4 h-4" />
+                            <span>Daftar Staf</span>
+                        </Link>
                     </div>
                 </header>
 
                 {/* Hero Section */}
-                <main className="relative z-10 max-w-6xl mx-auto px-6 pt-16 pb-24">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                        className="text-center space-y-6 max-w-3xl mx-auto"
-                    >
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-xs font-semibold">
-                            <Sparkles className="size-3.5" />
-                            <span>Arsitektur Ringan & High Performance</span>
+                <main className="relative z-10 max-w-6xl mx-auto px-6 pt-12 pb-16 space-y-12">
+                    <div className="text-center space-y-5 max-w-3xl mx-auto">
+                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full neo-pill bg-white border border-blue-200/80 text-blue-700 text-xs font-bold shadow-sm">
+                            <Sparkles className="w-4 h-4 text-blue-600" />
+                            <span>Soft Neomorphism + Clean Minimalist SaaS &bull; AI Powered</span>
                         </div>
 
-                        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight">
-                            Laravel + React + Tailwind v4 + <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">shadcn/ui</span>
+                        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight">
+                            Sistem Bimbingan Konseling &amp; <br />
+                            <span className="text-blue-600">AI Early Warning System (EWS)</span>
                         </h1>
 
-                        <p className="text-slate-400 text-base sm:text-lg leading-relaxed">
-                            Fondasi fullstack monolit modern bertenaga <strong className="text-slate-200">Inertia.js</strong>. Terintegrasi dengan icon <strong className="text-slate-200">Lucide</strong> dan animasi <strong className="text-slate-200">Framer Motion</strong>.
+                        <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
+                            Deteksi dini multidimensi berbasis 4 Pilar (Akademik, Kehadiran, Perilaku, Konseling BK) dengan AI Text Structuring, skala linear interaktif, dan kepatuhan privasi data UU PDP.
                         </p>
 
-                        {/* Interactive Framer Motion & shadcn Button Showcase */}
-                        <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
-                            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                                <Button
-                                    size="lg"
-                                    className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 font-semibold gap-2"
-                                    onClick={() => setCounter(c => c + 1)}
-                                >
-                                    <Activity className="size-4" />
-                                    Test State React: {counter} Klik
-                                </Button>
-                            </motion.div>
-
-                            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                                <Button
-                                    variant="outline"
-                                    size="lg"
-                                    className="border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-200"
-                                    onClick={() => setCounter(0)}
-                                >
-                                    Reset Counter
-                                </Button>
-                            </motion.div>
+                        <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+                            <EwsStatusBadge status="NORMAL" />
+                            <EwsStatusBadge status="BERISIKO" />
+                            <EwsStatusBadge status="WASPADA" />
+                            <EwsStatusBadge status="KRITIS" />
                         </div>
-                    </motion.div>
+                    </div>
 
-                    {/* Stack Grid */}
-                    <div className="mt-20">
-                        <div className="flex items-center justify-between mb-8">
+                    {/* Role Gateway Cards */}
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
                             <div>
-                                <h2 className="text-2xl font-bold text-white tracking-tight">Komponen Arsitektur</h2>
-                                <p className="text-slate-400 text-sm">Semua modul telah terkonfigurasi dan siap pakai.</p>
+                                <h2 className="text-lg font-bold text-slate-900 tracking-tight">
+                                    Pilih Dashboard &amp; Modul Kerja
+                                </h2>
+                                <p className="text-xs text-slate-500">
+                                    Akses langsung ke masing-masing persona pengguna sistem
+                                </p>
                             </div>
-                            <Badge className="bg-indigo-600/20 text-indigo-300 border-indigo-500/30">
-                                6 Module Terpasang
-                            </Badge>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                            {stackItems.map((item, index) => {
-                                const Icon = item.icon;
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {roles.map((role, idx) => {
+                                const Icon = role.icon;
                                 return (
                                     <motion.div
-                                        key={item.name}
-                                        initial={{ opacity: 0, y: 20 }}
+                                        key={role.title}
+                                        initial={{ opacity: 0, y: 15 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.4, delay: index * 0.08 }}
+                                        transition={{ duration: 0.35, delay: idx * 0.1 }}
                                     >
-                                        <Card className="bg-slate-900/40 border-slate-800/80 backdrop-blur hover:border-slate-700 transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/5 group h-full flex flex-col justify-between">
-                                            <CardHeader className="space-y-3">
+                                        <Link
+                                            href={role.href}
+                                            className="p-6 rounded-3xl neo-card bg-white border border-white/90 shadow-xl flex flex-col justify-between h-full group hover:border-blue-300 hover:shadow-2xl transition-all cursor-pointer block"
+                                        >
+                                            <div className="space-y-4">
                                                 <div className="flex items-center justify-between">
-                                                    <div className={`p-2.5 rounded-lg border ${item.bg}`}>
-                                                        <Icon className={`size-5 ${item.color}`} />
+                                                    <div className={`p-3 rounded-2xl border ${role.bg}`}>
+                                                        <Icon className={`w-6 h-6 ${role.color}`} />
                                                     </div>
-                                                    <Badge variant="outline" className="border-slate-800 text-slate-400 text-xs">
-                                                        {item.tag}
-                                                    </Badge>
+                                                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                                        {role.badge}
+                                                    </span>
                                                 </div>
-                                                <CardTitle className="text-lg text-white group-hover:text-indigo-300 transition-colors">
-                                                    {item.name}
-                                                </CardTitle>
-                                                <CardDescription className="text-slate-400 text-sm leading-relaxed">
-                                                    {item.desc}
-                                                </CardDescription>
-                                            </CardHeader>
-                                            <CardFooter className="pt-0">
-                                                <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-medium">
-                                                    <CheckCircle2 className="size-3.5" />
-                                                    Siap Digunakan
+
+                                                <div>
+                                                    <h3 className="text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                                                        {role.title}
+                                                    </h3>
+                                                    <p className="text-xs text-slate-600 leading-relaxed mt-1.5">
+                                                        {role.desc}
+                                                    </p>
                                                 </div>
-                                            </CardFooter>
-                                        </Card>
+                                            </div>
+
+                                            <div className="pt-6 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-blue-600 group-hover:translate-x-1 transition-transform">
+                                                <span>Buka Dashboard</span>
+                                                <ArrowRight className="w-4 h-4" />
+                                            </div>
+                                        </Link>
                                     </motion.div>
                                 );
                             })}
                         </div>
                     </div>
 
-                    {/* Why this architecture is lightweight */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        whileInView={{ opacity: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                        className="mt-16 rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900/60 to-slate-950/80 p-8"
-                    >
-                        <div className="flex items-center gap-3 mb-4">
-                            <Cpu className="size-6 text-indigo-400" />
-                            <h3 className="text-xl font-bold text-white">Kenapa Arsitektur Ini Ringan?</h3>
+                    {/* Quick Access to Student Profile 360 */}
+                    <div className="p-6 rounded-3xl neo-card bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <div className="space-y-1.5 text-center sm:text-left">
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-xs font-bold">
+                                <Users className="w-3.5 h-3.5" />
+                                <span>Contoh Lembar Kasus Interaktif</span>
+                            </div>
+                            <h3 className="text-lg font-bold">Lembar Profil Siswa 360° &amp; Rekomendasi Terpadu AI Advisor</h3>
+                            <p className="text-xs text-blue-100 max-w-xl leading-relaxed">
+                                Tinjau evaluasi 2x2 grid 4 pilar EWS untuk Ahmad Fauzi (10-MIPA-1) dengan narasi AI terpadu multi-peran.
+                            </p>
                         </div>
-                        <ul className="grid sm:grid-cols-2 gap-4 text-sm text-slate-300">
-                            <li className="flex items-start gap-2.5">
-                                <CheckCircle2 className="size-4 text-indigo-400 shrink-0 mt-0.5" />
-                                <span><strong>Single Process Server:</strong> Tidak memerlukan backend API server terpisah & node server terpisah saat production.</span>
-                            </li>
-                            <li className="flex items-start gap-2.5">
-                                <CheckCircle2 className="size-4 text-indigo-400 shrink-0 mt-0.5" />
-                                <span><strong>Zero API Boilerplate:</strong> Data langsung di-pass dari Controller Laravel ke props React tanpa serialisasi REST/GraphQL.</span>
-                            </li>
-                            <li className="flex items-start gap-2.5">
-                                <CheckCircle2 className="size-4 text-indigo-400 shrink-0 mt-0.5" />
-                                <span><strong>Tailwind v4 Engine:</strong> Kompilasi CSS hingga 5x lebih cepat dibanding v3, tanpa file tailwind.config.js besar.</span>
-                            </li>
-                            <li className="flex items-start gap-2.5">
-                                <CheckCircle2 className="size-4 text-indigo-400 shrink-0 mt-0.5" />
-                                <span><strong>shadcn Copy-Paste Model:</strong> Tanpa beban package runtime raksasa; hanya kode komponen yang Anda butuhkan yang masuk ke bundle.</span>
-                            </li>
-                        </ul>
-                    </motion.div>
+
+                        <Link
+                            href="/students/1"
+                            className="neo-button bg-white text-blue-700 hover:bg-blue-50 text-xs font-bold px-5 py-3 rounded-2xl shadow-lg flex items-center gap-2 shrink-0 transition-transform hover:scale-105"
+                        >
+                            <span>Lihat Profil Siswa #1</span>
+                            <ArrowRight className="w-4 h-4" />
+                        </Link>
+                    </div>
                 </main>
 
                 {/* Footer */}
-                <footer className="relative z-10 border-t border-slate-800/80 py-8 text-center text-xs text-slate-500">
-                    <p>Setup otomatis oleh AI Assistant &bull; Siap untuk pengembangan aplikasi modern.</p>
+                <footer className="relative z-10 border-t border-slate-200/80 bg-white/50 backdrop-blur-md py-6 text-center text-xs text-slate-500 space-y-1">
+                    <p className="font-semibold text-slate-700">Sistem BK-EWS AI &bull; SMA Negeri Terpadu 2026</p>
+                    <p className="text-[11px] text-slate-400">Arsitektur Laravel 13 + Inertia React 19 + Tailwind v4 + Soft Neomorphism</p>
                 </footer>
             </div>
         </>
