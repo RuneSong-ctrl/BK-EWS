@@ -49,16 +49,17 @@ interface KepsekProps {
 export default function Kepsek({ stats, priorityStudents = [], escalatedCases = [] }: KepsekProps) {
   const [isDisposed, setIsDisposed] = React.useState(false)
 
-  const total = stats?.total_students || 120
-  const normalCount = stats?.normal_count || 105
-  const berisikoCount = stats?.berisiko_count || 8
-  const waspadaCount = stats?.waspada_count || 5
-  const kritisCount = stats?.kritis_count || 2
+  const total = stats?.total_students || 0
+  const normalCount = stats?.normal_count || 0
+  const berisikoCount = stats?.berisiko_count || 0
+  const waspadaCount = stats?.waspada_count || 0
+  const kritisCount = stats?.kritis_count || 0
+  const dataBelumLengkapCount = stats?.data_belum_lengkap_count || 0
 
-  const normalPct = Math.round((normalCount / total) * 100) || 88
-  const berisikoPct = Math.round((berisikoCount / total) * 100) || 7
-  const waspadaPct = Math.round((waspadaCount / total) * 100) || 4
-  const kritisPct = Math.round((kritisCount / total) * 100) || 1
+  const normalPct = total > 0 ? Math.round((normalCount / total) * 100) : 0
+  const berisikoPct = total > 0 ? Math.round((berisikoCount / total) * 100) : 0
+  const waspadaPct = total > 0 ? Math.round((waspadaCount / total) * 100) : 0
+  const kritisPct = total > 0 ? Math.round((kritisCount / total) * 100) : 0
 
   const handleDisposisi = () => {
     setIsDisposed(true)
@@ -78,63 +79,63 @@ export default function Kepsek({ stats, priorityStudents = [], escalatedCases = 
     >
       {/* Top 5 Executive Metric Cards - Scaled for 14"-16" screens */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[120px] hover:border-slate-300 transition-all">
+        <div className="p-5 rounded-2xl neo-card flex flex-col justify-between h-[120px]">
           <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-            Total Siswa
+            Total Siswa Terdata
           </span>
           <div>
-            <div className="text-3xl font-bold text-slate-900 tracking-tight font-mono">
-              1.248
+            <div className="text-3xl font-extrabold text-slate-900 tracking-tight font-mono">
+              {total}
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">Seluruh Jenjang (36 Kelas)</p>
+            <p className="text-xs text-slate-500 mt-0.5">Siswa Terdaftar</p>
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[120px] hover:border-slate-300 transition-all">
+        <div className="p-5 rounded-2xl neo-card flex flex-col justify-between h-[120px]">
           <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">
             Status Normal
           </span>
           <div>
-            <div className="text-3xl font-bold text-emerald-600 tracking-tight font-mono">
-              88%
+            <div className="text-3xl font-extrabold text-emerald-600 tracking-tight font-mono">
+              {normalPct}%
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">1.098 Siswa Kondusif</p>
+            <p className="text-xs text-slate-500 mt-0.5">{normalCount} Siswa Kondusif</p>
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[120px] hover:border-slate-300 transition-all">
+        <div className="p-5 rounded-2xl neo-card flex flex-col justify-between h-[120px]">
           <span className="text-xs font-bold uppercase tracking-wider text-amber-600">
             Status Berisiko
           </span>
           <div>
-            <div className="text-3xl font-bold text-amber-600 tracking-tight font-mono">
-              8%
+            <div className="text-3xl font-extrabold text-amber-600 tracking-tight font-mono">
+              {berisikoPct}%
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">100 Siswa Terpantau</p>
+            <p className="text-xs text-slate-500 mt-0.5">{berisikoCount} Siswa Terpantau</p>
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[120px] hover:border-slate-300 transition-all">
+        <div className="p-5 rounded-2xl neo-card flex flex-col justify-between h-[120px]">
           <span className="text-xs font-bold uppercase tracking-wider text-orange-600">
             Status Waspada
           </span>
           <div>
-            <div className="text-3xl font-bold text-orange-600 tracking-tight font-mono">
-              3%
+            <div className="text-3xl font-extrabold text-orange-600 tracking-tight font-mono">
+              {waspadaPct}%
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">38 Siswa Intervensi</p>
+            <p className="text-xs text-slate-500 mt-0.5">{waspadaCount} Siswa Atensi</p>
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white border border-rose-200 shadow-xs flex flex-col justify-between h-[120px] hover:border-rose-300 transition-all">
+        <div className="p-5 rounded-2xl neo-card flex flex-col justify-between h-[120px]">
           <span className="text-xs font-bold uppercase tracking-wider text-rose-600">
             Status Kritis
           </span>
           <div>
-            <div className="text-3xl font-bold text-rose-600 tracking-tight font-mono">
-              1%
+            <div className="text-3xl font-extrabold text-rose-600 tracking-tight font-mono">
+              {kritisCount}
             </div>
-            <p className="text-xs text-rose-600 font-bold mt-0.5">2 Siswa Butuh Tindakan</p>
+            <p className="text-xs text-slate-500 mt-0.5">{kritisPct}% Butuh Intervensi</p>
           </div>
         </div>
       </div>
@@ -142,7 +143,7 @@ export default function Kepsek({ stats, priorityStudents = [], escalatedCases = 
       {/* Hero Exception Alert Card */}
       <section
         id="prioritas"
-        className="p-6 sm:p-8 rounded-3xl bg-white border border-rose-200 shadow-xs space-y-5 relative overflow-hidden scroll-mt-20"
+        className="p-6 sm:p-8 rounded-3xl neo-card space-y-5 relative overflow-hidden scroll-mt-20 border border-rose-200"
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-rose-100 pb-4">
           <div className="flex items-center gap-3.5">
@@ -151,10 +152,10 @@ export default function Kepsek({ stats, priorityStudents = [], escalatedCases = 
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-                Peringatan Dini Eksekutif: 2 Siswa Kritis Memerlukan Atensi Segera
+                Peringatan Dini Eksekutif: {priorityStudents.length} Siswa Memerlukan Atensi
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
-                Peringatan aktif pemicu presensi alpa tinggi dan anomali perilaku
+                Peringatan aktif pemicu presensi, nilai akademik, atau anomali perilaku
               </p>
             </div>
           </div>
@@ -165,47 +166,35 @@ export default function Kepsek({ stats, priorityStudents = [], escalatedCases = 
         </div>
 
         {/* Student Anomaly List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-rose-200/80 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-sm sm:text-base text-slate-900">Dimas Pratama</span>
-                <span className="text-xs text-slate-400 font-mono">11-IPS-2</span>
+        {priorityStudents.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {priorityStudents.map((std) => (
+              <div key={std.id} className="p-4 sm:p-5 rounded-2xl neo-card-subtle bg-[#EEF2F7] space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-sm sm:text-base text-slate-900">{std.name}</span>
+                    <span className="text-xs text-slate-400 font-mono">{std.class_name}</span>
+                  </div>
+                  <EwsStatusBadge status={std.status as any} size="sm" />
+                </div>
+                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                  <strong className="text-rose-700 font-bold">Pemicu:</strong> {std.triggers?.join(", ") || "Terdeteksi indikator anomali EWS."}
+                </p>
+                <div className="pt-2.5 flex items-center justify-between text-xs sm:text-sm border-t border-slate-200/80">
+                  <span className="text-xs text-slate-500">NIS: {std.nis}</span>
+                  <Link href={`/students/${std.id}`} className="font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                    <span>Profil 360°</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
+                </div>
               </div>
-              <EwsStatusBadge status="KRITIS" size="sm" />
-            </div>
-            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
-              <strong className="text-rose-700 font-bold">Anomali:</strong> Alpa 4 hari berturut-turut, rata-rata nilai turun drastis, dan terindikasi penurunan interaksi belajar.
-            </p>
-            <div className="pt-2.5 flex items-center justify-between text-xs sm:text-sm border-t border-slate-200">
-              <span className="text-xs text-slate-500">Wali: Budi Santoso, S.Pd.</span>
-              <Link href="/students/5" className="font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                <span>Profil 360°</span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
+            ))}
           </div>
-
-          <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-rose-200/80 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-sm sm:text-base text-slate-900">Reza Mahendra</span>
-                <span className="text-xs text-slate-400 font-mono">10-MIPA-3</span>
-              </div>
-              <EwsStatusBadge status="KRITIS" size="sm" />
-            </div>
-            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
-              <strong className="text-rose-700 font-bold">Anomali:</strong> Pelanggaran tata tertib tercatat di lembar BK dan membutuhkan pendampingan konseling lanjutan.
-            </p>
-            <div className="pt-2.5 flex items-center justify-between text-xs sm:text-sm border-t border-slate-200">
-              <span className="text-xs text-slate-500">Konselor: Rahmawati, M.Psi.</span>
-              <Link href="/students/7" className="font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                <span>Profil 360°</span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
+        ) : (
+          <div className="p-6 rounded-2xl neo-inset text-center text-xs sm:text-sm text-slate-500">
+            Belum ada siswa dengan status kritis atau waspada. Kondisi sekolah saat ini dalam status kondusif.
           </div>
-        </div>
+        )}
 
         {/* Executive Action Bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-rose-100">

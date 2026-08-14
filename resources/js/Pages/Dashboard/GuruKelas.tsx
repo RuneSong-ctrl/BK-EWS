@@ -12,7 +12,7 @@ import {
   BookOpen,
   Save,
 } from "lucide-react"
-import { Link } from "@inertiajs/react"
+import { Link, router } from "@inertiajs/react"
 import { AppLayout } from "@/Layouts/AppLayout"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -38,81 +38,6 @@ interface StudentRow {
   ews_status: EwsStatus
 }
 
-const mockStudents: StudentRow[] = [
-  {
-    id: 1,
-    name: "Ahmad Fauzi",
-    nisn: "0089218821",
-    class_name: "10-MIPA-1",
-    avg_score: 62.5,
-    score_trend: "Turun",
-    attendance_rate: 82.0,
-    alpa_count: 4,
-    pillars: { ak: "WASPADA", kh: "WASPADA", pr: "BERISIKO", bk: "NORMAL" },
-    ews_status: "WASPADA",
-  },
-  {
-    id: 2,
-    name: "Annisa Larasati",
-    nisn: "0089218822",
-    class_name: "10-MIPA-1",
-    avg_score: 88.0,
-    score_trend: "Naik",
-    attendance_rate: 100.0,
-    alpa_count: 0,
-    pillars: { ak: "NORMAL", kh: "NORMAL", pr: "NORMAL", bk: "NORMAL" },
-    ews_status: "NORMAL",
-  },
-  {
-    id: 3,
-    name: "Budi Santoso",
-    nisn: "0089218823",
-    class_name: "10-MIPA-1",
-    avg_score: 71.0,
-    score_trend: "Stabil",
-    attendance_rate: 91.5,
-    alpa_count: 1,
-    pillars: { ak: "BERISIKO", kh: "NORMAL", pr: "BERISIKO", bk: "NORMAL" },
-    ews_status: "BERISIKO",
-  },
-  {
-    id: 4,
-    name: "Citra Dewi",
-    nisn: "0089218824",
-    class_name: "10-MIPA-1",
-    avg_score: 94.5,
-    score_trend: "Naik",
-    attendance_rate: 98.0,
-    alpa_count: 0,
-    pillars: { ak: "NORMAL", kh: "NORMAL", pr: "NORMAL", bk: "NORMAL" },
-    ews_status: "NORMAL",
-  },
-  {
-    id: 5,
-    name: "Dimas Pratama",
-    nisn: "0089218825",
-    class_name: "10-MIPA-1",
-    avg_score: 54.0,
-    score_trend: "Turun",
-    attendance_rate: 76.5,
-    alpa_count: 5,
-    pillars: { ak: "KRITIS", kh: "WASPADA", pr: "BERISIKO", bk: "NORMAL" },
-    ews_status: "KRITIS",
-  },
-  {
-    id: 6,
-    name: "Eka Putri",
-    nisn: "0089218826",
-    class_name: "10-MIPA-1",
-    avg_score: 79.0,
-    score_trend: "Stabil",
-    attendance_rate: 94.0,
-    alpa_count: 0,
-    pillars: { ak: "NORMAL", kh: "NORMAL", pr: "NORMAL", bk: "NORMAL" },
-    ews_status: "NORMAL",
-  },
-]
-
 interface GuruKelasProps {
   schoolClass?: {
     id: number
@@ -132,7 +57,7 @@ interface GuruKelasProps {
 }
 
 export default function GuruKelas({ schoolClass, students: initialStudents = [], stats }: GuruKelasProps) {
-  const studentList = initialStudents.length > 0 ? initialStudents : mockStudents
+  const studentList = initialStudents
   const className = schoolClass?.name || "10-MIPA-1"
 
   const [selectedStudent, setSelectedStudent] = React.useState<StudentOption | null>(
@@ -146,25 +71,23 @@ export default function GuruKelas({ schoolClass, students: initialStudents = [],
         }
       : null
   )
-  const [observationDate, setObservationDate] = React.useState("2026-08-14")
-  const [participationScore, setParticipationScore] = React.useState(2)
-  const [homeworkScore, setHomeworkScore] = React.useState(2)
-  const [quizScore, setQuizScore] = React.useState(55)
-  const [rawText, setRawText] = React.useState(
-    "Siswa terlihat pasif 3 hari ini dan menolak bergabung saat kerja kelompok tugas biologi. Sering melamun saat diterangkan."
-  )
+  const [observationDate, setObservationDate] = React.useState(new Date().toISOString().split("T")[0])
+  const [participationScore, setParticipationScore] = React.useState(3)
+  const [homeworkScore, setHomeworkScore] = React.useState(3)
+  const [quizScore, setQuizScore] = React.useState(75)
+  const [rawText, setRawText] = React.useState("")
 
   // AI Modal State
   const [isAiModalOpen, setIsAiModalOpen] = React.useState(false)
   const [isAiLoading, setIsAiLoading] = React.useState(false)
   const [aiData, setAiData] = React.useState<AiStructuredResult>({
-    student_name: studentList[0]?.name || "Ahmad Fauzi",
-    raw_text: rawText,
+    student_name: studentList[0]?.name || "Siswa",
+    raw_text: "",
     category: "MENARIK_DIRI",
     severity: "SEDANG",
-    summary: "Menunjukkan indikasi isolasi sosial, pasif di kelas, dan keengganan berinteraksi kelompok.",
-    recommendation: "Lakukan mediasi wali kelas dan amati dinamika kelompok belajar siswa.",
-    confidence_score: 94,
+    summary: "Hasil analisis AI Gemini akan muncul di sini.",
+    recommendation: "Rekomendasi tindak lanjut guru kelas.",
+    confidence_score: 95,
   })
 
   // Table Filter
@@ -239,21 +162,50 @@ export default function GuruKelas({ schoolClass, students: initialStudents = [],
       raw_text: rawText,
       category: "MENARIK_DIRI",
       severity: participationScore <= 2 ? "SEDANG" : "RINGAN",
-      summary: `Menunjukkan skor partisipasi (${participationScore}/5) dengan indikasi penarikan diri sosial dan perlambatan pemahaman materi (${quizScore}%).`,
-      recommendation: "Lakukan dialog empatik wali kelas dan pantau tren 3 hari ke depan.",
-      confidence_score: 92,
+      summary: `Catatan observasi guru: "${rawText.substring(0, 80)}..."`,
+      recommendation: "Lakukan dialog empatik wali kelas dan pantau perkembangan siswa.",
+      confidence_score: 90,
     })
     setIsAiModalOpen(true)
     setIsAiLoading(false)
   }
 
   const handleSaveObservation = (data: AiStructuredResult) => {
-    toast({
-      title: "Observasi Berhasil Disimpan",
-      description: `Observasi untuk ${data.student_name} telah distrukturkan dan tersimpan ke basis data.`,
-      variant: "success",
-    })
-    setRawText("")
+    if (!selectedStudent) return
+
+    router.post(
+      "/guru-kelas/observations",
+      {
+        student_id: selectedStudent.id,
+        date: observationDate,
+        category: data.category,
+        severity: data.severity,
+        raw_text: data.raw_text,
+        ai_structured_summary: data.summary,
+      },
+      {
+        preserveScroll: true,
+        onSuccess: () => {
+          toast({
+            title: "Observasi Berhasil Disimpan",
+            description: `Observasi untuk ${data.student_name} telah tersimpan dan EWS telah diperbarui.`,
+            variant: "success",
+          })
+          setRawText("")
+        },
+        onError: (errors) => {
+          toast({
+            title: "Gagal Menyimpan Observasi",
+            description: Object.values(errors).join(", "),
+            variant: "destructive",
+          })
+        },
+      }
+    )
+  }
+
+  const handleFastAiObservation = () => {
+    handleStructureWithAi()
   }
 
   const handleManualSave = () => {
@@ -274,16 +226,29 @@ export default function GuruKelas({ schoolClass, students: initialStudents = [],
     setRawText("")
   }
 
-  const filteredStudents = mockStudents.filter((s) => {
-    const matchQuery =
-      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.nisn.includes(searchQuery)
-    const matchStatus = statusFilter === "ALL" || s.ews_status === statusFilter
-    return matchQuery && matchStatus
+  const filteredStudents = studentList.filter((student) => {
+    const matchSearch =
+      student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.nisn.includes(searchQuery)
+    const matchStatus =
+      statusFilter === "ALL" || student.ews_status === statusFilter
+    return matchSearch && matchStatus
   })
 
   const totalCount = stats?.total_students || studentList.length
-  const atensiCount = (stats?.kritis_count || 0) + (stats?.waspada_count || 0) + (stats?.berisiko_count || 0)
+  const atensiCount =
+    (stats?.kritis_count || 0) +
+    (stats?.waspada_count || 0) +
+    (stats?.berisiko_count || 0)
+
+  const studentsWithAtt = studentList.filter((s) => s.attendance_rate !== null && s.attendance_rate !== undefined)
+  const avgAttDisplay =
+    studentsWithAtt.length > 0
+      ? (
+          studentsWithAtt.reduce((acc, curr) => acc + (Number(curr.attendance_rate) || 0), 0) /
+          studentsWithAtt.length
+        ).toFixed(1) + "%"
+      : "-"
 
   return (
     <AppLayout
@@ -292,53 +257,53 @@ export default function GuruKelas({ schoolClass, students: initialStudents = [],
       title={`Ringkasan Evaluasi & Jurnal Kelas ${className}`}
       subtitle="Pencatatan observasi perilaku siswa berbantuan AI dan pemantauan 4 pilar EWS"
     >
-      {/* Top 3 Stat Cards - Scaled for 14"-16" screens */}
+      {/* Top 3 Stat Cards - Soft Neumorphic */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
         {/* Card 1 */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[130px] hover:border-slate-300 transition-all">
+        <div className="p-5 sm:p-6 rounded-2xl neo-card flex flex-col justify-between h-[130px]">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Total Siswa Kelas
             </span>
-            <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+            <div className="w-9 h-9 rounded-xl neo-btn text-blue-600 flex items-center justify-center">
               <Users className="w-5 h-5" />
             </div>
           </div>
           <div>
-            <div className="text-3xl font-bold text-slate-900 tracking-tight font-mono">36 Siswa</div>
-            <p className="text-xs text-slate-500 mt-0.5">Kelas 10-MIPA-1 &bull; TP 2026/2027</p>
+            <div className="text-3xl font-extrabold text-slate-900 tracking-tight font-mono">{totalCount} Siswa</div>
+            <p className="text-xs text-slate-500 mt-0.5">Kelas {className} &bull; TP 2026/2027</p>
           </div>
         </div>
 
         {/* Card 2 */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[130px] hover:border-slate-300 transition-all">
+        <div className="p-5 sm:p-6 rounded-2xl neo-card flex flex-col justify-between h-[130px]">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Rata-rata Presensi
             </span>
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+            <div className="w-9 h-9 rounded-xl neo-btn text-emerald-600 flex items-center justify-center">
               <TrendingUp className="w-5 h-5" />
             </div>
           </div>
           <div>
-            <div className="text-3xl font-bold text-slate-900 tracking-tight font-mono">97.4%</div>
-            <p className="text-xs text-slate-500 mt-0.5">Bulan Berjalan &bull; 2 Alpa Terdata</p>
+            <div className="text-3xl font-extrabold text-slate-900 tracking-tight font-mono">{avgAttDisplay}</div>
+            <p className="text-xs text-slate-500 mt-0.5">Bulan Berjalan</p>
           </div>
         </div>
 
         {/* Card 3 */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[130px] hover:border-slate-300 transition-all">
+        <div className="p-5 sm:p-6 rounded-2xl neo-card flex flex-col justify-between h-[130px]">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Perlu Atensi (EWS)
             </span>
-            <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+            <div className="w-9 h-9 rounded-xl neo-btn text-amber-600 flex items-center justify-center">
               <AlertTriangle className="w-5 h-5" />
             </div>
           </div>
           <div>
-            <div className="text-3xl font-bold text-slate-900 tracking-tight font-mono">4 Siswa</div>
-            <p className="text-xs text-slate-500 mt-0.5">1 Kritis &bull; 1 Waspada &bull; 2 Berisiko</p>
+            <div className="text-3xl font-extrabold text-slate-900 tracking-tight font-mono">{atensiCount} Siswa</div>
+            <p className="text-xs text-slate-500 mt-0.5">{stats?.kritis_count || 0} Kritis &bull; {stats?.waspada_count || 0} Waspada</p>
           </div>
         </div>
       </div>

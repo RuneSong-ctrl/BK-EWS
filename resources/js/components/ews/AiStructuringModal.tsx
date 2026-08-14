@@ -107,11 +107,11 @@ export function AiStructuringModal({
                   </SelectTrigger>
                   <SelectContent className="bg-white border border-slate-200 shadow-2xl z-[99999]">
                     <SelectItem value="MENARIK_DIRI">Menarik Diri / Isolasi</SelectItem>
-                    <SelectItem value="DISRUPSI_KELAS">Disrupsi Kelas / Gaduh</SelectItem>
-                    <SelectItem value="KEDISIPLINAN">Kedisiplinan / Keterlambatan</SelectItem>
-                    <SelectItem value="AGRESI_VERBAL">Agresi Verbal / Konflik</SelectItem>
-                    <SelectItem value="BULLYING_TERDUGA">Terduga Bullying / Intimidasi</SelectItem>
-                    <SelectItem value="PROSOSIAL">Perilaku Positif / Kolaboratif</SelectItem>
+                    <SelectItem value="TIDAK_FOKUS">Tidak Fokus / Disrupsi Belajar</SelectItem>
+                    <SelectItem value="PELANGGARAN_ATURAN">Pelanggaran Tata Tertib / Aturan</SelectItem>
+                    <SelectItem value="AGRESIF_VERBAL">Agresi Verbal / Konflik Teman</SelectItem>
+                    <SelectItem value="AGRESIF_FISIK">Agresi Fisik / Perundungan</SelectItem>
+                    <SelectItem value="PERILAKU_POSITIF">Perilaku Positif / Kolaboratif</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -74,7 +74,8 @@ Output WAJIB berupa JSON murni:
 }
 PROMPT;
 
-        $response = Http::timeout(10)
+        $response = Http::withoutVerifying()
+            ->timeout(10)
             ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
                 'contents' => [
                     [

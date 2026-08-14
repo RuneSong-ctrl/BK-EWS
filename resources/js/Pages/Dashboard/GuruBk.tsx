@@ -16,7 +16,7 @@ import {
   Lock,
   Save,
 } from "lucide-react"
-import { Link } from "@inertiajs/react"
+import { Link, router } from "@inertiajs/react"
 import { AppLayout } from "@/Layouts/AppLayout"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -51,140 +51,6 @@ interface HolisticStudentItem {
   trigger_reason: string
 }
 
-const mockAllStudents: StudentOption[] = [
-  { id: 1, name: "Ahmad Fauzi", nisn: "0089218821", class_name: "10-MIPA-1", ews_status: "WASPADA" },
-  { id: 2, name: "Annisa Larasati", nisn: "0089218822", class_name: "10-MIPA-1", ews_status: "NORMAL" },
-  { id: 3, name: "Budi Santoso", nisn: "0089218823", class_name: "10-MIPA-1", ews_status: "BERISIKO" },
-  { id: 4, name: "Citra Dewi", nisn: "0089218824", class_name: "10-MIPA-1", ews_status: "NORMAL" },
-  { id: 5, name: "Dimas Pratama", nisn: "0089218825", class_name: "11-IPS-2", ews_status: "KRITIS" },
-  { id: 6, name: "Eka Putri", nisn: "0089218826", class_name: "10-MIPA-1", ews_status: "NORMAL" },
-  { id: 7, name: "Reza Mahendra", nisn: "0089218827", class_name: "10-MIPA-3", ews_status: "KRITIS" },
-  { id: 8, name: "Siti Nurhaliza", nisn: "0089218828", class_name: "11-MIPA-2", ews_status: "WASPADA" },
-]
-
-const mockWatchlist = [
-  {
-    id: 5,
-    name: "Dimas Pratama",
-    class_name: "11-IPS-2",
-    trigger: "Alpa 4 Hari Beruntun + Rata Nilai 54 (Turun)",
-    status: "KRITIS" as EwsStatus,
-    urgency: "Mendesak (Tindak Lanjut Segera)",
-  },
-  {
-    id: 7,
-    name: "Reza Mahendra",
-    class_name: "10-MIPA-3",
-    trigger: "Kasus Pelanggaran Berat Terdaftar & Menolak Mediasi",
-    status: "KRITIS" as EwsStatus,
-    urgency: "Konferensi Kasus Bersama Kepsek",
-  },
-  {
-    id: 1,
-    name: "Ahmad Fauzi",
-    class_name: "10-MIPA-1",
-    trigger: "Isolasi Sosial & Nilai Matematika <45",
-    status: "WASPADA" as EwsStatus,
-    urgency: "Sesi Konseling Individu Tahap 2",
-  },
-]
-
-const mockRecentCases: BkCaseItem[] = [
-  {
-    id: 101,
-    title: "Mediasi Konflik Antar Siswa (Kerja Kelompok)",
-    student_name: "Dimas Pratama & Tim",
-    class_name: "11-IPS-2",
-    severity: "SEDANG",
-    status: "DALAM_PROSES",
-    date: "14 Agu 2026",
-    counselor: "Rahmawati, M.Psi.",
-  },
-  {
-    id: 102,
-    title: "Pelanggaran Tata Tertib & Indikasi Intimidasi",
-    student_name: "Reza Mahendra",
-    class_name: "10-MIPA-3",
-    severity: "BERAT",
-    status: "DIESKALASI_KE_KEPSEK",
-    date: "13 Agu 2026",
-    counselor: "Rahmawati, M.Psi.",
-  },
-  {
-    id: 103,
-    title: "Bimbingan Motivasi Belajar & Manajemen Waktu",
-    student_name: "Ahmad Fauzi",
-    class_name: "10-MIPA-1",
-    severity: "RINGAN",
-    status: "DALAM_PROSES",
-    date: "12 Agu 2026",
-    counselor: "Rahmawati, M.Psi.",
-  },
-  {
-    id: 104,
-    title: "Pendampingan Pasca Pemulihan Trauma Sakit Kronis",
-    student_name: "Siti Nurhaliza",
-    class_name: "11-MIPA-2",
-    severity: "SEDANG",
-    status: "SELESAI",
-    date: "10 Agu 2026",
-    counselor: "Rahmawati, M.Psi.",
-  },
-]
-
-const mockHolisticMatrix: HolisticStudentItem[] = [
-  {
-    id: 5,
-    name: "Dimas Pratama",
-    nisn: "0089218825",
-    class_name: "11-IPS-2",
-    grade: "XI",
-    pillars: { ak: "KRITIS", kh: "WASPADA", pr: "BERISIKO", bk: "NORMAL" },
-    ews_status: "KRITIS",
-    trigger_reason: "Penurunan nilai drastis & alpa beruntun",
-  },
-  {
-    id: 7,
-    name: "Reza Mahendra",
-    nisn: "0089218827",
-    class_name: "10-MIPA-3",
-    grade: "X",
-    pillars: { ak: "NORMAL", kh: "NORMAL", pr: "WASPADA", bk: "KRITIS" },
-    ews_status: "KRITIS",
-    trigger_reason: "Kasus pelanggaran berat terdaftar",
-  },
-  {
-    id: 1,
-    name: "Ahmad Fauzi",
-    nisn: "0089218821",
-    class_name: "10-MIPA-1",
-    grade: "X",
-    pillars: { ak: "WASPADA", kh: "WASPADA", pr: "BERISIKO", bk: "NORMAL" },
-    ews_status: "WASPADA",
-    trigger_reason: "Alpa 4 hari & isolasi sosial",
-  },
-  {
-    id: 8,
-    name: "Siti Nurhaliza",
-    nisn: "0089218828",
-    class_name: "11-MIPA-2",
-    grade: "XI",
-    pillars: { ak: "NORMAL", kh: "WASPADA", pr: "NORMAL", bk: "NORMAL" },
-    ews_status: "WASPADA",
-    trigger_reason: "Kehadiran menurun pasca pemulihan",
-  },
-  {
-    id: 3,
-    name: "Budi Santoso",
-    nisn: "0089218823",
-    class_name: "10-MIPA-1",
-    grade: "X",
-    pillars: { ak: "BERISIKO", kh: "NORMAL", pr: "BERISIKO", bk: "NORMAL" },
-    ews_status: "BERISIKO",
-    trigger_reason: "Nilai ulangan di bawah KKM & pasif",
-  },
-]
-
 interface GuruBkProps {
   students?: { data: any[] }
   stats?: {
@@ -202,26 +68,25 @@ interface GuruBkProps {
 }
 
 export default function GuruBk({
+  students,
   stats,
-  watchlist: initialWatchlist,
-  recentCases: initialRecentCases,
-  allStudentOptions: initialStudentOptions,
+  watchlist: initialWatchlist = [],
+  recentCases: initialRecentCases = [],
+  allStudentOptions: initialStudentOptions = [],
 }: GuruBkProps) {
-  const studentOptions = (initialStudentOptions && initialStudentOptions.length > 0) ? initialStudentOptions : mockAllStudents
-  const watchlist = (initialWatchlist && initialWatchlist.length > 0) ? initialWatchlist : mockWatchlist
-  const recentCases = (initialRecentCases && initialRecentCases.length > 0) ? initialRecentCases : mockRecentCases
+  const studentOptions = initialStudentOptions
+  const watchlist = initialWatchlist
+  const recentCases = initialRecentCases
 
   const [selectedStudent, setSelectedStudent] = React.useState<StudentOption | null>(
     studentOptions.length > 0 ? studentOptions[0] : null
   )
-  const [urgencyScore, setUrgencyScore] = React.useState(4)
+  const [urgencyScore, setUrgencyScore] = React.useState(3)
   const [rapportScore, setRapportScore] = React.useState(3)
-  const [resolutionProgress, setResolutionProgress] = React.useState(40)
+  const [resolutionProgress, setResolutionProgress] = React.useState(0)
   const [sessionType, setSessionType] = React.useState("KONSELING_INDIVIDU")
-  const [confidentialNotes, setConfidentialNotes] = React.useState(
-    "Siswa mengeluhkan tekanan akademik dan masalah penyesuaian sosial di kelas. Mulai terbuka setelah eksplorasi minat karir. Disepakati target kehadiran mingguan."
-  )
-  const [callParent, setCallParent] = React.useState(true)
+  const [confidentialNotes, setConfidentialNotes] = React.useState("")
+  const [callParent, setCallParent] = React.useState(false)
   const [referPsychologist, setReferPsychologist] = React.useState(false)
   const [escalateKepsek, setEscalateKepsek] = React.useState(false)
 
@@ -229,13 +94,13 @@ export default function GuruBk({
   const [isAiModalOpen, setIsAiModalOpen] = React.useState(false)
   const [isAiLoading, setIsAiLoading] = React.useState(false)
   const [aiBkData, setAiBkData] = React.useState<AiBkStructuredResult>({
-    student_name: "Dimas Pratama",
-    raw_text: confidentialNotes,
-    case_category: "TEKANAN_AKADEMIK",
+    student_name: studentOptions[0]?.name || "Siswa",
+    raw_text: "",
+    case_category: "PSIKOSOSIAL_ADAPTASI",
     urgency_level: "SEDANG",
-    psychosocial_summary: "Terdeteksi beban mental terkait ekspektasi akademik dan hambatan interaksi sosial di kelas.",
-    counselor_intervention: "Bimbingan regulasi emosi dan kontrak komitmen presensi 100% dalam 2 pekan.",
-    follow_up_action: "Panggil orang tua dan pemantauan wali kelas.",
+    psychosocial_summary: "Analisis konseling akan dibuat di sini.",
+    counselor_intervention: "Rencana intervensi konselor.",
+    follow_up_action: "Tindak lanjut pendampingan.",
     confidence_score: 95,
   })
 
@@ -271,9 +136,9 @@ export default function GuruBk({
         raw_text: confidentialNotes,
         case_category: urgencyScore >= 4 ? "KEDISIPLINAN_TATA_TERTIB" : "PSIKOSOSIAL_ADAPTASI",
         urgency_level: urgencyScore >= 4 ? "BERAT" : urgencyScore === 3 ? "SEDANG" : "RINGAN",
-        psychosocial_summary: `Siswa menunjukkan indeks keterbukaan (${rapportScore}/5) dengan progres resolusi (${resolutionProgress}%). Diperlukan tindak lanjut terarah terkait kehadiran dan beban belajar.`,
-        counselor_intervention: "Lanjutkan konseling individu lanjutan, koordinasikan dengan wali kelas untuk pemantauan harian, dan pertimbangkan mediasi keluarga jika diperlukan.",
-        follow_up_action: callParent ? "Konferensi kasus dengan orang tua" : "Konseling lanjutan pekan depan",
+        psychosocial_summary: `Analisis catatan konseling: "${confidentialNotes.substring(0, 100)}..."`,
+        counselor_intervention: "Lakukan pendampingan konseling individu terstruktur dan pantau dinamika belajar di kelas.",
+        follow_up_action: callParent ? "Komunikasi koordinasi dengan orang tua" : "Konseling lanjutan pekan depan",
         confidence_score: 94,
       })
       setIsAiLoading(false)
@@ -282,12 +147,41 @@ export default function GuruBk({
   }
 
   const handleConfirmAiData = (data: AiBkStructuredResult) => {
-    toast({
-      title: "Log Sesi BK Berhasil Distrukturkan & Disimpan",
-      description: `Rekam konseling untuk ${data.student_name} telah diperbarui dengan enkripsi AES-256.`,
-      variant: "success",
-    })
-    setConfidentialNotes("")
+    if (!selectedStudent) return
+
+    router.post(
+      "/guru-bk/cases",
+      {
+        student_id: selectedStudent.id,
+        incident_date: new Date().toISOString().split("T")[0],
+        reported_date: new Date().toISOString().split("T")[0],
+        case_types: ["SOSIAL_PERILAKU"],
+        bullying_role: null,
+        severity: data.urgency_level || "SEDANG",
+        status: escalateKepsek ? "DIESKALASI_KE_KEPSEK" : "DALAM_PROSES",
+        follow_up_actions: [data.follow_up_action || "Konseling Individu"],
+        involved_students_count: 1,
+        confidential_notes: `${data.raw_text}\n\n[Ringkasan AI]: ${data.psychosocial_summary}\n[Intervensi]: ${data.counselor_intervention}`,
+      },
+      {
+        preserveScroll: true,
+        onSuccess: () => {
+          toast({
+            title: "Log Kasus BK Berhasil Disimpan",
+            description: `Rekam konseling untuk ${data.student_name} tersimpan dan status EWS diperbarui.`,
+            variant: "success",
+          })
+          setConfidentialNotes("")
+        },
+        onError: (err) => {
+          toast({
+            title: "Gagal Menyimpan Kasus",
+            description: Object.values(err).join(", "),
+            variant: "destructive",
+          })
+        },
+      }
+    )
   }
 
   const handleSaveCounselingSession = (e: React.FormEvent) => {
@@ -301,24 +195,63 @@ export default function GuruBk({
       return
     }
 
-    toast({
-      title: "Sesi Konseling Berhasil Disimpan",
-      description: `Log konseling untuk ${selectedStudent.name} tersimpan aman dengan enkripsi AES-256.`,
-      variant: "success",
-    })
-    setConfidentialNotes("")
+    router.post(
+      "/guru-bk/cases",
+      {
+        student_id: selectedStudent.id,
+        incident_date: new Date().toISOString().split("T")[0],
+        reported_date: new Date().toISOString().split("T")[0],
+        case_types: ["SOSIAL_PERILAKU"],
+        bullying_role: null,
+        severity: urgencyScore >= 4 ? "BERAT" : urgencyScore === 3 ? "SEDANG" : "RINGAN",
+        status: escalateKepsek ? "DIESKALASI_KE_KEPSEK" : "DALAM_PROSES",
+        follow_up_actions: [callParent ? "Panggil Orang Tua" : "Konseling Individu"],
+        involved_students_count: 1,
+        confidential_notes: confidentialNotes,
+      },
+      {
+        preserveScroll: true,
+        onSuccess: () => {
+          toast({
+            title: "Sesi Konseling Berhasil Disimpan",
+            description: `Log konseling untuk ${selectedStudent.name} tersimpan di rekam medis BK.`,
+            variant: "success",
+          })
+          setConfidentialNotes("")
+        },
+        onError: (err) => {
+          toast({
+            title: "Gagal Menyimpan Kasus",
+            description: Object.values(err).join(", "),
+            variant: "destructive",
+          })
+        },
+      }
+    )
   }
 
-  const filteredMatrix = mockHolisticMatrix.filter((item) => {
+  const studentDataList = students?.data || []
+  const holisticList: HolisticStudentItem[] = studentDataList.map((s: any) => ({
+    id: s.id,
+    name: s.name,
+    nisn: s.nisn,
+    class_name: s.classes?.[0]?.name || s.class_name || "-",
+    grade: s.classes?.[0]?.name?.startsWith("10") ? "X" : s.classes?.[0]?.name?.startsWith("11") ? "XI" : "XII",
+    pillars: s.ews_score?.pillars || { ak: "NORMAL", kh: "NORMAL", pr: "NORMAL", bk: "NORMAL" },
+    ews_status: s.ews_score?.status || "DATA_BELUM_LENGKAP",
+    trigger_reason: s.ews_score?.triggered_by_parameters?.join(", ") || "Data pilar dikumpulkan",
+  }))
+
+  const filteredMatrix = holisticList.filter((item) => {
     const matchGrade = gradeFilter === "ALL" || item.grade === gradeFilter
     const matchStatus = statusFilter === "ALL" || item.ews_status === statusFilter
     return matchGrade && matchStatus
   })
 
-  const totalSchool = stats?.total_students || 120
-  const kritisSchool = stats?.kritis_count || 3
-  const waspadaSchool = stats?.waspada_count || 8
-  const activeCasesCount = recentCases.filter((c) => c.status === "DALAM_PROSES" || c.status === "BARU_DILAPORKAN").length || 6
+  const totalSchool = stats?.total_students || studentOptions.length
+  const kritisSchool = stats?.kritis_count || 0
+  const waspadaSchool = stats?.waspada_count || 0
+  const activeCasesCount = recentCases.filter((c) => c.status === "DALAM_PROSES" || c.status === "BARU_DILAPORKAN").length
 
   return (
     <AppLayout

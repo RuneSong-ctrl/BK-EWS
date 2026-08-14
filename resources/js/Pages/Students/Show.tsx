@@ -28,137 +28,127 @@ export interface StudentShowProps {
 
 export default function StudentShow({
   student,
-  bkCases,
+  bkCases = [],
   currentClass,
 }: StudentShowProps = {}) {
-  const academicAvg = student?.academic_records?.length
+  const hasAcademic = Boolean(student?.academic_records?.length)
+  const academicAvg = hasAcademic
     ? (
         student.academic_records.reduce(
           (acc: number, curr: any) => acc + (Number(curr.score) || 0),
           0
         ) / student.academic_records.length
       ).toFixed(1)
-    : "62.5"
+    : "-"
 
-  const attendanceRate = student?.attendance_records?.length
+  const hasAttendance = Boolean(student?.attendance_records?.length)
+  const attendanceRate = hasAttendance
     ? (
         (student.attendance_records.filter(
           (r: any) => r.status === "HADIR" || r.status === "TERLAMBAT"
         ).length /
           student.attendance_records.length) *
         100
-      ).toFixed(1)
-    : "82.0"
+      ).toFixed(1) + "%"
+    : "-"
 
   const alpaCount = student?.attendance_records
     ? student.attendance_records.filter((r: any) => r.status === "ALPA").length
-    : 4
+    : 0
 
   const latestAiLog = student?.ai_logs?.[0]
+  const observations = student?.behavior_observations || []
 
   const studentData = {
     id: student?.id || 1,
-    name: student?.name || "Ahmad Fauzi",
-    nisn: student?.nisn || student?.nis || "0089218821",
-    class_name: currentClass?.name || student?.classes?.[0]?.name || "10-MIPA-1",
-    homeroom_teacher: currentClass?.homeroom_teacher?.name || "Budi Santoso, S.Pd.",
+    name: student?.name || "Siswa Terdaftar",
+    nisn: student?.nisn || student?.nis || "-",
+    class_name: currentClass?.name || student?.classes?.[0]?.name || "-",
+    homeroom_teacher: currentClass?.homeroom_teacher?.name || "Wali Kelas",
     academic_year: currentClass?.academic_year || "2026/2027 Ganjil",
-    ews_status: (student?.ews_score?.status || "WASPADA") as any,
-    updated_at: student?.ews_score?.calculated_at || "14 Agustus 2026",
+    ews_status: (student?.ews_score?.status || "DATA_BELUM_LENGKAP") as any,
+    updated_at: student?.ews_score?.calculated_at || "Belum dievaluasi",
     pillars: {
-      ak: (student?.ews_score?.academic_sub_status || "WASPADA") as any,
-      kh: (student?.ews_score?.attendance_sub_status || "WASPADA") as any,
-      pr: (student?.ews_score?.behavior_sub_status || "BERISIKO") as any,
+      ak: (student?.ews_score?.academic_sub_status || "DATA_BELUM_LENGKAP") as any,
+      kh: (student?.ews_score?.attendance_sub_status || "DATA_BELUM_LENGKAP") as any,
+      pr: (student?.ews_score?.behavior_sub_status || "NORMAL") as any,
       bk: (student?.ews_score?.bk_sub_status || "NORMAL") as any,
     },
     academic: {
-      avg_score: Number(academicAvg),
-      trend: "Turun 2 Periode",
-      lowest_subject: "Matematika Wajib (45.0)",
-      highest_subject: "Seni Budaya (84.0)",
-      total_subjects: student?.academic_records?.length || 12,
+      avg_score: hasAcademic ? Number(academicAvg) : "-",
+      trend: hasAcademic ? "Stabil" : "Menunggu Data",
+      lowest_subject: hasAcademic ? "Tercatat" : "-",
+      highest_subject: hasAcademic ? "Tercatat" : "-",
+      total_subjects: student?.academic_records?.length || 0,
     },
     attendance: {
-      rate: Number(attendanceRate),
+      rate: attendanceRate,
       consecutive_alpa: alpaCount,
       total_alpa: alpaCount,
-      total_izin: 2,
-      total_sakit: 1,
+      total_izin: student?.attendance_records?.filter((r: any) => r.status === "IZIN").length || 0,
+      total_sakit: student?.attendance_records?.filter((r: any) => r.status === "SAKIT").length || 0,
     },
     behavior: {
-      total_observations: student?.behavior_observations?.length || 3,
-      latest_category: student?.behavior_observations?.[0]?.category || "MENARIK_DIRI",
-      severity: student?.behavior_observations?.[0]?.severity || "SEDANG",
-      notes: student?.behavior_observations?.[0]?.ai_structured_summary || "Terlihat enggan berdiskusi kelompok dan pasif dalam 3 hari terakhir.",
+      total_observations: observations.length,
+      latest_category: observations[0]?.category || "-",
+      severity: observations[0]?.severity || "NORMAL",
+      notes: observations[0]?.ai_structured_summary || "Belum ada catatan observasi perilaku.",
     },
     counseling: {
-      active_cases: bkCases?.length || 0,
-      total_sessions: 2,
-      status: "TERPANTAU_RUTIN",
-      last_session: "12 Agu 2026",
+      active_cases: bkCases.length,
+      total_sessions: bkCases.length,
+      status: bkCases.length > 0 ? "DALAM_PROSES" : "NORMAL",
+      last_session: bkCases[0]?.incident_date || "-",
     },
   }
 
   const aiAdvisorData: AiAdvisorData = {
     risk_overview:
       latestAiLog?.risk_overview ||
-      "Siswa menunjukkan penurunan performa akademik simultan dengan ketidakhadiran berturut-turut (4 hari alpa tanpa keterangan medis). Pola observasi guru mencatat adanya penarikan diri sosial saat kegiatan kelompok interaktif.",
+      `Sistem EWS memantau profil ${studentData.name}. Status EWS saat ini: ${studentData.ews_status}. Seluruh data observasi perilaku, nilai, dan absensi terintegrasi secara otomatis.`,
     primary_concerns:
       latestAiLog?.primary_concerns || [
-        "Ketidakhadiran berurutan 4 hari tanpa surat keterangan orang tua/wali.",
-        "Nilai mata pelajaran Matematika Wajib anjlok di bawah KKM (Skor 45 vs KKM 75).",
-        "Perubahan perilaku afektif: isolasi diri dan keengganan kolaborasi sejak pekan lalu.",
+        `Status Evaluasi: ${studentData.ews_status}`,
+        observations.length > 0
+          ? `Observasi Perilaku Terbaru: ${observations[0]?.ai_structured_summary}`
+          : "Belum terdeteksi pemicu risiko kritis.",
       ],
     recommendation_guru_kelas:
       latestAiLog?.recommendations?.for_homeroom_teacher ||
-      "Lakukan kontak komunikasi telepon langsung dengan orang tua/wali siswa hari ini untuk klarifikasi alasan alpa 4 hari. Bentuk kelompok belajar pendukung dengan teman sebaya yang suportif.",
+      "Lakukan dialog empatik harian, pantau presensi dan keterlibatan belajar siswa di kelas.",
     recommendation_guru_bk:
       latestAiLog?.recommendations?.for_counselor_bk ||
-      "Jadwalkan sesi konseling individu empatik (Tahap 2) dengan fokus eksplorasi faktor stresor eksternal (keluarga/lingkungan sebaya) dan susun kontrak komitmen kehadiran.",
+      "Lakukan pemetaan kebutuhan bimbingan dan koordinasikan dengan wali kelas bila ada anomali presensi.",
     recommendation_kepsek:
       latestAiLog?.recommendations?.for_principal ||
-      "Menyetujui koordinasi mediasi wali kelas dan guru BK. Berikan dispensasi remedial terarah jika terdapat kendala psikososial yang telah terverifikasi konselor.",
-    last_updated: latestAiLog?.generated_at || "14 Agu 2026, 09:30 WIB",
+      "Pantau tren agregat kelas dan pastikan kolaborasi tindak lanjut antara wali kelas dan guru BK berjalan aktif.",
+    last_updated: latestAiLog?.generated_at || "Terintegrasi AI",
   }
 
-  const timelineLogs = [
-    {
-      id: 1,
-      date: "14 Agu 2026",
-      actor: "Budi Santoso, S.Pd. (Wali Kelas)",
-      title: "Input Observasi AI (Perilaku Menarik Diri)",
-      description: "Tercatat siswa menolak bergabung diskusi biologi dan tampak cemas saat ditanya.",
-      badge: "Observasi Perilaku",
+  // Dynamic Timeline
+  const timelineLogs: any[] = []
+  observations.forEach((obs: any, i: number) => {
+    timelineLogs.push({
+      id: `obs-${obs.id || i}`,
+      date: obs.date || "Terbaru",
+      actor: "Wali / Guru Kelas",
+      title: `Observasi Perilaku (${obs.category})`,
+      description: obs.ai_structured_summary || obs.raw_text,
+      badge: "Observasi AI",
       badgeColor: "bg-blue-100 text-blue-800",
-    },
-    {
-      id: 2,
-      date: "13 Agu 2026",
-      actor: "Sistem Piket Absensi",
-      title: "Pemicu Alpa Berurutan Hari ke-4",
-      description: "Siswa tercatat tidak hadir tanpa keterangan pada jam pelajaran ke-1 s.d 8.",
-      badge: "Peringatan Absensi",
-      badgeColor: "bg-rose-100 text-rose-800",
-    },
-    {
-      id: 3,
-      date: "12 Agu 2026",
-      actor: "Rahmawati, M.Psi. (Guru BK)",
-      title: "Sesi Konseling Individu Awal",
-      description: "Eksplorasi motivasi belajar dan penyesuaian sosial pasca ujian tengah semester.",
-      badge: "Sesi BK",
+    })
+  })
+  bkCases.forEach((cs: any, i: number) => {
+    timelineLogs.push({
+      id: `case-${cs.id || i}`,
+      date: cs.incident_date || "Terbaru",
+      actor: cs.handler?.name || "Guru BK",
+      title: cs.title || "Sesi Bimbingan Konseling",
+      description: cs.confidential_notes || "Rekam konseling terenkripsi.",
+      badge: "Kasus BK",
       badgeColor: "bg-indigo-100 text-indigo-800",
-    },
-    {
-      id: 4,
-      date: "08 Agu 2026",
-      actor: "Guru Mapel Matematika",
-      title: "Input Nilai Ulangan Harian (Skor 45.0)",
-      description: "Penurunan dari ulangan harian sebelumnya (skor 72.0).",
-      badge: "Akademik",
-      badgeColor: "bg-amber-100 text-amber-800",
-    },
-  ]
+    })
+  })
 
   return (
     <AppLayout
