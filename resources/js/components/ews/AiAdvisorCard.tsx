@@ -17,24 +17,42 @@ interface AiAdvisorCardProps {
   data: AiAdvisorData
   studentName?: string
   className?: string
+  ews_status?: "NORMAL" | "BERISIKO" | "WASPADA" | "KRITIS" | "DATA_BELUM_LENGKAP"
 }
 
 export function AiAdvisorCard({
   data,
   studentName = "Siswa",
   className,
+  ews_status = "DATA_BELUM_LENGKAP",
 }: AiAdvisorCardProps) {
+  // Determine dynamic colors based on EWS status
+  const cardColor = 
+    ews_status === "KRITIS" ? "border-rose-200/60 bg-rose-50/10" :
+    ews_status === "WASPADA" ? "border-amber-200/60 bg-amber-50/10" :
+    ews_status === "BERISIKO" ? "border-sky-200/60 bg-sky-50/10" :
+    ews_status === "NORMAL" ? "border-emerald-200/60 bg-emerald-50/10" :
+    "border-blue-200/60 bg-white";
+
+  const headerIconColor =
+    ews_status === "KRITIS" ? "text-rose-600 bg-rose-100" :
+    ews_status === "WASPADA" ? "text-amber-600 bg-amber-100" :
+    ews_status === "BERISIKO" ? "text-sky-600 bg-sky-100" :
+    ews_status === "NORMAL" ? "text-emerald-600 bg-emerald-100" :
+    "text-blue-600 bg-blue-100";
+
   return (
     <div
       className={cn(
-        "p-5 sm:p-6 rounded-2xl neo-card border-blue-200/60 relative overflow-hidden",
+        "p-5 sm:p-6 rounded-2xl neo-card relative overflow-hidden transition-colors",
+        cardColor,
         className
       )}
     >
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/60 pb-3 mb-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl neo-btn text-blue-600 flex items-center justify-center shrink-0">
+          <div className={cn("w-8 h-8 rounded-xl neo-btn flex items-center justify-center shrink-0", headerIconColor)}>
             <Sparkles className="w-4 h-4" />
           </div>
           <div>

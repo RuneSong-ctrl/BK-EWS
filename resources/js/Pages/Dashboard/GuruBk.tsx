@@ -237,7 +237,12 @@ export default function GuruBk({
     nisn: s.nisn,
     class_name: s.classes?.[0]?.name || s.class_name || "-",
     grade: s.classes?.[0]?.name?.startsWith("10") ? "X" : s.classes?.[0]?.name?.startsWith("11") ? "XI" : "XII",
-    pillars: s.ews_score?.pillars || { ak: "NORMAL", kh: "NORMAL", pr: "NORMAL", bk: "NORMAL" },
+    pillars: {
+      ak: s.ews_score?.academic_sub_status || "DATA_BELUM_LENGKAP",
+      kh: s.ews_score?.attendance_sub_status || "DATA_BELUM_LENGKAP",
+      pr: s.ews_score?.behavior_sub_status || "NORMAL",
+      bk: s.ews_score?.bk_sub_status || "NORMAL"
+    },
     ews_status: s.ews_score?.status || "DATA_BELUM_LENGKAP",
     trigger_reason: s.ews_score?.triggered_by_parameters?.join(", ") || "Data pilar dikumpulkan",
   }))

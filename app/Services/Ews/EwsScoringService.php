@@ -52,10 +52,11 @@ class EwsScoringService
             $triggers[] = $bkResult['trigger'];
         }
 
-        // 5. Emergency Override: Jika ada kasus BK Berat / Alpa > 5 / Nilai < 50 -> Langsung KRITIS
+        // 5. Emergency Override: Jika ada kasus BK Berat / Alpa > 5 / Nilai < 50 / Perilaku Berat -> Langsung KRITIS
         $isEmergencyCritical = ($bkResult['sub_status'] === self::STATUS_KRITIS)
             || ($attendanceResult['sub_status'] === self::STATUS_KRITIS)
-            || ($academicResult['sub_status'] === self::STATUS_KRITIS);
+            || ($academicResult['sub_status'] === self::STATUS_KRITIS)
+            || ($behaviorResult['sub_status'] === self::STATUS_KRITIS);
 
         // 6. Data Completeness Gate
         $isDataComplete = ($academicResult['sub_status'] !== 'PENDING')

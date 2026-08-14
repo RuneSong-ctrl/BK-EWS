@@ -218,12 +218,44 @@ export default function GuruKelas({ schoolClass, students: initialStudents = [],
       return
     }
 
-    toast({
-      title: "Catatan Observasi Disimpan",
-      description: `Catatan observasi harian untuk ${selectedStudent.name} berhasil disimpan manual ke jurnal kelas.`,
-      variant: "success",
-    })
-    setRawText("")
+    if (!rawText.trim()) {
+      toast({
+        title: "Teks Observasi Masih Kosong",
+        description: "Tuliskan catatan observasi siswa.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    router.post(
+      "/guru-kelas/observations",
+      {
+        student_id: selectedStudent.id,
+        date: observationDate,
+        category: "MENARIK_DIRI",
+        severity: participationScore <= 2 ? "SEDANG" : "RINGAN",
+        raw_text: rawText,
+        ai_structured_summary: `Catatan observasi harian: "${rawText.substring(0, 80)}..."`,
+      },
+      {
+        preserveScroll: true,
+        onSuccess: () => {
+          toast({
+            title: "Catatan Observasi Disimpan",
+            description: `Catatan observasi harian untuk ${selectedStudent.name} berhasil disimpan manual ke jurnal kelas.`,
+            variant: "success",
+          })
+          setRawText("")
+        },
+        onError: (errors) => {
+          toast({
+            title: "Gagal Menyimpan Observasi",
+            description: Object.values(errors).join(", "),
+            variant: "destructive",
+          })
+        }
+      }
+    )
   }
 
   const filteredStudents = studentList.filter((student) => {

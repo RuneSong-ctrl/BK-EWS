@@ -355,7 +355,35 @@ export default function StudentShow({
       </section>
 
       {/* AI EWS Advisor Card */}
-      <AiAdvisorCard data={aiAdvisorData} studentName={studentData.name} />
+      <div className="relative">
+        <div className="flex justify-end mb-2">
+          <Button
+            size="sm"
+            onClick={() => {
+              // Inertia post to generate AI
+              import("@inertiajs/react").then(({ router }) => {
+                const btn = document.getElementById("btn-generate-ai");
+                if (btn) btn.innerHTML = '<span class="animate-pulse">Memproses AI...</span>';
+                router.post(`/guru-bk/student-profile/${studentData.id}/generate-ai`, {}, {
+                  preserveScroll: true,
+                  onFinish: () => {
+                    if (btn) btn.innerHTML = 'Generate Ulang AI';
+                  }
+                });
+              });
+            }}
+            id="btn-generate-ai"
+            className="text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md transition-all"
+          >
+            Generate Ulang AI
+          </Button>
+        </div>
+        <AiAdvisorCard
+          data={aiAdvisorData}
+          studentName={studentData.name}
+          ews_status={studentData.ews_status}
+        />
+      </div>
 
       {/* Longitudinal Observation & Activity Timeline */}
       <section className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-5">

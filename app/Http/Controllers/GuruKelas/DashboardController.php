@@ -71,27 +71,14 @@ class DashboardController extends Controller
                 $attRate = $hasAttendance ? round(($hadirCount / $totalAtt) * 100, 1) : null;
 
                 // Pillars mapping
-                $akStatus = 'DATA_BELUM_LENGKAP';
-                if ($hasAcademic) {
-                    $akStatus = 'NORMAL';
-                    if ($avgScore < 65) $akStatus = 'KRITIS';
-                    elseif ($avgScore < 70) $akStatus = 'WASPADA';
-                    elseif ($avgScore < 75) $akStatus = 'BERISIKO';
-                }
-
-                $khStatus = 'DATA_BELUM_LENGKAP';
-                if ($hasAttendance) {
-                    $khStatus = 'NORMAL';
-                    if ($alpaCount >= 5 || $attRate < 75) $khStatus = 'KRITIS';
-                    elseif ($alpaCount >= 3 || $attRate < 85) $khStatus = 'WASPADA';
-                    elseif ($alpaCount >= 1 || $attRate < 90) $khStatus = 'BERISIKO';
-                }
-
-                $prStatus = 'NORMAL';
-                if ($std->behaviorObservations->isNotEmpty()) {
-                    $prStatus = $std->behaviorObservations->where('severity', 'BERAT')->isNotEmpty() ? 'KRITIS'
-                        : ($std->behaviorObservations->where('severity', 'SEDANG')->isNotEmpty() ? 'WASPADA' : 'NORMAL');
-                }
+                $akStatus = $std->ewsScore ? $std->ewsScore->academic_sub_status : 'DATA_BELUM_LENGKAP';
+                $khStatus = $std->ewsScore ? $std->ewsScore->attendance_sub_status : 'DATA_BELUM_LENGKAP';
+                $prStatus = $std->ewsScore ? $std->ewsScore->behavior_sub_status : 'PENDING';
+                
+                // fallback if PENDING or not set
+                if ($prStatus === 'PENDING') $prStatus = 'NORMAL';
+                if ($akStatus === 'PENDING') $akStatus = 'DATA_BELUM_LENGKAP';
+                if ($khStatus === 'PENDING') $khStatus = 'DATA_BELUM_LENGKAP';
 
                 $students[] = [
                     'id' => $std->id,
