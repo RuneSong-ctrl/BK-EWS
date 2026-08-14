@@ -14,32 +14,28 @@ export function AuthLayout({
   subtitle,
 }: AuthLayoutProps) {
   return (
-    <div className="min-h-screen bg-[#F0F3F8] text-slate-900 flex flex-col justify-between p-4 sm:p-6 lg:p-8 relative overflow-hidden font-sans antialiased">
-      {/* Background Soft Glows */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl pointer-events-none" />
-
+    <div className="min-h-screen bg-[#EEF2F7] text-slate-900 flex flex-col justify-between p-4 sm:p-6 lg:p-8 relative overflow-hidden font-sans antialiased">
       {/* Top Brand Bar */}
       <div className="w-full max-w-md mx-auto flex items-center justify-between py-2">
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+          <div className="w-10 h-10 rounded-xl neo-btn text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform">
             <Shield className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-bold text-base text-slate-900 tracking-tight">BK-EWS AI</span>
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">
-                v2.0
+              <span className="px-1.5 py-0.5 rounded-md text-[10px] font-bold neo-pill bg-[#E6EDF5] text-blue-800">
+                Resmi
               </span>
             </div>
-            <p className="text-xs text-slate-500">SMA Negeri Terpadu</p>
+            <p className="text-xs text-slate-500">Sistem Deteksi Dini Sekolah</p>
           </div>
         </Link>
       </div>
 
       {/* Main Card Container */}
       <div className="w-full max-w-md mx-auto my-auto py-6">
-        <div className="p-7 sm:p-8 rounded-3xl neo-card border border-white bg-white/95 backdrop-blur-xl shadow-2xl relative">
+        <div className="p-7 sm:p-8 rounded-3xl neo-card relative">
           {(title || subtitle) && (
             <div className="mb-6 text-center sm:text-left">
               {title && (

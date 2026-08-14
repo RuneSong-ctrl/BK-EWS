@@ -181,14 +181,35 @@ const mockHolisticMatrix: HolisticStudentItem[] = [
   },
 ]
 
-export default function GuruBk() {
-  const [selectedStudent, setSelectedStudent] = React.useState<StudentOption | null>({
-    id: 5,
-    name: "Dimas Pratama",
-    nisn: "0089218825",
-    class_name: "11-IPS-2",
-    ews_status: "KRITIS",
-  })
+interface GuruBkProps {
+  students?: { data: any[] }
+  stats?: {
+    total_students: number
+    normal_count: number
+    berisiko_count: number
+    waspada_count: number
+    kritis_count: number
+    data_belum_lengkap_count: number
+  }
+  classes?: any[]
+  watchlist?: any[]
+  recentCases?: BkCaseItem[]
+  allStudentOptions?: StudentOption[]
+}
+
+export default function GuruBk({
+  stats,
+  watchlist: initialWatchlist,
+  recentCases: initialRecentCases,
+  allStudentOptions: initialStudentOptions,
+}: GuruBkProps) {
+  const studentOptions = (initialStudentOptions && initialStudentOptions.length > 0) ? initialStudentOptions : mockAllStudents
+  const watchlist = (initialWatchlist && initialWatchlist.length > 0) ? initialWatchlist : mockWatchlist
+  const recentCases = (initialRecentCases && initialRecentCases.length > 0) ? initialRecentCases : mockRecentCases
+
+  const [selectedStudent, setSelectedStudent] = React.useState<StudentOption | null>(
+    studentOptions.length > 0 ? studentOptions[0] : null
+  )
   const [urgencyScore, setUrgencyScore] = React.useState(4)
   const [rapportScore, setRapportScore] = React.useState(3)
   const [resolutionProgress, setResolutionProgress] = React.useState(40)
@@ -228,6 +249,11 @@ export default function GuruBk() {
     return matchGrade && matchStatus
   })
 
+  const totalSchool = stats?.total_students || 120
+  const kritisSchool = stats?.kritis_count || 3
+  const waspadaSchool = stats?.waspada_count || 8
+  const activeCasesCount = recentCases.filter((c) => c.status === "DALAM_PROSES" || c.status === "BARU_DILAPORKAN").length || 6
+
   return (
     <AppLayout
       currentRole="guru_bk"
@@ -235,67 +261,65 @@ export default function GuruBk() {
       title="Portofolio Bimbingan Konseling & Watchlist EWS"
       subtitle="Pemantauan siswa berisiko tinggi dan penanganan kasus lintas kelas sekolah"
     >
-      {/* Top 4 Elevated Stat Cards - Responsive Grid for 14" Laptop */}
+      {/* Top 4 Soft Neumorphic Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[112px] hover:border-slate-300 transition-all">
+        <div className="p-4 rounded-2xl neo-card flex flex-col justify-between h-[112px]">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-              Kasus Aktif
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              Total Siswa Terdata
             </span>
-            <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+            <div className="w-8 h-8 rounded-xl neo-btn text-blue-600 flex items-center justify-center">
               <HeartHandshake className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-slate-900 tracking-tight">14 Kasus</div>
-            <p className="text-[11px] text-slate-400 mt-0.5">Lintas Kelas X, XI, XII</p>
+            <div className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">{totalSchool} Siswa</div>
+            <p className="text-[11px] text-slate-500 mt-0.5">Seluruh Kelas Binaan</p>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[112px] hover:border-slate-300 transition-all">
+        <div className="p-4 rounded-2xl neo-card flex flex-col justify-between h-[112px]">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-              Status Kritis
+            <span className="text-[11px] font-bold uppercase tracking-wider text-rose-600">
+              Siswa Kritis EWS
             </span>
-            <div className="w-8 h-8 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600">
+            <div className="w-8 h-8 rounded-xl neo-btn text-rose-600 flex items-center justify-center">
               <AlertOctagon className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-slate-900 tracking-tight text-rose-600">
-              2 Siswa
-            </div>
-            <p className="text-[11px] text-slate-400 mt-0.5">Perlu Penanganan Khusus</p>
+            <div className="text-xl sm:text-2xl font-extrabold text-rose-700 tracking-tight">{kritisSchool} Siswa</div>
+            <p className="text-[11px] text-slate-500 mt-0.5">Perlu Intervensi Segera</p>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[112px] hover:border-slate-300 transition-all">
+        <div className="p-4 rounded-2xl neo-card flex flex-col justify-between h-[112px]">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-              Dalam Mediasi
+            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-600">
+              Siswa Waspada
             </span>
-            <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+            <div className="w-8 h-8 rounded-xl neo-btn text-amber-600 flex items-center justify-center">
               <Clock className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-slate-900 tracking-tight">5 Kasus</div>
-            <p className="text-[11px] text-slate-400 mt-0.5">Sesi Berjalan Pekan Ini</p>
+            <div className="text-xl sm:text-2xl font-extrabold text-amber-700 tracking-tight">{waspadaSchool} Siswa</div>
+            <p className="text-[11px] text-slate-500 mt-0.5">Pemantauan Rutin</p>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[112px] hover:border-slate-300 transition-all">
+        <div className="p-4 rounded-2xl neo-card flex flex-col justify-between h-[112px]">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-              Kasus Selesai
+            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600">
+              Kasus Aktif Ditangani
             </span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+            <div className="w-8 h-8 rounded-xl neo-btn text-emerald-600 flex items-center justify-center">
               <CheckCircle className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-slate-900 tracking-tight">28 Kasus</div>
-            <p className="text-[11px] text-slate-400 mt-0.5">Semester Berjalan</p>
+            <div className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">{activeCasesCount} Kasus</div>
+            <p className="text-[11px] text-slate-500 mt-0.5">Proses Bimbingan</p>
           </div>
         </div>
       </div>
@@ -303,11 +327,11 @@ export default function GuruBk() {
       {/* Input Panel Kasus & Sesi Konseling Baru (Guru BK Scope) */}
       <section
         id="kasus"
-        className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-5 scroll-mt-20"
+        className="p-5 sm:p-6 rounded-2xl neo-card space-y-5 scroll-mt-20"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/60 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl neo-btn text-indigo-600 flex items-center justify-center shrink-0">
               <UserPlus className="w-4 h-4" />
             </div>
             <div>

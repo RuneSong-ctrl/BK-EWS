@@ -1,112 +1,53 @@
 import * as React from "react"
-import { Shield, Lock, Mail, ArrowRight, UserCheck, HeartHandshake, Award } from "lucide-react"
-import { Link, router } from "@inertiajs/react"
+import { Lock, Mail, ArrowRight, AlertCircle } from "lucide-react"
+import { Link, useForm } from "@inertiajs/react"
 import { AuthLayout } from "@/Layouts/AuthLayout"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { cn } from "@/lib/utils"
 
 export default function Login() {
-  const [identifier, setIdentifier] = React.useState("198204152006042001")
-  const [password, setPassword] = React.useState("password123")
-  const [remember, setRemember] = React.useState(false)
-  const [selectedRole, setSelectedRole] = React.useState<"guru_kelas" | "guru_bk" | "kepsek">("guru_kelas")
-
-  const handleQuickSelectRole = (role: "guru_kelas" | "guru_bk" | "kepsek") => {
-    setSelectedRole(role)
-    if (role === "guru_kelas") {
-      setIdentifier("198204152006042001") // Dra. Siti Rahmawati
-    } else if (role === "guru_bk") {
-      setIdentifier("198907122014021003") // Budi Pratama
-    } else {
-      setIdentifier("197501011999031001") // Drs. I Made Rama
-    }
-  }
+  const { data, setData, post, processing, errors, reset } = useForm({
+    identifier: "",
+    password: "",
+    remember: false,
+  })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Redirect to respective dashboard based on role
-    if (selectedRole === "guru_kelas") {
-      router.visit("/dashboard/guru-kelas")
-    } else if (selectedRole === "guru_bk") {
-      router.visit("/dashboard/guru-bk")
-    } else {
-      router.visit("/dashboard/kepsek")
-    }
+    post("/login", {
+      onFinish: () => reset("password"),
+    })
   }
 
   return (
     <AuthLayout
       title="Masuk ke Portal BK-EWS"
-      subtitle="Pilih peran atau masukkan NIP/Email terdaftar Anda"
+      subtitle="Masukkan NIP atau Alamat Email terdaftar Anda"
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Quick Role Selection Tabs */}
-        <div className="space-y-1.5">
-          <Label className="text-xs font-semibold text-slate-700">
-            Pilih Peran Akun (Simulasi Demo):
-          </Label>
-          <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-slate-100 border border-slate-200/80">
-            <button
-              type="button"
-              onClick={() => handleQuickSelectRole("guru_kelas")}
-              className={cn(
-                "py-2 px-1 rounded-lg text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer",
-                selectedRole === "guru_kelas"
-                  ? "bg-white text-blue-700 shadow-xs border border-blue-200"
-                  : "text-slate-500 hover:text-slate-800"
-              )}
-            >
-              <UserCheck className="w-3.5 h-3.5" />
-              <span>Guru Kelas</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleQuickSelectRole("guru_bk")}
-              className={cn(
-                "py-2 px-1 rounded-lg text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer",
-                selectedRole === "guru_bk"
-                  ? "bg-white text-indigo-700 shadow-xs border border-indigo-200"
-                  : "text-slate-500 hover:text-slate-800"
-              )}
-            >
-              <HeartHandshake className="w-3.5 h-3.5" />
-              <span>Guru BK</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleQuickSelectRole("kepsek")}
-              className={cn(
-                "py-2 px-1 rounded-lg text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer",
-                selectedRole === "kepsek"
-                  ? "bg-white text-amber-700 shadow-xs border border-amber-200"
-                  : "text-slate-500 hover:text-slate-800"
-              )}
-            >
-              <Award className="w-3.5 h-3.5" />
-              <span>Kepala Sekolah</span>
-            </button>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Error Alert if any */}
+        {errors.identifier && (
+          <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{errors.identifier}</span>
           </div>
-        </div>
+        )}
 
         {/* NIP / Email Input */}
         <div className="space-y-1.5">
-          <Label htmlFor="identifier" className="text-xs font-semibold text-slate-700">
+          <Label htmlFor="identifier" className="text-xs font-bold text-slate-700">
             NIP atau Alamat Email
           </Label>
           <div className="relative">
             <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <Input
+            <input
               id="identifier"
               type="text"
               required
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
-              placeholder="Contoh: 19820415..."
-              className="pl-10 h-11 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              autoFocus
+              value={data.identifier}
+              onChange={(e) => setData("identifier", e.target.value)}
+              placeholder="Contoh: 19820415... atau nama@sekolah.sch.id"
+              className="w-full pl-10 pr-4 h-11 text-xs rounded-xl neo-inset bg-[#E7EDF4] text-slate-800 placeholder:text-slate-400 focus:outline-none transition-all"
             />
           </div>
         </div>
@@ -114,7 +55,7 @@ export default function Login() {
         {/* Password Input */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password" className="text-xs font-semibold text-slate-700">
+            <Label htmlFor="password" className="text-xs font-bold text-slate-700">
               Kata Sandi
             </Label>
             <a href="#forgot" className="text-[11px] text-blue-600 hover:underline">
@@ -123,16 +64,19 @@ export default function Login() {
           </div>
           <div className="relative">
             <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <Input
+            <input
               id="password"
               type="password"
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={data.password}
+              onChange={(e) => setData("password", e.target.value)}
               placeholder="••••••••"
-              className="pl-10 h-11 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              className="w-full pl-10 pr-4 h-11 text-xs rounded-xl neo-inset bg-[#E7EDF4] text-slate-800 placeholder:text-slate-400 focus:outline-none transition-all"
             />
           </div>
+          {errors.password && (
+            <p className="text-[11px] text-rose-600">{errors.password}</p>
+          )}
         </div>
 
         {/* Remember Me */}
@@ -140,8 +84,8 @@ export default function Login() {
           <input
             type="checkbox"
             id="remember"
-            checked={remember}
-            onChange={(e) => setRemember(e.target.checked)}
+            checked={data.remember}
+            onChange={(e) => setData("remember", e.target.checked)}
             className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
           />
           <Label htmlFor="remember" className="text-xs text-slate-600 font-normal cursor-pointer">
@@ -149,12 +93,13 @@ export default function Login() {
           </Label>
         </div>
 
-        {/* Submit Button - Solid Blue with White Text */}
+        {/* Submit Button - Soft Neumorphic Primary Button */}
         <button
           type="submit"
-          className="w-full h-11 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm hover:shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all duration-150 active:scale-[0.98] border border-blue-600"
+          disabled={processing}
+          className="w-full h-11 neo-btn-primary text-white text-xs sm:text-sm font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50"
         >
-          <span>Masuk ke Dashboard</span>
+          <span>{processing ? "Memproses Autentikasi..." : "Masuk ke Dashboard"}</span>
           <ArrowRight className="w-4 h-4 text-white" />
         </button>
 
@@ -162,7 +107,7 @@ export default function Login() {
         <div className="text-center pt-2 text-xs text-slate-500">
           Belum memiliki akun terdaftar?{" "}
           <Link href="/register" className="font-semibold text-blue-600 hover:underline">
-            Daftar Staf Sekolah
+            Daftar Akun Pendidik
           </Link>
         </div>
       </form>
