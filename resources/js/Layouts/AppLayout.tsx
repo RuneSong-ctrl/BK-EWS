@@ -5,7 +5,6 @@ import {
   Sparkles,
   HeartHandshake,
   FileSpreadsheet,
-  Settings,
   Bell,
   Search,
   ChevronDown,
@@ -31,6 +30,14 @@ import {
 
 export type UserRole = "guru_kelas" | "guru_bk" | "kepsek"
 
+interface AuthUser {
+  id: number
+  name: string
+  email: string
+  nip?: string
+  role: string
+}
+
 interface AppLayoutProps {
   children: React.ReactNode
   currentRole?: UserRole
@@ -46,7 +53,11 @@ export function AppLayout({
   title,
   subtitle,
 }: AppLayoutProps) {
-  const [role, setRole] = React.useState<UserRole>(currentRole)
+  const page = usePage()
+  const authUser = (page.props.auth as { user?: AuthUser } | undefined)?.user
+
+  // Resolve user role from auth session, fallback to currentRole prop
+  const effectiveRole = (authUser?.role as UserRole) || currentRole
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
 
   React.useEffect(() => {
@@ -79,7 +90,6 @@ export function AppLayout({
         return {
           name: "Rahmawati, S.Pd., M.Psi.",
           roleLabel: "Guru BK / Konselor",
-          classLabel: "Konselor Sekolah",
           badgeColor: "bg-indigo-100 text-indigo-800 border-indigo-200",
           icon: HeartHandshake,
           dashboardHref: "/dashboard/guru-bk",
@@ -88,15 +98,27 @@ export function AppLayout({
         return {
           name: "Drs. H. Hartono, M.Pd.",
           roleLabel: "Kepala Sekolah",
-          classLabel: "Pimpinan Sekolah",
           badgeColor: "bg-amber-100 text-amber-800 border-amber-200",
           icon: Award,
           dashboardHref: "/dashboard/kepsek",
         }
+      default:
+        return {
+          roleLabel: "Staf Pendidik",
+          badgeColor: "bg-slate-100 text-slate-800 border-slate-200",
+          icon: UserIcon,
+          dashboardHref: "/dashboard",
+        }
     }
   }
 
-  const currentUser = getRoleData(role)
+  const roleMeta = getRoleMetadata(effectiveRole)
+  const displayName = authUser?.name || "Pendidik Terdaftar"
+  const displayNip = authUser?.nip ? `NIP. ${authUser.nip}` : authUser?.email || "Staf Sekolah"
+
+  const handleLogout = () => {
+    router.post("/logout")
+  }
 
   const menuItems = [
     // Guru Kelas Menu
@@ -161,7 +183,7 @@ export function AppLayout({
       roles: ["kepsek"],
     },
 
-    // Global
+    // Global Access
     {
       id: "siswa_profile",
       label: "Profil Siswa 360°",
@@ -171,10 +193,10 @@ export function AppLayout({
     },
   ]
 
-  const filteredMenuItems = menuItems.filter((item) => item.roles.includes(role))
+  const filteredMenuItems = menuItems.filter((item) => item.roles.includes(effectiveRole))
 
   return (
-    <div className="min-h-screen bg-[#F1F4F9] text-slate-900 flex font-sans antialiased">
+    <div className="min-h-screen bg-[#EEF2F7] text-slate-900 flex font-sans antialiased">
       {/* Mobile Drawer Overlay */}
       {isMobileMenuOpen && (
         <div
@@ -252,7 +274,7 @@ export function AppLayout({
               <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-slate-400 px-3 py-1.5">
                 Ganti Peran Dashboard (Demo)
               </DropdownMenuLabel>
-              <DropdownMenuSeparator className="my-1" />
+              <DropdownMenuSeparator className="my-1 border-slate-200/60" />
 
               <DropdownMenuItem
                 onClick={() => handleRoleSwitch("guru_kelas")}
@@ -282,6 +304,7 @@ export function AppLayout({
                 {role === "guru_bk" && <span className="text-xs text-indigo-600 font-bold">Aktif</span>}
               </DropdownMenuItem>
 
+              <DropdownMenuSeparator className="my-1 border-slate-200/60" />
               <DropdownMenuItem
                 onClick={() => handleRoleSwitch("kepsek")}
                 className={cn(
@@ -346,7 +369,7 @@ export function AppLayout({
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
             Sistem EWS AI Terkoneksi
           </p>
-          <p>Tahun Ajaran 2026/2027 Ganjil</p>
+          <p>Database Sekolah Terpadu</p>
         </div>
       </aside>
 
@@ -363,7 +386,7 @@ export function AppLayout({
               <Menu className="w-5 h-5" />
             </button>
 
-            {/* Clean Compact Search Bar */}
+            {/* Soft Sunken Search Bar */}
             <div className="relative w-full hidden sm:block">
               <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               <input
@@ -392,8 +415,7 @@ export function AppLayout({
               <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
             </button>
 
-            <Link
-              href={currentUser.dashboardHref}
+            <div
               className={cn(
                 "px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold border flex items-center gap-2 transition-all hover:shadow-2xs",
                 currentUser.badgeColor

@@ -27,9 +27,8 @@ Route::get('/', function () {
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
-Route::get('/register', function () {
-    return Inertia::render('Auth/Register');
-})->name('register');
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'register']);
 
 // Standalone Demo / Direct Dashboard Access Routes
 Route::get('/dashboard/guru-kelas', [GuruKelas\DashboardController::class, 'index'])->name('dashboard.guru-kelas');

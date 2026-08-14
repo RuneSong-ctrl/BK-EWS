@@ -27,20 +27,20 @@ export function AiAdvisorCard({
   return (
     <div
       className={cn(
-        "p-5 sm:p-6 rounded-2xl bg-white border border-blue-200 shadow-xs relative overflow-hidden",
+        "p-5 sm:p-6 rounded-2xl neo-card border-blue-200/60 relative overflow-hidden",
         className
       )}
     >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3 mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/60 pb-3 mb-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-xl neo-btn text-blue-600 flex items-center justify-center shrink-0">
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
               Analisis Rekomendasi Terpadu (AI Advisor)
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold neo-pill bg-[#E6EDF5] text-blue-700">
                 Gemini AI
               </span>
             </h3>
@@ -58,8 +58,8 @@ export function AiAdvisorCard({
 
       {/* Risk Overview Narrative */}
       <div className="space-y-3 mb-5">
-        <div className="p-3.5 rounded-xl neo-inset bg-[#F0F3F8]/80 text-xs text-slate-700 leading-relaxed border border-slate-200/80">
-          <p className="font-medium text-slate-800 mb-1 flex items-center gap-1.5">
+        <div className="p-3.5 rounded-xl neo-inset bg-[#E7EDF4] text-xs text-slate-700 leading-relaxed">
+          <p className="font-bold text-slate-800 mb-1 flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
             Ringkasan Risiko EWS:
           </p>
@@ -68,7 +68,7 @@ export function AiAdvisorCard({
 
         {data.primary_concerns && data.primary_concerns.length > 0 && (
           <div className="space-y-1.5 pl-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
               Poin Perhatian Utama:
             </span>
             <ul className="space-y-1">
@@ -88,29 +88,29 @@ export function AiAdvisorCard({
 
       {/* Multi-role Recommendation Tabs */}
       <div className="space-y-3">
-        <span className="text-xs font-semibold text-slate-800">
+        <span className="text-xs font-bold text-slate-800">
           Rekomendasi Aksi Sesuai Peran:
         </span>
 
         <Tabs defaultValue="guru_kelas" className="w-full">
-          <TabsList className="w-full grid grid-cols-3 h-10 p-1 rounded-xl neo-inset bg-[#F0F3F8]">
+          <TabsList className="w-full grid grid-cols-3 h-10 p-1 rounded-xl neo-inset bg-[#E7EDF4]">
             <TabsTrigger
               value="guru_kelas"
-              className="text-xs font-semibold rounded-lg data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm flex items-center justify-center gap-1.5 transition-all"
+              className="text-xs font-semibold rounded-lg data-[state=active]:neo-card-subtle data-[state=active]:text-blue-700 data-[state=active]:font-bold flex items-center justify-center gap-1.5 transition-all"
             >
               <UserCheck className="w-3.5 h-3.5" />
-              <span>Guru Kelas</span>
+              <span>Wali Kelas</span>
             </TabsTrigger>
             <TabsTrigger
               value="guru_bk"
-              className="text-xs font-semibold rounded-lg data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm flex items-center justify-center gap-1.5 transition-all"
+              className="text-xs font-semibold rounded-lg data-[state=active]:neo-card-subtle data-[state=active]:text-indigo-700 data-[state=active]:font-bold flex items-center justify-center gap-1.5 transition-all"
             >
               <HeartHandshake className="w-3.5 h-3.5" />
               <span>Guru BK</span>
             </TabsTrigger>
             <TabsTrigger
               value="kepsek"
-              className="text-xs font-semibold rounded-lg data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm flex items-center justify-center gap-1.5 transition-all"
+              className="text-xs font-semibold rounded-lg data-[state=active]:neo-card-subtle data-[state=active]:text-amber-700 data-[state=active]:font-bold flex items-center justify-center gap-1.5 transition-all"
             >
               <Award className="w-3.5 h-3.5" />
               <span>Kepala Sekolah</span>
@@ -118,21 +118,21 @@ export function AiAdvisorCard({
           </TabsList>
 
           <TabsContent value="guru_kelas" className="mt-3">
-            <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200/80 text-xs text-slate-800 leading-relaxed">
-              <strong className="text-blue-900 block mb-1">Panduan Tindak Lanjut Guru / Wali Kelas:</strong>
+            <div className="p-3.5 rounded-xl neo-card-subtle text-xs text-slate-800 leading-relaxed border-blue-200/80">
+              <strong className="text-blue-900 block mb-1">Panduan Tindak Lanjut Wali Kelas:</strong>
               {data.recommendation_guru_kelas}
             </div>
           </TabsContent>
 
           <TabsContent value="guru_bk" className="mt-3">
-            <div className="p-3.5 rounded-xl bg-indigo-50/60 border border-indigo-200/80 text-xs text-slate-800 leading-relaxed">
+            <div className="p-3.5 rounded-xl neo-card-subtle text-xs text-slate-800 leading-relaxed border-indigo-200/80">
               <strong className="text-indigo-900 block mb-1">Protokol Konseling Guru BK:</strong>
               {data.recommendation_guru_bk}
             </div>
           </TabsContent>
 
           <TabsContent value="kepsek" className="mt-3">
-            <div className="p-3.5 rounded-xl bg-slate-100/90 border border-slate-200 text-xs text-slate-800 leading-relaxed">
+            <div className="p-3.5 rounded-xl neo-card-subtle text-xs text-slate-800 leading-relaxed border-amber-200/80">
               <strong className="text-slate-900 block mb-1">Disposisi &amp; Kebijakan Kepala Sekolah:</strong>
               {data.recommendation_kepsek}
             </div>

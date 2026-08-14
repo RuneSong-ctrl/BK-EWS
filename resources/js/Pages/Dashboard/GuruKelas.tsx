@@ -113,14 +113,39 @@ const mockStudents: StudentRow[] = [
   },
 ]
 
-export default function GuruKelas() {
-  const [selectedStudent, setSelectedStudent] = React.useState<StudentOption | null>({
-    id: 1,
-    name: "Ahmad Fauzi",
-    nisn: "0089218821",
-    class_name: "10-MIPA-1",
-    ews_status: "WASPADA",
-  })
+interface GuruKelasProps {
+  schoolClass?: {
+    id: number
+    name: string
+    grade_level: number
+    academic_year: string
+  } | null
+  students?: StudentRow[]
+  stats?: {
+    total_students: number
+    normal_count: number
+    berisiko_count: number
+    waspada_count: number
+    kritis_count: number
+    data_belum_lengkap_count: number
+  }
+}
+
+export default function GuruKelas({ schoolClass, students: initialStudents = [], stats }: GuruKelasProps) {
+  const studentList = initialStudents.length > 0 ? initialStudents : mockStudents
+  const className = schoolClass?.name || "10-MIPA-1"
+
+  const [selectedStudent, setSelectedStudent] = React.useState<StudentOption | null>(
+    studentList.length > 0
+      ? {
+          id: studentList[0].id,
+          name: studentList[0].name,
+          nisn: studentList[0].nisn,
+          class_name: studentList[0].class_name || className,
+          ews_status: studentList[0].ews_status,
+        }
+      : null
+  )
   const [observationDate, setObservationDate] = React.useState("2026-08-14")
   const [participationScore, setParticipationScore] = React.useState(2)
   const [homeworkScore, setHomeworkScore] = React.useState(2)
@@ -133,7 +158,7 @@ export default function GuruKelas() {
   const [isAiModalOpen, setIsAiModalOpen] = React.useState(false)
   const [isAiLoading, setIsAiLoading] = React.useState(false)
   const [aiData, setAiData] = React.useState<AiStructuredResult>({
-    student_name: "Ahmad Fauzi",
+    student_name: studentList[0]?.name || "Ahmad Fauzi",
     raw_text: rawText,
     category: "MENARIK_DIRI",
     severity: "SEDANG",
@@ -146,11 +171,11 @@ export default function GuruKelas() {
   const [searchQuery, setSearchQuery] = React.useState("")
   const [statusFilter, setStatusFilter] = React.useState<string>("ALL")
 
-  const studentAutocompleteOptions: StudentOption[] = mockStudents.map((s) => ({
+  const studentAutocompleteOptions: StudentOption[] = studentList.map((s) => ({
     id: s.id,
     name: s.name,
     nisn: s.nisn,
-    class_name: s.class_name,
+    class_name: s.class_name || className,
     ews_status: s.ews_status,
   }))
 
@@ -257,11 +282,14 @@ export default function GuruKelas() {
     return matchQuery && matchStatus
   })
 
+  const totalCount = stats?.total_students || studentList.length
+  const atensiCount = (stats?.kritis_count || 0) + (stats?.waspada_count || 0) + (stats?.berisiko_count || 0)
+
   return (
     <AppLayout
       currentRole="guru_kelas"
       activeMenu="dashboard"
-      title="Ringkasan Evaluasi & Jurnal Kelas 10-MIPA-1"
+      title={`Ringkasan Evaluasi & Jurnal Kelas ${className}`}
       subtitle="Pencatatan observasi perilaku siswa berbantuan AI dan pemantauan 4 pilar EWS"
     >
       {/* Top 3 Stat Cards - Scaled for 14"-16" screens */}
@@ -471,7 +499,7 @@ export default function GuruKelas() {
         </div>
       </section>
 
-      {/* Bottom Section: Class Student Roster & EWS Status Table */}
+      {/* Roster Table Section */}
       <section
         id="rekap"
         className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-5 scroll-mt-20"
@@ -501,12 +529,9 @@ export default function GuruKelas() {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="h-10 px-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             >
-              <option value="ALL">Semua Status EWS</option>
-              <option value="NORMAL">Normal</option>
-              <option value="BERISIKO">Berisiko</option>
-              <option value="WASPADA">Waspada</option>
-              <option value="KRITIS">Kritis</option>
-            </select>
+              <Filter className="w-3.5 h-3.5 mr-1.5" />
+              Filter Status
+            </Button>
           </div>
         </div>
 
@@ -568,6 +593,20 @@ export default function GuruKelas() {
                         >
                           {student.score_trend}
                         </span>
+                        {student.score_trend !== "-" && (
+                          <span
+                            className={cn(
+                              "text-[10px] font-semibold px-1 py-0.2 rounded",
+                              student.score_trend === "Naik" || student.score_trend === "Stabil"
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                : student.score_trend === "Turun"
+                                ? "bg-rose-50 text-rose-700 border border-rose-200"
+                                : "bg-slate-100 text-slate-600"
+                            )}
+                          >
+                            {student.score_trend}
+                          </span>
+                        )}
                       </div>
                     </td>
 

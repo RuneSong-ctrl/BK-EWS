@@ -21,8 +21,44 @@ import { EwsStatusBadge } from "@/components/ews/EwsStatusBadge"
 import { toast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 
-export default function Kepsek() {
+interface PriorityStudent {
+  id: number
+  nis: string
+  name: string
+  gender: string
+  class_name: string
+  status: string
+  triggers: string[]
+  calculated_at: string
+}
+
+interface KepsekProps {
+  stats?: {
+    total_students: number
+    normal_count: number
+    berisiko_count: number
+    waspada_count: number
+    kritis_count: number
+    data_belum_lengkap_count: number
+  }
+  priorityStudents?: PriorityStudent[]
+  escalatedCases?: any[]
+  classes?: any[]
+}
+
+export default function Kepsek({ stats, priorityStudents = [], escalatedCases = [] }: KepsekProps) {
   const [isDisposed, setIsDisposed] = React.useState(false)
+
+  const total = stats?.total_students || 120
+  const normalCount = stats?.normal_count || 105
+  const berisikoCount = stats?.berisiko_count || 8
+  const waspadaCount = stats?.waspada_count || 5
+  const kritisCount = stats?.kritis_count || 2
+
+  const normalPct = Math.round((normalCount / total) * 100) || 88
+  const berisikoPct = Math.round((berisikoCount / total) * 100) || 7
+  const waspadaPct = Math.round((waspadaCount / total) * 100) || 4
+  const kritisPct = Math.round((kritisCount / total) * 100) || 1
 
   const handleDisposisi = () => {
     setIsDisposed(true)

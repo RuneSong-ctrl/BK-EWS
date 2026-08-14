@@ -1,30 +1,23 @@
 import * as React from "react"
-import { Shield, Lock, Mail, User, UserCheck, HeartHandshake, Award, ArrowRight } from "lucide-react"
-import { Link, router } from "@inertiajs/react"
+import { Shield, Lock, Mail, User, UserCheck, HeartHandshake, Award, ArrowRight, AlertCircle } from "lucide-react"
+import { Link, useForm } from "@inertiajs/react"
 import { AuthLayout } from "@/Layouts/AuthLayout"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 
 export default function Register() {
-  const [role, setRole] = React.useState<"guru_kelas" | "guru_bk" | "kepsek">("guru_kelas")
-  const [name, setName] = React.useState("")
-  const [nip, setNip] = React.useState("")
-  const [email, setEmail] = React.useState("")
-  const [password, setPassword] = React.useState("")
-  const [passwordConfirm, setPasswordConfirm] = React.useState("")
+  const { data, setData, post, processing, errors } = useForm({
+    role: "guru_kelas" as "guru_kelas" | "guru_bk" | "kepsek",
+    name: "",
+    nip: "",
+    email: "",
+    password: "",
+    password_confirmation: "",
+  })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Redirect to login or appropriate dashboard
-    if (role === "guru_kelas") {
-      router.visit("/dashboard/guru-kelas")
-    } else if (role === "guru_bk") {
-      router.visit("/dashboard/guru-bk")
-    } else {
-      router.visit("/dashboard/kepsek")
-    }
+    post("/register")
   }
 
   return (
@@ -35,31 +28,31 @@ export default function Register() {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Role Selection */}
         <div className="space-y-1.5">
-          <Label className="text-xs font-semibold text-slate-700">
+          <Label className="text-xs font-bold text-slate-700">
             Pilih Peran Penugasan:
           </Label>
-          <div className="grid grid-cols-3 gap-2 p-1 rounded-2xl neo-inset bg-[#F0F3F8]">
+          <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl neo-inset bg-[#E7EDF4]">
             <button
               type="button"
-              onClick={() => setRole("guru_kelas")}
+              onClick={() => setData("role", "guru_kelas")}
               className={cn(
                 "py-2 px-1 rounded-xl text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer",
-                role === "guru_kelas"
-                  ? "bg-white text-blue-700 shadow-md border border-blue-100"
+                data.role === "guru_kelas"
+                  ? "neo-btn text-blue-700 font-extrabold bg-[#EEF2F7]"
                   : "text-slate-500 hover:text-slate-800"
               )}
             >
               <UserCheck className="w-3.5 h-3.5" />
-              <span>Guru Kelas</span>
+              <span>Wali Kelas</span>
             </button>
 
             <button
               type="button"
-              onClick={() => setRole("guru_bk")}
+              onClick={() => setData("role", "guru_bk")}
               className={cn(
                 "py-2 px-1 rounded-xl text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer",
-                role === "guru_bk"
-                  ? "bg-white text-indigo-700 shadow-md border border-indigo-100"
+                data.role === "guru_bk"
+                  ? "neo-btn text-indigo-700 font-extrabold bg-[#EEF2F7]"
                   : "text-slate-500 hover:text-slate-800"
               )}
             >
@@ -69,11 +62,11 @@ export default function Register() {
 
             <button
               type="button"
-              onClick={() => setRole("kepsek")}
+              onClick={() => setData("role", "kepsek")}
               className={cn(
                 "py-2 px-1 rounded-xl text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer",
-                role === "kepsek"
-                  ? "bg-white text-amber-700 shadow-md border border-amber-100"
+                data.role === "kepsek"
+                  ? "neo-btn text-amber-700 font-extrabold bg-[#EEF2F7]"
                   : "text-slate-500 hover:text-slate-800"
               )}
             >
@@ -81,99 +74,104 @@ export default function Register() {
               <span>Kepsek</span>
             </button>
           </div>
+          {errors.role && <p className="text-[11px] text-rose-600">{errors.role}</p>}
         </div>
 
         {/* Nama Lengkap */}
         <div className="space-y-1.5">
-          <Label htmlFor="name" className="text-xs font-semibold text-slate-700">
+          <Label htmlFor="name" className="text-xs font-bold text-slate-700">
             Nama Lengkap &amp; Gelar
           </Label>
           <div className="relative">
             <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <Input
+            <input
               id="name"
               type="text"
               required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={data.name}
+              onChange={(e) => setData("name", e.target.value)}
               placeholder="Contoh: Dra. Siti Rahmawati, M.Pd"
-              className="pl-10 h-10 text-xs neo-inset bg-[#F0F3F8] border-slate-200"
+              className="w-full pl-10 pr-4 h-10 text-xs rounded-xl neo-inset bg-[#E7EDF4] text-slate-800 placeholder:text-slate-400 focus:outline-none transition-all"
             />
           </div>
+          {errors.name && <p className="text-[11px] text-rose-600">{errors.name}</p>}
         </div>
 
         {/* NIP / NIK */}
         <div className="space-y-1.5">
-          <Label htmlFor="nip" className="text-xs font-semibold text-slate-700">
+          <Label htmlFor="nip" className="text-xs font-bold text-slate-700">
             Nomor Induk Pegawai (NIP / NIK)
           </Label>
           <div className="relative">
             <Shield className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <Input
+            <input
               id="nip"
               type="text"
               required
-              value={nip}
-              onChange={(e) => setNip(e.target.value)}
+              value={data.nip}
+              onChange={(e) => setData("nip", e.target.value)}
               placeholder="18 digit NIP resmi"
-              className="pl-10 h-10 text-xs neo-inset bg-[#F0F3F8] border-slate-200 font-mono"
+              className="w-full pl-10 pr-4 h-10 text-xs rounded-xl neo-inset bg-[#E7EDF4] text-slate-800 placeholder:text-slate-400 focus:outline-none transition-all font-mono"
             />
           </div>
+          {errors.nip && <p className="text-[11px] text-rose-600">{errors.nip}</p>}
         </div>
 
         {/* Email */}
         <div className="space-y-1.5">
-          <Label htmlFor="email" className="text-xs font-semibold text-slate-700">
+          <Label htmlFor="email" className="text-xs font-bold text-slate-700">
             Alamat Email Sekolah (@sch.id)
           </Label>
           <div className="relative">
             <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <Input
+            <input
               id="email"
               type="email"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="nama.guru@sman-terpadu.sch.id"
-              className="pl-10 h-10 text-xs neo-inset bg-[#F0F3F8] border-slate-200"
+              value={data.email}
+              onChange={(e) => setData("email", e.target.value)}
+              placeholder="nama.guru@sekolah.sch.id"
+              className="w-full pl-10 pr-4 h-10 text-xs rounded-xl neo-inset bg-[#E7EDF4] text-slate-800 placeholder:text-slate-400 focus:outline-none transition-all"
             />
           </div>
+          {errors.email && <p className="text-[11px] text-rose-600">{errors.email}</p>}
         </div>
 
         {/* Password */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label htmlFor="password" className="text-xs font-semibold text-slate-700">
+            <Label htmlFor="password" className="text-xs font-bold text-slate-700">
               Kata Sandi
             </Label>
             <div className="relative">
               <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <Input
+              <input
                 id="password"
                 type="password"
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={data.password}
+                onChange={(e) => setData("password", e.target.value)}
                 placeholder="Min. 8 karakter"
-                className="pl-10 h-10 text-xs neo-inset bg-[#F0F3F8] border-slate-200"
+                className="w-full pl-10 pr-4 h-10 text-xs rounded-xl neo-inset bg-[#E7EDF4] text-slate-800 placeholder:text-slate-400 focus:outline-none transition-all"
               />
             </div>
+            {errors.password && <p className="text-[11px] text-rose-600">{errors.password}</p>}
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="passwordConfirm" className="text-xs font-semibold text-slate-700">
+            <Label htmlFor="password_confirmation" className="text-xs font-bold text-slate-700">
               Ulangi Sandi
             </Label>
             <div className="relative">
               <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <Input
-                id="passwordConfirm"
+              <input
+                id="password_confirmation"
                 type="password"
                 required
-                value={passwordConfirm}
-                onChange={(e) => setPasswordConfirm(e.target.value)}
-                placeholder="Konfirmasi"
-                className="pl-10 h-10 text-xs neo-inset bg-[#F0F3F8] border-slate-200"
+                value={data.password_confirmation}
+                onChange={(e) => setData("password_confirmation", e.target.value)}
+                placeholder="Konfirmasi sandi"
+                className="w-full pl-10 pr-4 h-10 text-xs rounded-xl neo-inset bg-[#E7EDF4] text-slate-800 placeholder:text-slate-400 focus:outline-none transition-all"
               />
             </div>
           </div>
@@ -182,9 +180,10 @@ export default function Register() {
         {/* Submit */}
         <button
           type="submit"
-          className="w-full h-11 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm hover:shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all duration-150 active:scale-[0.98] border border-blue-600 mt-2"
+          disabled={processing}
+          className="w-full h-11 neo-btn-primary text-white text-xs sm:text-sm font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50 mt-2"
         >
-          <span>Daftarkan Akun Pendidik</span>
+          <span>{processing ? "Mendaftarkan Akun..." : "Daftarkan Akun Pendidik"}</span>
           <ArrowRight className="w-4 h-4 text-white" />
         </button>
 

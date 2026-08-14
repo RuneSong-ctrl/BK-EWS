@@ -40,7 +40,7 @@ class DashboardController extends Controller
             });
         }
 
-        $allStudents = Student::with('ewsScore')->get();
+        $allStudents = Student::with(['ewsScore', 'classes' => fn ($q) => $q->wherePivot('is_current', true)])->get();
         $stats = [
             'total_students' => $allStudents->count(),
             'normal_count' => $allStudents->filter(fn ($s) => $s->ewsScore?->status === 'NORMAL')->count(),
@@ -50,6 +50,38 @@ class DashboardController extends Controller
             'data_belum_lengkap_count' => $allStudents->filter(fn ($s) => $s->ewsScore?->status === 'DATA_BELUM_LENGKAP' || !$s->ewsScore)->count(),
         ];
 
+        // Watchlist (Kritis & Waspada)
+        $watchlist = $allStudents
+            ->filter(fn ($s) => in_array($s->ewsScore?->status, ['KRITIS', 'WASPADA']))
+            ->values()
+            ->map(fn ($s) => [
+                'id' => $s->id,
+                'name' => $s->name,
+                'class_name' => $s->currentClass()?->name ?? '-',
+                'trigger' => !empty($s->ewsScore?->triggered_by_parameters)
+                    ? implode(' & ', array_slice($s->ewsScore->triggered_by_parameters, 0, 2))
+                    : 'Terdeteksi anomali evaluasi 4 pilar',
+                'status' => $s->ewsScore?->status ?? 'WASPADA',
+                'urgency' => $s->ewsScore?->status === 'KRITIS' ? 'Mendesak (Tindak Lanjut Segera)' : 'Sesi Konseling Individu',
+            ]);
+
+        // Kasus BK Riil
+        $user = $request->user();
+        $casesQuery = \App\Models\BkCase::with(['student', 'handler']);
+        if ($user) {
+            $casesQuery->accessibleBy($user);
+        }
+        $recentCases = $casesQuery->latest('incident_date')->take(10)->get()->map(fn ($c) => [
+            'id' => $c->id,
+            'title' => $c->title,
+            'student_name' => $c->student?->name ?? 'Siswa Terdaftar',
+            'class_name' => $c->student?->currentClass()?->name ?? '-',
+            'severity' => $c->severity,
+            'status' => $c->status,
+            'date' => $c->incident_date?->format('d M Y') ?? '14 Agu 2026',
+            'counselor' => $c->handler?->name ?? 'Guru BK',
+        ]);
+
         $students = $query->orderBy('name')->paginate(15)->withQueryString();
 
         $classes = SchoolClass::orderBy('name')->get(['id', 'name', 'grade_level', 'academic_year']);
@@ -58,6 +90,15 @@ class DashboardController extends Controller
             'students' => $students,
             'stats' => $stats,
             'classes' => $classes,
+            'watchlist' => $watchlist,
+            'recentCases' => $recentCases,
+            'allStudentOptions' => $allStudents->map(fn ($s) => [
+                'id' => $s->id,
+                'name' => $s->name,
+                'nisn' => $s->nisn,
+                'class_name' => $s->currentClass()?->name ?? '-',
+                'ews_status' => $s->ewsScore?->status ?? 'NORMAL',
+            ]),
             'filters' => [
                 'status' => $statusFilter,
                 'class_id' => $classFilter,

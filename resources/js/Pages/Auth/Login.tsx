@@ -1,11 +1,8 @@
 import * as React from "react"
-import { Shield, Lock, Mail, ArrowRight, UserCheck, HeartHandshake, Award } from "lucide-react"
-import { Link, router } from "@inertiajs/react"
+import { Lock, Mail, ArrowRight, AlertCircle } from "lucide-react"
+import { Link, useForm } from "@inertiajs/react"
 import { AuthLayout } from "@/Layouts/AuthLayout"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { cn } from "@/lib/utils"
 
 export default function Login() {
   const [identifier, setIdentifier] = React.useState("198501152010011005")
@@ -90,7 +87,7 @@ export default function Login() {
               <span>Kepala Sekolah</span>
             </button>
           </div>
-        </div>
+        )}
 
         {/* NIP / Email Input */}
         <div className="space-y-2">
@@ -99,7 +96,7 @@ export default function Login() {
           </Label>
           <div className="relative">
             <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <Input
+            <input
               id="identifier"
               type="text"
               required
@@ -123,16 +120,19 @@ export default function Login() {
           </div>
           <div className="relative">
             <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <Input
+            <input
               id="password"
               type="password"
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={data.password}
+              onChange={(e) => setData("password", e.target.value)}
               placeholder="••••••••"
               className="pl-11 h-12 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
             />
           </div>
+          {errors.password && (
+            <p className="text-[11px] text-rose-600">{errors.password}</p>
+          )}
         </div>
 
         {/* Remember Me */}
@@ -140,8 +140,8 @@ export default function Login() {
           <input
             type="checkbox"
             id="remember"
-            checked={remember}
-            onChange={(e) => setRemember(e.target.checked)}
+            checked={data.remember}
+            onChange={(e) => setData("remember", e.target.checked)}
             className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
           />
           <Label htmlFor="remember" className="text-xs sm:text-sm text-slate-600 font-medium cursor-pointer">
@@ -154,7 +154,7 @@ export default function Login() {
           type="submit"
           className="w-full h-12 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm sm:text-base font-bold rounded-xl shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all duration-150 active:scale-[0.99] border border-blue-600"
         >
-          <span>Masuk ke Dashboard</span>
+          <span>{processing ? "Memproses Autentikasi..." : "Masuk ke Dashboard"}</span>
           <ArrowRight className="w-4 h-4 text-white" />
         </button>
 

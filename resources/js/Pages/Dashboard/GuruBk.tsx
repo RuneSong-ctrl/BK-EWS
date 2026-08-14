@@ -185,14 +185,35 @@ const mockHolisticMatrix: HolisticStudentItem[] = [
   },
 ]
 
-export default function GuruBk() {
-  const [selectedStudent, setSelectedStudent] = React.useState<StudentOption | null>({
-    id: 5,
-    name: "Dimas Pratama",
-    nisn: "0089218825",
-    class_name: "11-IPS-2",
-    ews_status: "KRITIS",
-  })
+interface GuruBkProps {
+  students?: { data: any[] }
+  stats?: {
+    total_students: number
+    normal_count: number
+    berisiko_count: number
+    waspada_count: number
+    kritis_count: number
+    data_belum_lengkap_count: number
+  }
+  classes?: any[]
+  watchlist?: any[]
+  recentCases?: BkCaseItem[]
+  allStudentOptions?: StudentOption[]
+}
+
+export default function GuruBk({
+  stats,
+  watchlist: initialWatchlist,
+  recentCases: initialRecentCases,
+  allStudentOptions: initialStudentOptions,
+}: GuruBkProps) {
+  const studentOptions = (initialStudentOptions && initialStudentOptions.length > 0) ? initialStudentOptions : mockAllStudents
+  const watchlist = (initialWatchlist && initialWatchlist.length > 0) ? initialWatchlist : mockWatchlist
+  const recentCases = (initialRecentCases && initialRecentCases.length > 0) ? initialRecentCases : mockRecentCases
+
+  const [selectedStudent, setSelectedStudent] = React.useState<StudentOption | null>(
+    studentOptions.length > 0 ? studentOptions[0] : null
+  )
   const [urgencyScore, setUrgencyScore] = React.useState(4)
   const [rapportScore, setRapportScore] = React.useState(3)
   const [resolutionProgress, setResolutionProgress] = React.useState(40)
@@ -293,6 +314,11 @@ export default function GuruBk() {
     const matchStatus = statusFilter === "ALL" || item.ews_status === statusFilter
     return matchGrade && matchStatus
   })
+
+  const totalSchool = stats?.total_students || 120
+  const kritisSchool = stats?.kritis_count || 3
+  const waspadaSchool = stats?.waspada_count || 8
+  const activeCasesCount = recentCases.filter((c) => c.status === "DALAM_PROSES" || c.status === "BARU_DILAPORKAN").length || 6
 
   return (
     <AppLayout
