@@ -18,12 +18,14 @@ class StudentMonitorController extends Controller
         $user = $request->user();
 
         // Audit Logging (UU PDP & Governance Requirement)
-        AuditLogger::log(
-            user: $user,
-            action: 'VIEW_STUDENT_EWS_MONITOR',
-            targetResource: 'students',
-            resourceId: $student->id
-        );
+        if ($user) {
+            AuditLogger::log(
+                user: $user,
+                action: 'VIEW_STUDENT_EWS_MONITOR',
+                targetResource: 'students',
+                resourceId: $student->id
+            );
+        }
 
         $student->load([
             'classes' => fn ($q) => $q->wherePivot('is_current', true),
@@ -36,13 +38,13 @@ class StudentMonitorController extends Controller
         ]);
 
         // Kasus BK hanya yang lolos scope accessibleBy untuk Kepsek
-        $bkCases = BkCase::where('student_id', $student->id)
-            ->with('handler')
-            ->accessibleBy($user)
-            ->orderBy('incident_date', 'desc')
-            ->get();
+        $bkCasesQuery = BkCase::where('student_id', $student->id)->with('handler');
+        if ($user) {
+            $bkCasesQuery->accessibleBy($user);
+        }
+        $bkCases = $bkCasesQuery->orderBy('incident_date', 'desc')->get();
 
-        return Inertia::render('Kepsek/StudentMonitor', [
+        return Inertia::render('Students/Show', [
             'student' => $student,
             'bkCases' => $bkCases,
             'currentClass' => $student->currentClass(),

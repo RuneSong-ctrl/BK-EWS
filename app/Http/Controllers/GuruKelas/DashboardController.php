@@ -16,10 +16,17 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        // Cari kelas yang diampu oleh wali kelas ini
-        $myClass = SchoolClass::where('homeroom_teacher_id', $user->id)
-            ->with(['enrollments.student.ewsScore'])
-            ->first();
+        // Cari kelas yang diampu oleh wali kelas ini, atau fallback ke kelas pertama jika demo / guest
+        $myClass = null;
+        if ($user) {
+            $myClass = SchoolClass::where('homeroom_teacher_id', $user->id)
+                ->with(['enrollments.student.ewsScore'])
+                ->first();
+        }
+
+        if (!$myClass) {
+            $myClass = SchoolClass::with(['enrollments.student.ewsScore'])->first();
+        }
 
         $students = [];
         $classStats = [
@@ -61,7 +68,7 @@ class DashboardController extends Controller
 
         $subjects = Subject::orderBy('name')->get();
 
-        return Inertia::render('GuruKelas/Dashboard', [
+        return Inertia::render('Dashboard/GuruKelas', [
             'schoolClass' => $myClass ? [
                 'id' => $myClass->id,
                 'name' => $myClass->name,

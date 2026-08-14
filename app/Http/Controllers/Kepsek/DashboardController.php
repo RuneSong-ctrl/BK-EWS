@@ -41,8 +41,12 @@ class DashboardController extends Controller
             ]);
 
         // Kasus BK Berat / Dieskalasi yang boleh diakses Kepsek
-        $escalatedCases = BkCase::with(['student', 'handler'])
-            ->accessibleBy($request->user())
+        $user = $request->user();
+        $casesQuery = BkCase::with(['student', 'handler']);
+        if ($user) {
+            $casesQuery->accessibleBy($user);
+        }
+        $escalatedCases = $casesQuery
             ->where(function ($q) {
                 $q->where('severity', 'BERAT')
                   ->orWhere('status', 'DIESKALASI_KE_KEPSEK');
@@ -53,7 +57,7 @@ class DashboardController extends Controller
 
         $classes = SchoolClass::withCount(['students'])->get();
 
-        return Inertia::render('Kepsek/Dashboard', [
+        return Inertia::render('Dashboard/Kepsek', [
             'stats' => $stats,
             'priorityStudents' => $priorityStudents,
             'escalatedCases' => $escalatedCases,

@@ -177,10 +177,10 @@ export function AiStructuringModal({
             <Button
               type="button"
               onClick={handleConfirm}
-              className="neo-button bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-md flex items-center gap-1.5"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer"
             >
               <Check className="w-3.5 h-3.5" />
-              Konfirmasi &amp; Simpan Observasi
+              <span>Konfirmasi &amp; Simpan Observasi</span>
             </Button>
           </div>
         </DialogFooter>

@@ -54,7 +54,7 @@ class DashboardController extends Controller
 
         $classes = SchoolClass::orderBy('name')->get(['id', 'name', 'grade_level', 'academic_year']);
 
-        return Inertia::render('GuruBK/Dashboard', [
+        return Inertia::render('Dashboard/GuruBk', [
             'students' => $students,
             'stats' => $stats,
             'classes' => $classes,

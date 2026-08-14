@@ -5,13 +5,13 @@
 
 @layer base {
   :root {
-    --background: 216 33% 96%; /* #F0F3F8 Soft cool slate canvas */
-    --foreground: 222.2 84% 4.9%; /* #0F172A Slate 900 */
-    --card: 0 0% 100%; /* #FFFFFF Pure white */
+    --background: 216 33% 97%; /* #F1F4F9 Light cool canvas */
+    --foreground: 222.2 84% 4.9%; /* #0F172A */
+    --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%; /* #2563EB Royal Blue */
+    --primary: 221.2 83.2% 53.3%; /* #2563EB */
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -24,39 +24,17 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
-    --radius: 1rem;
-  }
-
-  .dark {
-    --background: 224 71.4% 4.1%;
-    --foreground: 210 20% 98%;
-    --card: 224 71.4% 6.5%;
-    --card-foreground: 210 20% 98%;
-    --popover: 224 71.4% 4.1%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 20% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 20% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --radius: 0.875rem;
   }
 
   * {
-    border-color: hsl(var(--border));
+    border-color: #e2e8f0;
   }
 
   body {
-    background-color: #f0f3f8;
-    color: hsl(var(--foreground));
-    font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #f1f4f9;
+    color: #0f172a;
+    font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 }
@@ -65,9 +43,9 @@
   --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  --color-canvas-bg: #f0f3f8;
+  --color-canvas-bg: #f1f4f9;
   --color-surface: #ffffff;
-  --color-surface-muted: #f1f5f9;
+  --color-surface-muted: #f8fafc;
 
   --color-brand-primary: #2563eb;
   --color-brand-hover: #1d4ed8;
@@ -97,70 +75,42 @@
   --color-ews-incomplete-bg: #f1f5f9;
   --color-ews-incomplete-border: #cbd5e1;
   --color-ews-incomplete-solid: #64748b;
-
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
-  --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
-  --color-popover: hsl(var(--popover));
-  --color-popover-foreground: hsl(var(--popover-foreground));
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
-  --color-destructive: hsl(var(--destructive));
-  --color-destructive-foreground: hsl(var(--destructive-foreground));
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
-
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 4px);
-  --radius-sm: calc(var(--radius) - 8px);
 }
 
-/* Soft Neomorphism Utilities */
+/* Modern Clean Elevation & Card Styles */
 .neo-card {
   background-color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 6px 6px 16px rgba(166, 178, 196, 0.35), -6px -6px 16px rgba(255, 255, 255, 0.95);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  transition: all 0.2s ease;
+}
+
+.neo-card:hover {
+  box-shadow: 0 4px 12px 0 rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
 }
 
 .neo-card-subtle {
   background-color: #f8fafc;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 4px 4px 12px rgba(166, 178, 196, 0.25), -4px -4px 12px rgba(255, 255, 255, 0.9);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.03);
 }
 
 .neo-inset,
 .neo-sunken {
-  background-color: #f0f3f8;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: inset 3px 3px 6px rgba(166, 178, 196, 0.3), inset -3px -3px 6px rgba(255, 255, 255, 0.85);
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.15s ease;
 }
 
-.neo-button {
+.neo-inset:focus-within,
+.neo-sunken:focus-within {
   background-color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 3px 3px 8px rgba(166, 178, 196, 0.35), -3px -3px 8px rgba(255, 255, 255, 0.9);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.neo-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 4px 4px 12px rgba(166, 178, 196, 0.45), -4px -4px 12px rgba(255, 255, 255, 0.95);
-}
-
-.neo-button:active,
-.neo-button-pressed {
-  transform: translateY(0);
-  box-shadow: inset 2px 2px 5px rgba(166, 178, 196, 0.4), inset -2px -2px 5px rgba(255, 255, 255, 0.9);
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .neo-pill {
-  box-shadow: 2px 2px 5px rgba(166, 178, 196, 0.25), -2px -2px 5px rgba(255, 255, 255, 0.8);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.03);
 }
+

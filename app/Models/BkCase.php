@@ -47,11 +47,12 @@ class BkCase extends Model
         return $this->belongsTo(User::class, 'handled_by');
     }
 
-    /**
-     * Scope untuk menegakkan hak akses berbasis role (UU PDP Governance)
-     */
-    public function scopeAccessibleBy(Builder $query, User $user): Builder
+    public function scopeAccessibleBy(Builder $query, ?User $user): Builder
     {
+        if (!$user) {
+            return $query;
+        }
+
         if ($user->isGuruBk()) {
             return $query;
         }

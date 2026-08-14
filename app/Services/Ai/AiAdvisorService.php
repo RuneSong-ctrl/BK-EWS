@@ -25,11 +25,12 @@ class AiAdvisorService
         $context = $this->buildContextPayload($student, $sanitized);
 
         $apiKey = config('services.gemini.api_key') ?? env('GEMINI_API_KEY');
+        $model = config('services.gemini.model') ?? env('GEMINI_MODEL', 'gemini-2.5-flash');
         $analysisResult = null;
 
         if (!empty($apiKey)) {
             try {
-                $analysisResult = $this->callLlmApi($context, $apiKey);
+                $analysisResult = $this->callLlmApi($context, $apiKey, $model);
             } catch (\Throwable $e) {
                 Log::warning('AI Advisor API call failed, using heuristic advisor', [
                     'error' => $e->getMessage(),
@@ -48,7 +49,7 @@ class AiAdvisorService
             'primary_concerns' => $analysisResult['primary_concerns'] ?? [],
             'recommendations' => $analysisResult['recommendations'] ?? [],
             'data_limitation_note' => $analysisResult['data_limitation_note'] ?? null,
-            'model_version' => !empty($apiKey) ? 'gemini-1.5-flash' : 'local-deterministic-v1',
+            'model_version' => !empty($apiKey) ? $model : 'local-deterministic-v1',
             'generated_at' => Carbon::now(),
         ]);
     }
@@ -93,7 +94,7 @@ class AiAdvisorService
         ];
     }
 
-    private function callLlmApi(array $context, string $apiKey): ?array
+    private function callLlmApi(array $context, string $apiKey, string $model = 'gemini-2.5-flash'): ?array
     {
         $systemPrompt = <<<PROMPT
 Anda adalah Konsultan Ahli Bimbingan Konseling dan Early Warning System Sekolah.
@@ -112,8 +113,8 @@ Format Output JSON:
 }
 PROMPT;
 
-        $response = Http::timeout(5)
-            ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$apiKey}", [
+        $response = Http::timeout(10)
+            ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
                 'contents' => [
                     [
                         'parts' => [
@@ -129,7 +130,11 @@ PROMPT;
 
         if ($response->successful()) {
             $jsonText = $response->json('candidates.0.content.parts.0.text');
-            return json_decode($jsonText, true);
+            if ($jsonText) {
+                $cleanJson = preg_replace('/^```(?:json)?\s*/i', '', trim($jsonText));
+                $cleanJson = preg_replace('/\s*```$/', '', $cleanJson);
+                return json_decode($cleanJson, true);
+            }
         }
 
         return null;

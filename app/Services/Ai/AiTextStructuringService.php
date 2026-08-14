@@ -28,10 +28,11 @@ class AiTextStructuringService
     public function structureObservation(string $rawText): array
     {
         $apiKey = config('services.gemini.api_key') ?? env('GEMINI_API_KEY');
+        $model = config('services.gemini.model') ?? env('GEMINI_MODEL', 'gemini-2.5-flash');
 
         if (!empty($apiKey)) {
             try {
-                $response = $this->callLlmApi($rawText, $apiKey);
+                $response = $this->callLlmApi($rawText, $apiKey, $model);
                 if ($response && isset($response['category'], $response['severity'])) {
                     return $response;
                 }
@@ -45,7 +46,7 @@ class AiTextStructuringService
         return $this->localFallbackStructuring($rawText);
     }
 
-    private function callLlmApi(string $rawText, string $apiKey): ?array
+    private function callLlmApi(string $rawText, string $apiKey, string $model = 'gemini-2.5-flash'): ?array
     {
         $systemPrompt = <<<PROMPT
 Anda adalah asisten AI klasifikasi psikososial dan perilaku siswa sekolah menengah.
@@ -64,7 +65,7 @@ Severity yang diizinkan:
 - SEDANG (perselisihan, pelanggaran tata tertib berulang)
 - BERAT (kekerasan fisik, senjata, obat terlarang, bullying parah)
 
-Output WAJIB berupa JSON murni tanpa pembungkus markdown:
+Output WAJIB berupa JSON murni:
 {
   "category": "...",
   "severity": "...",
@@ -73,8 +74,8 @@ Output WAJIB berupa JSON murni tanpa pembungkus markdown:
 }
 PROMPT;
 
-        $response = Http::timeout(4)
-            ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$apiKey}", [
+        $response = Http::timeout(10)
+            ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
                 'contents' => [
                     [
                         'parts' => [
@@ -90,7 +91,11 @@ PROMPT;
 
         if ($response->successful()) {
             $jsonText = $response->json('candidates.0.content.parts.0.text');
-            return json_decode($jsonText, true);
+            if ($jsonText) {
+                $cleanJson = preg_replace('/^```(?:json)?\s*/i', '', trim($jsonText));
+                $cleanJson = preg_replace('/\s*```$/', '', $cleanJson);
+                return json_decode($cleanJson, true);
+            }
         }
 
         return null;

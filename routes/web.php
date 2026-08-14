@@ -5,7 +5,9 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GuruBK;
 use App\Http\Controllers\GuruKelas;
 use App\Http\Controllers\Kepsek;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,14 +15,36 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
+// Root Redirect
+Route::get('/', function () {
+    if (Auth::check()) {
+        return redirect()->route('dashboard');
+    }
+    return redirect()->route('login');
+})->name('home');
+
 // Auth Routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+Route::get('/register', function () {
+    return Inertia::render('Auth/Register');
+})->name('register');
+
+// Standalone Demo / Direct Dashboard Access Routes
+Route::get('/dashboard/guru-kelas', [GuruKelas\DashboardController::class, 'index'])->name('dashboard.guru-kelas');
+Route::get('/dashboard/guru-bk', [GuruBK\DashboardController::class, 'index'])->name('dashboard.guru-bk');
+Route::get('/dashboard/kepsek', [Kepsek\DashboardController::class, 'index'])->name('dashboard.kepsek');
+
+// Standalone Student Show Route (with student model binding or fallback)
+Route::get('/students/{student}', [GuruBK\StudentProfileController::class, 'show'])->name('students.show');
+
+// Public AI Structuring Helper API
+Route::post('/api/ai/structure-observation', [GuruKelas\ObservationController::class, 'structureWithAi'])->name('api.ai.structure');
 
 // Base Authenticated Route
 Route::middleware(['auth'])->group(function () {
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Modul: Guru Kelas / Wali Kelas
     Route::middleware(['role:guru_kelas'])->prefix('guru-kelas')->name('guru-kelas.')->group(function () {
@@ -46,29 +70,3 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/students/{student}', [Kepsek\StudentMonitorController::class, 'show'])->name('students.show');
     });
 });
-
-Route::get('/login', function () {
-    return Inertia::render('Auth/Login');
-})->name('login');
-
-Route::get('/register', function () {
-    return Inertia::render('Auth/Register');
-})->name('register');
-
-Route::get('/dashboard/guru-kelas', function () {
-    return Inertia::render('Dashboard/GuruKelas');
-})->name('dashboard.guru-kelas');
-
-Route::get('/dashboard/guru-bk', function () {
-    return Inertia::render('Dashboard/GuruBk');
-})->name('dashboard.guru-bk');
-
-Route::get('/dashboard/kepsek', function () {
-    return Inertia::render('Dashboard/Kepsek');
-})->name('dashboard.kepsek');
-
-Route::get('/students/{id}', function ($id) {
-    return Inertia::render('Students/Show', [
-        'studentId' => $id,
-    ]);
-})->name('students.show');

@@ -231,33 +231,33 @@ export default function GuruBk() {
   return (
     <AppLayout
       currentRole="guru_bk"
-      activeMenu="kasus_bk"
-      title="Dashboard Guru Bimbingan Konseling (Guru BK)"
-      subtitle="Konsolidasi portofolio konseling, pemantauan siswa risiko tinggi, dan penanganan kasus lintas kelas"
+      activeMenu="dashboard_bk"
+      title="Portofolio Bimbingan Konseling & Watchlist EWS"
+      subtitle="Pemantauan siswa berisiko tinggi dan penanganan kasus lintas kelas sekolah"
     >
-      {/* Top 4 Elevated Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="p-5 rounded-2xl neo-card bg-[#F0F3F8] border border-white flex flex-col justify-between h-[126px]">
+      {/* Top 4 Elevated Stat Cards - Responsive Grid for 14" Laptop */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[112px] hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Total Kasus Aktif
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              Kasus Aktif
             </span>
-            <div className="w-8 h-8 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-blue-600 shadow-sm">
+            <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
               <HeartHandshake className="w-4 h-4" />
             </div>
           </div>
           <div>
             <div className="text-2xl font-bold text-slate-900 tracking-tight">14 Kasus</div>
-            <p className="text-xs text-slate-500 mt-0.5">Lintas Kelas X, XI, XII</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Lintas Kelas X, XI, XII</p>
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl neo-card bg-[#F0F3F8] border border-white flex flex-col justify-between h-[126px]">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[112px] hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Status Kritis (EWS)
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              Status Kritis
             </span>
-            <div className="w-8 h-8 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-rose-600 shadow-sm">
+            <div className="w-8 h-8 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600">
               <AlertOctagon className="w-4 h-4" />
             </div>
           </div>
@@ -265,37 +265,37 @@ export default function GuruBk() {
             <div className="text-2xl font-bold text-slate-900 tracking-tight text-rose-600">
               2 Siswa
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">Perlu Penanganan Prioritas</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Perlu Penanganan Khusus</p>
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl neo-card bg-[#F0F3F8] border border-white flex flex-col justify-between h-[126px]">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[112px] hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Dalam Proses Mediasi
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              Dalam Mediasi
             </span>
-            <div className="w-8 h-8 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-amber-600 shadow-sm">
+            <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
               <Clock className="w-4 h-4" />
             </div>
           </div>
           <div>
             <div className="text-2xl font-bold text-slate-900 tracking-tight">5 Kasus</div>
-            <p className="text-xs text-slate-500 mt-0.5">Sesi Berjalan Pekan Ini</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Sesi Berjalan Pekan Ini</p>
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl neo-card bg-[#F0F3F8] border border-white flex flex-col justify-between h-[126px]">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[112px] hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Kasus Terselesaikan
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              Kasus Selesai
             </span>
-            <div className="w-8 h-8 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-emerald-600 shadow-sm">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
               <CheckCircle className="w-4 h-4" />
             </div>
           </div>
           <div>
             <div className="text-2xl font-bold text-slate-900 tracking-tight">28 Kasus</div>
-            <p className="text-xs text-slate-500 mt-0.5">Semester Berjalan</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Semester Berjalan</p>
           </div>
         </div>
       </div>
@@ -303,29 +303,29 @@ export default function GuruBk() {
       {/* Input Panel Kasus & Sesi Konseling Baru (Guru BK Scope) */}
       <section
         id="kasus"
-        className="p-6 rounded-3xl neo-card bg-white border border-white/90 shadow-xl space-y-6"
+        className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-5 scroll-mt-20"
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center shadow-sm">
-              <UserPlus className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center shrink-0">
+              <UserPlus className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                Input Kasus &amp; Dokumentasi Sesi Konseling Baru
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800">
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                Pencatatan Sesi Konseling &amp; Penanganan Kasus
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
                   Konselor BK
                 </span>
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Pencatatan rekam bimbingan konseling, skala urgensi, dan rencana tindak lanjut
+                Dokumentasi terenkripsi rekam bimbingan dan tindak lanjut psikososial siswa
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-mono">
+          <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 text-xs">
             <Lock className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Enkripsi Model AES-256</span>
+            <span>Kerahasiaan Data Terjamin (UU PDP)</span>
           </div>
         </div>
 
@@ -471,10 +471,11 @@ export default function GuruBk() {
               <div className="flex items-center justify-end gap-3 pt-2">
                 <Button
                   type="submit"
-                  className="neo-button bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-indigo-500/25 flex items-center gap-2 cursor-pointer"
+                  size="sm"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer"
                 >
                   <CheckCircle className="w-4 h-4" />
-                  <span>Simpan Sesi Konseling BK</span>
+                  <span>Simpan Catatan Konseling</span>
                 </Button>
               </div>
             </div>
@@ -482,20 +483,20 @@ export default function GuruBk() {
         </form>
       </section>
 
-      {/* Split Section: Watchlist & Recent Cases Feed */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* Split Section: Watchlist & Recent Cases Feed - Optimized for 14" screens */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Left: Priority EWS Watchlist */}
-        <div className="lg:col-span-6 p-6 rounded-3xl neo-card bg-white border border-white/90 shadow-xl space-y-4">
+        <div className="lg:col-span-6 p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                Siswa Prioritas EWS (Watchlist Sekolah)
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
+                Siswa Prioritas Penanganan (Watchlist)
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
                   {mockWatchlist.length} Siswa
                 </span>
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Siswa dengan status Kritis / Waspada yang memicu alarm EWS
+                Siswa berstatus Kritis &amp; Waspada yang memerlukan perhatian khusus
               </p>
             </div>
           </div>
@@ -504,18 +505,18 @@ export default function GuruBk() {
             {mockWatchlist.map((item) => (
               <div
                 key={item.id}
-                className="p-4 rounded-2xl neo-card-subtle bg-slate-50/80 border border-slate-200/80 flex flex-col justify-between gap-3 hover:border-blue-300 transition-all"
+                className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between gap-2.5 hover:border-slate-300 transition-all"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-slate-900">{item.name}</span>
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-200 text-slate-700">
+                      <span className="font-bold text-xs sm:text-sm text-slate-900">{item.name}</span>
+                      <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-slate-200 text-slate-700">
                         {item.class_name}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-600 mt-1 font-medium">
-                      Trigger: <span className="text-slate-800">{item.trigger}</span>
+                    <p className="text-xs text-slate-600 mt-1">
+                      Faktor Pemicu: <span className="text-slate-800 font-medium">{item.trigger}</span>
                     </p>
                   </div>
 
@@ -540,14 +541,14 @@ export default function GuruBk() {
         </div>
 
         {/* Right: Recent Counseling Case Feed */}
-        <div className="lg:col-span-6 p-6 rounded-3xl neo-card bg-white border border-white/90 shadow-xl space-y-4">
+        <div className="lg:col-span-6 p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h3 className="text-sm font-bold text-slate-900 tracking-tight">
-                Feed Kasus BK &amp; Tindak Lanjut Aktif
+                Riwayat Sesi Konseling Terkini
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Aktivitas penanganan dan status eskalasi kasus terkini
+                Progres penanganan dan status tindak lanjut kasus siswa
               </p>
             </div>
           </div>
@@ -556,7 +557,7 @@ export default function GuruBk() {
             {mockRecentCases.map((caseItem) => (
               <div
                 key={caseItem.id}
-                className="p-3.5 rounded-2xl neo-card-subtle bg-slate-50/70 border border-slate-200/80 space-y-2 hover:bg-white transition-all"
+                className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2 hover:bg-slate-100/60 transition-all"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -570,10 +571,10 @@ export default function GuruBk() {
                     className={cn(
                       "px-2 py-0.5 rounded-md text-[10px] font-bold uppercase",
                       caseItem.status === "DIESKALASI_KE_KEPSEK"
-                        ? "bg-rose-100 text-rose-800 border border-rose-200"
+                        ? "bg-rose-50 text-rose-700 border border-rose-200"
                         : caseItem.status === "DALAM_PROSES"
-                        ? "bg-amber-100 text-amber-800 border border-amber-200"
-                        : "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                        ? "bg-amber-50 text-amber-700 border border-amber-200"
+                        : "bg-emerald-50 text-emerald-700 border border-emerald-200"
                     )}
                   >
                     {caseItem.status.replace(/_/g, " ")}
@@ -588,7 +589,7 @@ export default function GuruBk() {
                       caseItem.severity === "BERAT" ? "text-rose-600" : "text-slate-600"
                     )}
                   >
-                    Severity: {caseItem.severity}
+                    Kategori: {caseItem.severity}
                   </span>
                 </div>
               </div>
@@ -598,22 +599,25 @@ export default function GuruBk() {
       </div>
 
       {/* Bottom Section: Holistic Student Matrix Across School */}
-      <section className="p-6 rounded-3xl neo-card bg-white border border-white/90 shadow-xl space-y-4">
+      <section
+        id="matriks"
+        className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4 scroll-mt-20"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h2 className="text-base font-bold text-slate-900 tracking-tight">
-              Matriks Holistik Siswa Seluruh Sekolah (Cross-Class EWS)
+            <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+              Matriks Siswa Seluruh Sekolah (Cross-Class EWS)
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
               Konsolidasi 4 pilar EWS di seluruh jenjang kelas (X, XI, XII)
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <select
               value={gradeFilter}
               onChange={(e) => setGradeFilter(e.target.value)}
-              className="h-9 px-2.5 rounded-xl neo-inset bg-[#F0F3F8] text-xs font-semibold text-slate-700 border-slate-200 cursor-pointer"
+              className="h-8 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             >
               <option value="ALL">Semua Jenjang</option>
               <option value="X">Kelas X</option>
@@ -624,7 +628,7 @@ export default function GuruBk() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-9 px-2.5 rounded-xl neo-inset bg-[#F0F3F8] text-xs font-semibold text-slate-700 border-slate-200 cursor-pointer"
+              className="h-8 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             >
               <option value="ALL">Semua Status EWS</option>
               <option value="NORMAL">Normal</option>

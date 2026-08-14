@@ -27,35 +27,32 @@ export function AiAdvisorCard({
   return (
     <div
       className={cn(
-        "p-6 rounded-2xl neo-card border border-blue-100 bg-gradient-to-br from-white via-white to-blue-50/40 relative overflow-hidden",
+        "p-5 sm:p-6 rounded-2xl bg-white border border-blue-200 shadow-xs relative overflow-hidden",
         className
       )}
     >
-      {/* Subtle background glow */}
-      <div className="absolute -top-12 -right-12 w-44 h-44 bg-blue-400/10 rounded-full blur-2xl pointer-events-none" />
-
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4 mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3 mb-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
+          <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0">
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
-              AI Advisor — Rekomendasi Terpadu Intervensi
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-800 border border-blue-200">
-                LLM Assisted
+              Analisis Rekomendasi Terpadu (AI Advisor)
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                Gemini AI
               </span>
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Analisis naratif kontekstual multi-peran untuk {studentName}
+              Rekomendasi tindakan kontekstual lintas peran untuk {studentName}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+        <div className="flex items-center gap-1.5 text-xs text-slate-500">
           <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          <span>UU PDP Compliant</span>
+          <span>Kerahasiaan Terlindungi</span>
         </div>
       </div>
 

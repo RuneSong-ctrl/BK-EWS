@@ -33,13 +33,13 @@ class StudentProfileController extends Controller
         ]);
 
         // Muat kasus BK sesuai hak akses Guru BK
-        $bkCases = BkCase::where('student_id', $student->id)
-            ->with('handler')
-            ->accessibleBy($request->user())
-            ->orderBy('incident_date', 'desc')
-            ->get();
+        $bkCasesQuery = BkCase::where('student_id', $student->id)->with('handler');
+        if ($request->user()) {
+            $bkCasesQuery->accessibleBy($request->user());
+        }
+        $bkCases = $bkCasesQuery->orderBy('incident_date', 'desc')->get();
 
-        return Inertia::render('GuruBK/StudentProfile', [
+        return Inertia::render('Students/Show', [
             'student' => $student,
             'bkCases' => $bkCases,
             'currentClass' => $student->currentClass(),

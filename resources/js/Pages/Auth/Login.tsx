@@ -45,16 +45,16 @@ export default function Login() {
         {/* Quick Role Selection Tabs */}
         <div className="space-y-1.5">
           <Label className="text-xs font-semibold text-slate-700">
-            Pilih Peran Akun:
+            Pilih Peran Akun (Simulasi Demo):
           </Label>
-          <div className="grid grid-cols-3 gap-2 p-1 rounded-2xl neo-inset bg-[#F0F3F8]">
+          <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-slate-100 border border-slate-200/80">
             <button
               type="button"
               onClick={() => handleQuickSelectRole("guru_kelas")}
               className={cn(
-                "py-2 px-1 rounded-xl text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer",
+                "py-2 px-1 rounded-lg text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer",
                 selectedRole === "guru_kelas"
-                  ? "bg-white text-blue-700 shadow-md border border-blue-100"
+                  ? "bg-white text-blue-700 shadow-xs border border-blue-200"
                   : "text-slate-500 hover:text-slate-800"
               )}
             >
@@ -66,9 +66,9 @@ export default function Login() {
               type="button"
               onClick={() => handleQuickSelectRole("guru_bk")}
               className={cn(
-                "py-2 px-1 rounded-xl text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer",
+                "py-2 px-1 rounded-lg text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer",
                 selectedRole === "guru_bk"
-                  ? "bg-white text-indigo-700 shadow-md border border-indigo-100"
+                  ? "bg-white text-indigo-700 shadow-xs border border-indigo-200"
                   : "text-slate-500 hover:text-slate-800"
               )}
             >
@@ -80,9 +80,9 @@ export default function Login() {
               type="button"
               onClick={() => handleQuickSelectRole("kepsek")}
               className={cn(
-                "py-2 px-1 rounded-xl text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer",
+                "py-2 px-1 rounded-lg text-[11px] font-bold flex flex-col items-center gap-1 transition-all cursor-pointer",
                 selectedRole === "kepsek"
-                  ? "bg-white text-amber-700 shadow-md border border-amber-100"
+                  ? "bg-white text-amber-700 shadow-xs border border-amber-200"
                   : "text-slate-500 hover:text-slate-800"
               )}
             >
@@ -106,7 +106,7 @@ export default function Login() {
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               placeholder="Contoh: 19820415..."
-              className="pl-10 h-11 text-xs neo-inset bg-[#F0F3F8] border-slate-200"
+              className="pl-10 h-11 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             />
           </div>
         </div>
@@ -130,7 +130,7 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="pl-10 h-11 text-xs neo-inset bg-[#F0F3F8] border-slate-200"
+              className="pl-10 h-11 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
             />
           </div>
         </div>
@@ -149,14 +149,14 @@ export default function Login() {
           </Label>
         </div>
 
-        {/* Submit Button */}
-        <Button
+        {/* Submit Button - Solid Blue with White Text */}
+        <button
           type="submit"
-          className="w-full h-11 neo-button bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full h-11 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm hover:shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all duration-150 active:scale-[0.98] border border-blue-600"
         >
           <span>Masuk ke Dashboard</span>
-          <ArrowRight className="w-4 h-4" />
-        </Button>
+          <ArrowRight className="w-4 h-4 text-white" />
+        </button>
 
         {/* Register Link */}
         <div className="text-center pt-2 text-xs text-slate-500">

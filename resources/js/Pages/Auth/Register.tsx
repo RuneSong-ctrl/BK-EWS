@@ -180,13 +180,13 @@ export default function Register() {
         </div>
 
         {/* Submit */}
-        <Button
+        <button
           type="submit"
-          className="w-full h-11 neo-button bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer mt-2"
+          className="w-full h-11 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm hover:shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all duration-150 active:scale-[0.98] border border-blue-600 mt-2"
         >
           <span>Daftarkan Akun Pendidik</span>
-          <ArrowRight className="w-4 h-4" />
-        </Button>
+          <ArrowRight className="w-4 h-4 text-white" />
+        </button>
 
         <div className="text-center pt-2 text-xs text-slate-500">
           Sudah memiliki akun terdaftar?{" "}

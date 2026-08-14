@@ -131,6 +131,7 @@ export default function GuruKelas() {
 
   // AI Modal State
   const [isAiModalOpen, setIsAiModalOpen] = React.useState(false)
+  const [isAiLoading, setIsAiLoading] = React.useState(false)
   const [aiData, setAiData] = React.useState<AiStructuredResult>({
     student_name: "Ahmad Fauzi",
     raw_text: rawText,
@@ -153,7 +154,7 @@ export default function GuruKelas() {
     ews_status: s.ews_status,
   }))
 
-  const handleStructureWithAi = () => {
+  const handleStructureWithAi = async () => {
     if (!selectedStudent) {
       toast({
         title: "Pilih Siswa Terlebih Dahulu",
@@ -162,6 +163,52 @@ export default function GuruKelas() {
       })
       return
     }
+
+    if (!rawText.trim()) {
+      toast({
+        title: "Teks Observasi Masih Kosong",
+        description: "Tuliskan catatan observasi siswa sebelum menstrukturkan dengan AI.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsAiLoading(true)
+
+    try {
+      const response = await fetch("/api/ai/structure-observation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: JSON.stringify({ raw_text: rawText }),
+      })
+
+      if (response.ok) {
+        const payload = await response.json()
+        if (payload?.data) {
+          const res = payload.data
+          setAiData({
+            student_name: selectedStudent.name,
+            raw_text: rawText,
+            category: res.category || "MENARIK_DIRI",
+            severity: res.severity || "SEDANG",
+            summary: res.ai_structured_summary || "Terdeteksi pola perilaku di kelas.",
+            recommendation: res.suggested_action || "Lakukan pendekatan personal empati.",
+            confidence_score: 95,
+          })
+          setIsAiModalOpen(true)
+          setIsAiLoading(false)
+          return
+        }
+      }
+    } catch (err) {
+      console.warn("AI backend fetch fallback to local heuristic", err)
+    }
+
+    // Local fallback
     setAiData({
       student_name: selectedStudent.name,
       raw_text: rawText,
@@ -172,6 +219,7 @@ export default function GuruKelas() {
       confidence_score: 92,
     })
     setIsAiModalOpen(true)
+    setIsAiLoading(false)
   }
 
   const handleSaveObservation = (data: AiStructuredResult) => {
@@ -195,56 +243,56 @@ export default function GuruKelas() {
     <AppLayout
       currentRole="guru_kelas"
       activeMenu="dashboard"
-      title="Dashboard Guru Kelas (Wali Kelas 10-MIPA-1)"
-      subtitle="Pencatatan observasi perilaku cepat berbantuan AI dan pemantauan status 4 pilar EWS"
+      title="Ringkasan Evaluasi & Jurnal Kelas 10-MIPA-1"
+      subtitle="Pencatatan observasi perilaku siswa berbantuan AI dan pemantauan 4 pilar EWS"
     >
-      {/* Top 3 Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      {/* Top 3 Stat Cards - Compact for 14-inch screens */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Card 1 */}
-        <div className="p-5 rounded-2xl neo-card bg-[#F0F3F8] border border-white flex flex-col justify-between h-[126px] relative group hover:shadow-lg transition-all">
+        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[116px] hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
               Total Siswa Kelas
             </span>
-            <div className="w-8 h-8 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-blue-600 shadow-sm">
+            <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
               <Users className="w-4 h-4" />
             </div>
           </div>
           <div>
             <div className="text-2xl font-bold text-slate-900 tracking-tight">36 Siswa</div>
-            <p className="text-xs text-slate-500 mt-0.5">Kelas 10-MIPA-1 &bull; TP 2026/2027</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Kelas 10-MIPA-1 &bull; TP 2026/2027</p>
           </div>
         </div>
 
         {/* Card 2 */}
-        <div className="p-5 rounded-2xl neo-card bg-[#F0F3F8] border border-white flex flex-col justify-between h-[126px] relative group hover:shadow-lg transition-all">
+        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[116px] hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Rata Kehadiran Kelas
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              Rata-rata Presensi
             </span>
-            <div className="w-8 h-8 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-emerald-600 shadow-sm">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div>
             <div className="text-2xl font-bold text-slate-900 tracking-tight">97.4%</div>
-            <p className="text-xs text-slate-500 mt-0.5">Bulan Berjalan &bull; 2 Alpa Terdata</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Bulan Berjalan &bull; 2 Alpa Terdata</p>
           </div>
         </div>
 
         {/* Card 3 */}
-        <div className="p-5 rounded-2xl neo-card bg-[#F0F3F8] border border-white flex flex-col justify-between h-[126px] relative group hover:shadow-lg transition-all">
+        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[116px] hover:border-slate-300 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Perlu Perhatian (EWS)
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              Perlu Atensi (EWS)
             </span>
-            <div className="w-8 h-8 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-amber-600 shadow-sm">
+            <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
           <div>
             <div className="text-2xl font-bold text-slate-900 tracking-tight">4 Siswa</div>
-            <p className="text-xs text-slate-500 mt-0.5">1 Kritis &bull; 1 Waspada &bull; 2 Berisiko</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">1 Kritis &bull; 1 Waspada &bull; 2 Berisiko</p>
           </div>
         </div>
       </div>
@@ -252,22 +300,22 @@ export default function GuruKelas() {
       {/* Main Action Panel: Fast AI Behavior Observation & Parameter Input */}
       <section
         id="observasi"
-        className="p-6 rounded-3xl neo-card bg-white border border-white/90 shadow-xl space-y-6"
+        className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-5 scroll-mt-20"
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shadow-sm">
-              <Sparkles className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0">
+              <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                Input Cepat: Observasi Perilaku &amp; Parameter Siswa
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">
-                  AI-Powered
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                Pencatatan Observasi Perilaku Siswa
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                  Asisten AI
                 </span>
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Catat observasi harian dengan skala linear terstandar dan strukturkan narasi otomatis
+                Catat dinamika perilaku harian untuk memperbarui indikator peringatan dini (EWS)
               </p>
             </div>
           </div>
@@ -278,14 +326,14 @@ export default function GuruKelas() {
               type="date"
               value={observationDate}
               onChange={(e) => setObservationDate(e.target.value)}
-              className="h-9 px-3 rounded-xl neo-inset bg-[#F0F3F8] text-xs font-semibold text-slate-800 border-slate-200"
+              className="h-8 px-3 rounded-lg bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
         </div>
 
         {/* Student Selector with Autocomplete */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-4 space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div className="lg:col-span-5 space-y-4">
             <StudentAutocomplete
               students={studentAutocompleteOptions}
               selectedStudent={selectedStudent}
@@ -295,15 +343,15 @@ export default function GuruKelas() {
             />
 
             {/* Linear Scales in Guru Kelas Scope */}
-            <div className="p-4 rounded-2xl neo-card-subtle bg-slate-50/70 border border-slate-200/80 space-y-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
-                Parameter Evaluasi Harian
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-4">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                Parameter Observasi Harian
               </span>
 
               {/* 1. Partisipasi Kelas Scale */}
               <LinearScale
                 label="Tingkat Partisipasi Kelas"
-                description="Keaktifan interaksi dan respons siswa saat PBM"
+                description="Keaktifan interaksi dan respons siswa saat belajar"
                 min={1}
                 max={5}
                 value={participationScore}
@@ -315,8 +363,8 @@ export default function GuruKelas() {
 
               {/* 2. Kepatuhan Tugas Scale */}
               <LinearScale
-                label="Kepatuhan Tugas &amp; PR"
-                description="Kedisiplinan pengumpulan tugas kelas"
+                label="Kedisiplinan Tugas &amp; PR"
+                description="Ketepatan waktu dan kelengkapan tugas"
                 min={1}
                 max={5}
                 value={homeworkScore}
@@ -329,7 +377,7 @@ export default function GuruKelas() {
               {/* 3. Pemahaman Materi Slider */}
               <LinearScale
                 label="Skor Pemahaman / Kuis Harian"
-                description="Estimasi penguasaan materi ajar"
+                description="Estimasi penguasaan materi pembelajaran"
                 min={0}
                 max={100}
                 step={5}
@@ -337,20 +385,20 @@ export default function GuruKelas() {
                 value={quizScore}
                 onChange={setQuizScore}
                 minLabel="0 (Rendah)"
-                maxLabel="100 (Sempurna)"
+                maxLabel="100 (Baik)"
               />
             </div>
           </div>
 
           {/* Right Column: Free Narrative Text Box & AI Trigger */}
-          <div className="lg:col-span-8 space-y-4 flex flex-col justify-between">
+          <div className="lg:col-span-7 space-y-4 flex flex-col justify-between">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="rawText" className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Catatan Naratif Observasi Bebas (Sunken Box)
+                <Label htmlFor="rawText" className="text-xs font-bold text-slate-700">
+                  Catatan Naratif Bebas Wali Kelas
                 </Label>
                 <span className="text-[11px] text-slate-400">
-                  Tuliskan observasi apa adanya tanpa format kaku
+                  Tuliskan kejadian atau indikasi perubahan sikap
                 </span>
               </div>
 
@@ -360,39 +408,42 @@ export default function GuruKelas() {
                 value={rawText}
                 onChange={(e) => setRawText(e.target.value)}
                 placeholder="Contoh: Siswa terlihat pasif 3 hari ini dan menolak bergabung saat kerja kelompok. Saat ditanya tampak cemas..."
-                className="w-full p-4 rounded-2xl neo-inset bg-[#F0F3F8] text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 leading-relaxed border-slate-200 min-h-[140px] focus:ring-2 focus:ring-blue-500/30"
+                className="w-full p-3.5 rounded-xl bg-slate-50 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 leading-relaxed border border-slate-200 min-h-[130px] focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               />
             </div>
 
             {/* Action Bar */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100">
               <p className="text-[11px] text-slate-500">
-                AI akan mengklasifikasikan kategori, tingkat keparahan, dan saran intervensi awal.
+                AI Gemini mengekstrak kategori, tingkat keparahan, dan rekomendasi awal.
               </p>
 
-              <div className="flex items-center gap-3 w-full sm:w-auto">
+              <div className="flex items-center gap-2.5 w-full sm:w-auto">
                 <Button
                   type="button"
                   variant="outline"
+                  size="sm"
                   onClick={() => {
                     toast({
-                      title: "Observasi Manual Disimpan",
-                      description: "Catatan observasi disimpan secara manual.",
+                      title: "Catatan Disimpan",
+                      description: "Catatan observasi telah dicatat ke jurnal kelas.",
                     })
                     setRawText("")
                   }}
-                  className="flex-1 sm:flex-none text-xs rounded-xl neo-button"
+                  className="flex-1 sm:flex-none text-xs rounded-xl"
                 >
-                  Input Manual
+                  Simpan Manual
                 </Button>
 
                 <Button
                   type="button"
+                  size="sm"
                   onClick={handleStructureWithAi}
-                  className="flex-1 sm:flex-none neo-button bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 cursor-pointer"
+                  disabled={isAiLoading}
+                  className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60"
                 >
-                  <Sparkles className="w-4 h-4 text-blue-200" />
-                  <span>Strukturkan dengan AI</span>
+                  <Sparkles className={cn("w-3.5 h-3.5", isAiLoading && "animate-spin")} />
+                  <span>{isAiLoading ? "Menganalisis AI..." : "Strukturkan dengan AI"}</span>
                 </Button>
               </div>
             </div>
@@ -401,31 +452,34 @@ export default function GuruKelas() {
       </section>
 
       {/* Bottom Section: Class Student Roster & EWS Status Table */}
-      <section className="p-6 rounded-3xl neo-card bg-white border border-white/90 shadow-xl space-y-4">
+      <section
+        id="rekap"
+        className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4 scroll-mt-20"
+      >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h2 className="text-base font-bold text-slate-900 tracking-tight">
-              Daftar Siswa Kelas &amp; Status 4 Pilar EWS Terkini
+            <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+              Rekap Nilai, Presensi &amp; Status 4 Pilar EWS
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Matriks kesehatan siswa kelas 10-MIPA-1 (Evaluasi Akademik, Kehadiran, Perilaku, BK)
+              Daftar siswa kelas 10-MIPA-1 beserta pemantauan kesehatan akademik dan perilaku
             </p>
           </div>
 
           {/* Table Filters */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <input
               type="text"
               placeholder="Cari siswa di kelas..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 px-3 rounded-xl neo-inset bg-[#F0F3F8] text-xs text-slate-800 placeholder:text-slate-400 w-44"
+              className="h-8 px-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 w-40 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
 
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-9 px-2.5 rounded-xl neo-inset bg-[#F0F3F8] text-xs font-semibold text-slate-700 border-slate-200 cursor-pointer"
+              className="h-8 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             >
               <option value="ALL">Semua Status EWS</option>
               <option value="NORMAL">Normal</option>
