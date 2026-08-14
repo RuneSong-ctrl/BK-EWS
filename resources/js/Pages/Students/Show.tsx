@@ -61,7 +61,7 @@ export default function StudentShow({
     name: student?.name || "Ahmad Fauzi",
     nisn: student?.nisn || student?.nis || "0089218821",
     class_name: currentClass?.name || student?.classes?.[0]?.name || "10-MIPA-1",
-    homeroom_teacher: currentClass?.homeroom_teacher?.name || "Dra. Siti Rahmawati, M.Pd",
+    homeroom_teacher: currentClass?.homeroom_teacher?.name || "Budi Santoso, S.Pd.",
     academic_year: currentClass?.academic_year || "2026/2027 Ganjil",
     ews_status: (student?.ews_score?.status || "WASPADA") as any,
     updated_at: student?.ews_score?.calculated_at || "14 Agustus 2026",
@@ -125,7 +125,7 @@ export default function StudentShow({
     {
       id: 1,
       date: "14 Agu 2026",
-      actor: "Dra. Siti Rahmawati (Wali Kelas)",
+      actor: "Budi Santoso, S.Pd. (Wali Kelas)",
       title: "Input Observasi AI (Perilaku Menarik Diri)",
       description: "Tercatat siswa menolak bergabung diskusi biologi dan tampak cemas saat ditanya.",
       badge: "Observasi Perilaku",
@@ -143,7 +143,7 @@ export default function StudentShow({
     {
       id: 3,
       date: "12 Agu 2026",
-      actor: "Budi Pratama, M.Kons (Guru BK)",
+      actor: "Rahmawati, M.Psi. (Guru BK)",
       title: "Sesi Konseling Individu Awal",
       description: "Eksplorasi motivasi belajar dan penyesuaian sosial pasca ujian tengah semester.",
       badge: "Sesi BK",
@@ -171,7 +171,7 @@ export default function StudentShow({
       <div>
         <Link
           href="/dashboard/guru-kelas"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors p-1.5 rounded-lg hover:bg-white"
+          className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors p-2 rounded-xl hover:bg-white shadow-2xs"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Kembali ke Dashboard Kelas</span>
@@ -179,37 +179,36 @@ export default function StudentShow({
       </div>
 
       {/* Header Profile Card */}
-      {/* Header Profile Card */}
-      <section className="p-5 sm:p-6 rounded-2xl neo-card space-y-4">
+      <section className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-start sm:items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl neo-btn text-blue-700 font-bold text-lg flex items-center justify-center shrink-0">
+          <div className="flex items-start sm:items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-blue-600 text-white font-bold text-xl flex items-center justify-center shrink-0 shadow-md">
               {studentData.name.charAt(0)}
             </div>
             <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                   {studentData.name}
                 </h1>
-                <span className="px-2 py-0.5 rounded-md text-xs font-semibold neo-pill bg-[#E6EDF5] text-slate-700">
+                <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
                   {studentData.class_name}
                 </span>
-                <span className="text-xs text-slate-500 font-mono">
+                <span className="text-xs sm:text-sm text-slate-500 font-mono">
                   NISN: {studentData.nisn}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Wali Kelas: <strong className="text-slate-700">{studentData.homeroom_teacher}</strong> &bull; Tahun Ajaran: {studentData.academic_year}
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                Wali Kelas: <strong className="text-slate-800">{studentData.homeroom_teacher}</strong> &bull; Tahun Ajaran: {studentData.academic_year}
               </p>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="text-right hidden sm:block">
-              <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold block">
+              <span className="text-xs uppercase tracking-wider text-slate-400 font-bold block">
                 Status EWS
               </span>
-              <span className="text-[11px] text-slate-500">Update: {studentData.updated_at}</span>
+              <span className="text-xs text-slate-500 font-medium">Update: {studentData.updated_at}</span>
             </div>
             <EwsStatusBadge status={studentData.ews_status} size="lg" />
           </div>
@@ -217,79 +216,79 @@ export default function StudentShow({
       </section>
 
       {/* 4 Pilar Evaluation Grid (2x2) */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {/* Pilar 1: Akademik */}
-        <div className="p-4 sm:p-5 rounded-2xl neo-card flex flex-col justify-between space-y-3">
-          <div className="flex items-center justify-between border-b border-slate-200/60 pb-2.5">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl neo-btn text-blue-600 flex items-center justify-center">
-                <GraduationCap className="w-4 h-4" />
+        <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <GraduationCap className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">
                   1. Pilar Akademik
                 </h3>
-                <span className="text-[11px] text-slate-500">{studentData.academic.total_subjects} Mata Pelajaran</span>
+                <span className="text-xs text-slate-400">{studentData.academic.total_subjects} Mata Pelajaran</span>
               </div>
             </div>
             <EwsStatusBadge status={studentData.pillars.ak} size="sm" />
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5 text-xs">
-            <div className="p-2.5 rounded-xl neo-card-subtle">
-              <span className="text-[11px] text-slate-500 block">Rata-rata Nilai:</span>
-              <span className="text-lg font-bold font-mono text-slate-900">
+          <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90">
+              <span className="text-xs text-slate-500 block">Rata-rata Nilai:</span>
+              <span className="text-2xl font-bold font-mono text-slate-900">
                 {studentData.academic.avg_score}
               </span>
-              <span className="text-[10px] text-rose-600 block font-semibold mt-0.5">
+              <span className="text-xs text-rose-600 block font-bold mt-0.5">
                 {studentData.academic.trend}
               </span>
             </div>
 
-            <div className="p-2.5 rounded-xl neo-card-subtle">
-              <span className="text-[11px] text-slate-500 block">Mapel Terendah:</span>
-              <span className="text-xs font-bold text-rose-700 block mt-0.5">
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90">
+              <span className="text-xs text-slate-500 block">Mapel Terendah:</span>
+              <span className="text-xs sm:text-sm font-bold text-rose-700 block mt-0.5">
                 {studentData.academic.lowest_subject}
               </span>
-              <span className="text-[10px] text-slate-400 mt-0.5 block">KKM: 75.0</span>
+              <span className="text-xs text-slate-400 mt-0.5 block">KKM: 75.0</span>
             </div>
           </div>
         </div>
 
         {/* Pilar 2: Kehadiran */}
-        <div className="p-4 sm:p-5 rounded-2xl neo-card flex flex-col justify-between space-y-3">
-          <div className="flex items-center justify-between border-b border-slate-200/60 pb-2.5">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl neo-btn text-orange-600 flex items-center justify-center">
-                <CalendarCheck className="w-4 h-4" />
+        <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
+                <CalendarCheck className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">
                   2. Pilar Kehadiran
                 </h3>
-                <span className="text-[11px] text-slate-500">Rekap 30 Hari Terakhir</span>
+                <span className="text-xs text-slate-400">Rekap 30 Hari Terakhir</span>
               </div>
             </div>
             <EwsStatusBadge status={studentData.pillars.kh} size="sm" />
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5 text-xs">
-            <div className="p-2.5 rounded-xl neo-card-subtle">
-              <span className="text-[11px] text-slate-500 block">Persentase Hadir:</span>
-              <span className="text-lg font-bold font-mono text-slate-900">
+          <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90">
+              <span className="text-xs text-slate-500 block">Persentase Hadir:</span>
+              <span className="text-2xl font-bold font-mono text-slate-900">
                 {studentData.attendance.rate}%
               </span>
-              <span className="text-[10px] text-orange-600 block font-semibold mt-0.5">
+              <span className="text-xs text-orange-600 block font-bold mt-0.5">
                 Ambang Batas &lt;85%
               </span>
             </div>
 
-            <div className="p-2.5 rounded-xl neo-card-subtle">
-              <span className="text-[11px] text-slate-500 block">Alpa Beruntun:</span>
-              <span className="text-lg font-bold font-mono text-rose-600">
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90">
+              <span className="text-xs text-slate-500 block">Alpa Beruntun:</span>
+              <span className="text-2xl font-bold font-mono text-rose-600">
                 {studentData.attendance.consecutive_alpa} Hari
               </span>
-              <span className="text-[10px] text-slate-500 block mt-0.5">
+              <span className="text-xs text-slate-500 block mt-0.5 font-medium">
                 Izin: {studentData.attendance.total_izin} &bull; Sakit: {studentData.attendance.total_sakit}
               </span>
             </div>
@@ -297,67 +296,67 @@ export default function StudentShow({
         </div>
 
         {/* Pilar 3: Perilaku */}
-        <div className="p-4 sm:p-5 rounded-2xl neo-card flex flex-col justify-between space-y-3">
-          <div className="flex items-center justify-between border-b border-slate-200/60 pb-2.5">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl neo-btn text-amber-600 flex items-center justify-center">
-                <Activity className="w-4 h-4" />
+        <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                <Activity className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">
                   3. Pilar Perilaku Kelas
                 </h3>
-                <span className="text-[11px] text-slate-500">Observasi Terstruktur Guru</span>
+                <span className="text-xs text-slate-400">Observasi Terstruktur Guru</span>
               </div>
             </div>
             <EwsStatusBadge status={studentData.pillars.pr} size="sm" />
           </div>
 
-          <div className="p-3 rounded-xl neo-card-subtle text-xs space-y-1">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 text-xs sm:text-sm space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-slate-700">Kategori: {studentData.behavior.latest_category}</span>
-              <span className="text-[10px] font-bold text-amber-700 uppercase">
+              <span className="font-bold text-slate-800">Kategori: {studentData.behavior.latest_category}</span>
+              <span className="text-xs font-bold text-amber-700 uppercase">
                 Status: {studentData.behavior.severity}
               </span>
             </div>
-            <p className="text-slate-600 text-[11px] leading-relaxed">
+            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
               {studentData.behavior.notes}
             </p>
           </div>
         </div>
 
         {/* Pilar 4: Konseling BK */}
-        <div className="p-4 sm:p-5 rounded-2xl neo-card flex flex-col justify-between space-y-3">
-          <div className="flex items-center justify-between border-b border-slate-200/60 pb-2.5">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl neo-btn text-emerald-600 flex items-center justify-center">
-                <HeartHandshake className="w-4 h-4" />
+        <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <HeartHandshake className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">
                   4. Pilar Bimbingan Konseling
                 </h3>
-                <span className="text-[11px] text-slate-500">Portofolio Konselor</span>
+                <span className="text-xs text-slate-400">Portofolio Konselor</span>
               </div>
             </div>
             <EwsStatusBadge status={studentData.pillars.bk} size="sm" />
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5 text-xs">
-            <div className="p-2.5 rounded-xl neo-card-subtle">
-              <span className="text-[11px] text-slate-500 block">Kasus Aktif:</span>
-              <span className="text-lg font-bold font-mono text-emerald-700">
+          <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90">
+              <span className="text-xs text-slate-500 block">Kasus Aktif:</span>
+              <span className="text-2xl font-bold font-mono text-emerald-700">
                 {studentData.counseling.active_cases} Kasus
               </span>
-              <span className="text-[10px] text-slate-400 block mt-0.5">Status Kondusif</span>
+              <span className="text-xs text-slate-400 block mt-0.5 font-medium">Status Kondusif</span>
             </div>
 
-            <div className="p-2.5 rounded-xl neo-card-subtle">
-              <span className="text-[11px] text-slate-500 block">Total Sesi:</span>
-              <span className="text-lg font-bold font-mono text-slate-900">
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90">
+              <span className="text-xs text-slate-500 block">Total Sesi:</span>
+              <span className="text-2xl font-bold font-mono text-slate-900">
                 {studentData.counseling.total_sessions} Kali
               </span>
-              <span className="text-[10px] text-slate-400 block mt-0.5">
+              <span className="text-xs text-slate-400 block mt-0.5 font-medium">
                 Terakhir: {studentData.counseling.last_session}
               </span>
             </div>
@@ -369,38 +368,38 @@ export default function StudentShow({
       <AiAdvisorCard data={aiAdvisorData} studentName={studentData.name} />
 
       {/* Longitudinal Observation & Activity Timeline */}
-      <section className="p-5 sm:p-6 rounded-2xl neo-card space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+      <section className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-5">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
-            <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
               Rekam Jejak Longitudinal Siswa
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
               Kronologi observasi guru, perubahan metrik absensi, dan log konseling
             </p>
           </div>
-          <Clock className="w-4 h-4 text-slate-400" />
+          <Clock className="w-5 h-5 text-slate-400" />
         </div>
 
-        <div className="relative pl-6 space-y-5 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-300">
+        <div className="relative pl-7 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
           {timelineLogs.map((log) => (
-            <div key={log.id} className="relative space-y-1">
-              <span className="absolute -left-6 top-1.5 w-2 h-2 rounded-full bg-blue-600 ring-4 ring-[#EEF2F7]" />
+            <div key={log.id} className="relative space-y-1.5">
+              <span className="absolute -left-7 top-1.5 w-2.5 h-2.5 rounded-full bg-blue-600 ring-4 ring-white" />
 
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <h4 className="text-xs font-bold text-slate-900">{log.title}</h4>
+                <div className="flex items-center gap-2.5">
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-900">{log.title}</h4>
                   <span
-                    className={`px-2 py-0.2 rounded-md text-[10px] font-semibold neo-pill ${log.badgeColor}`}
+                    className={`px-2.5 py-0.5 rounded text-xs font-bold ${log.badgeColor}`}
                   >
                     {log.badge}
                   </span>
                 </div>
-                <span className="text-[11px] text-slate-500 font-mono">{log.date}</span>
+                <span className="text-xs text-slate-500 font-mono">{log.date}</span>
               </div>
 
-              <p className="text-xs text-slate-600 leading-relaxed">{log.description}</p>
-              <span className="text-[11px] text-slate-500 block">Oleh: {log.actor}</span>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{log.description}</p>
+              <span className="text-xs text-slate-400 block font-medium">Oleh: {log.actor}</span>
             </div>
           ))}
         </div>

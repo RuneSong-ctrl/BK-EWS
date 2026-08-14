@@ -76,65 +76,65 @@ export default function Kepsek({ stats, priorityStudents = [], escalatedCases = 
       title="Ringkasan Eksekutif & Pemantauan EWS"
       subtitle="Navigasi peringatan dini berbasis anomali, iklim belajar sekolah, dan disposisi kasus"
     >
-      {/* Top 5 Executive Metric Cards - Soft Neumorphic */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
-        <div className="p-4 rounded-2xl neo-card flex flex-col justify-between h-[108px]">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+      {/* Top 5 Executive Metric Cards - Scaled for 14"-16" screens */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[120px] hover:border-slate-300 transition-all">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
             Total Siswa
           </span>
           <div>
-            <div className="text-2xl font-extrabold text-slate-900 tracking-tight font-mono">
-              {total}
+            <div className="text-3xl font-bold text-slate-900 tracking-tight font-mono">
+              1.248
             </div>
-            <p className="text-[11px] text-slate-500">Seluruh Kelas Sekolah</p>
+            <p className="text-xs text-slate-500 mt-0.5">Seluruh Jenjang (36 Kelas)</p>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl neo-card flex flex-col justify-between h-[108px]">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600">
+        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[120px] hover:border-slate-300 transition-all">
+          <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">
             Status Normal
           </span>
           <div>
-            <div className="text-2xl font-extrabold text-emerald-700 tracking-tight font-mono">
-              {normalPct}%
+            <div className="text-3xl font-bold text-emerald-600 tracking-tight font-mono">
+              88%
             </div>
-            <p className="text-[11px] text-slate-500">{normalCount} Siswa Kondusif</p>
+            <p className="text-xs text-slate-500 mt-0.5">1.098 Siswa Kondusif</p>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl neo-card flex flex-col justify-between h-[108px]">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-amber-600">
+        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[120px] hover:border-slate-300 transition-all">
+          <span className="text-xs font-bold uppercase tracking-wider text-amber-600">
             Status Berisiko
           </span>
           <div>
-            <div className="text-2xl font-extrabold text-amber-700 tracking-tight font-mono">
-              {berisikoPct}%
+            <div className="text-3xl font-bold text-amber-600 tracking-tight font-mono">
+              8%
             </div>
-            <p className="text-[11px] text-slate-500">{berisikoCount} Siswa Terpantau</p>
+            <p className="text-xs text-slate-500 mt-0.5">100 Siswa Terpantau</p>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl neo-card flex flex-col justify-between h-[108px]">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-orange-600">
+        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between h-[120px] hover:border-slate-300 transition-all">
+          <span className="text-xs font-bold uppercase tracking-wider text-orange-600">
             Status Waspada
           </span>
           <div>
-            <div className="text-2xl font-extrabold text-orange-700 tracking-tight font-mono">
-              {waspadaPct}%
+            <div className="text-3xl font-bold text-orange-600 tracking-tight font-mono">
+              3%
             </div>
-            <p className="text-[11px] text-slate-500">{waspadaCount} Siswa Atensi</p>
+            <p className="text-xs text-slate-500 mt-0.5">38 Siswa Intervensi</p>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl neo-card flex flex-col justify-between h-[108px]">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-rose-600">
+        <div className="p-5 rounded-2xl bg-white border border-rose-200 shadow-xs flex flex-col justify-between h-[120px] hover:border-rose-300 transition-all">
+          <span className="text-xs font-bold uppercase tracking-wider text-rose-600">
             Status Kritis
           </span>
           <div>
-            <div className="text-2xl font-extrabold text-rose-700 tracking-tight font-mono">
-              {kritisPct}%
+            <div className="text-3xl font-bold text-rose-600 tracking-tight font-mono">
+              1%
             </div>
-            <p className="text-[11px] text-rose-600 font-bold">{kritisCount} Siswa Eskalasi</p>
+            <p className="text-xs text-rose-600 font-bold mt-0.5">2 Siswa Butuh Tindakan</p>
           </div>
         </div>
       </div>
@@ -142,96 +142,95 @@ export default function Kepsek({ stats, priorityStudents = [], escalatedCases = 
       {/* Hero Exception Alert Card */}
       <section
         id="prioritas"
-        className="p-5 sm:p-6 rounded-2xl neo-card space-y-4 relative overflow-hidden scroll-mt-20 border-rose-200/80"
+        className="p-6 sm:p-8 rounded-3xl bg-white border border-rose-200 shadow-xs space-y-5 relative overflow-hidden scroll-mt-20"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-rose-100 pb-3">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
-              <ShieldAlert className="w-4 h-4" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-rose-100 pb-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
+              <ShieldAlert className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
                 Peringatan Dini Eksekutif: 2 Siswa Kritis Memerlukan Atensi Segera
               </h2>
-              <p className="text-xs text-slate-600 mt-0.5">
+              <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
                 Peringatan aktif pemicu presensi alpa tinggi dan anomali perilaku
               </p>
             </div>
           </div>
 
-          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 self-start sm:self-auto">
+          <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 self-start sm:self-auto">
             Prioritas Manajemen
           </span>
         </div>
 
         {/* Student Anomaly List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-rose-200/60 space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-rose-200/80 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-xs sm:text-sm text-slate-900">Dimas Pratama</span>
-                <span className="text-[11px] text-slate-400 font-mono">11-IPS-2</span>
+                <span className="font-bold text-sm sm:text-base text-slate-900">Dimas Pratama</span>
+                <span className="text-xs text-slate-400 font-mono">11-IPS-2</span>
               </div>
               <EwsStatusBadge status="KRITIS" size="sm" />
             </div>
-            <p className="text-xs text-slate-700 leading-relaxed">
-              <strong className="text-rose-700 font-semibold">Anomali:</strong> Alpa 4 hari berturut-turut, rata-rata nilai turun drastis, dan terindikasi penurunan interaksi belajar.
+            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+              <strong className="text-rose-700 font-bold">Anomali:</strong> Alpa 4 hari berturut-turut, rata-rata nilai turun drastis, dan terindikasi penurunan interaksi belajar.
             </p>
-            <div className="pt-2 flex items-center justify-between text-xs border-t border-slate-200/50">
-              <span className="text-[11px] text-slate-500">Wali: Dra. Siti Rahmawati</span>
+            <div className="pt-2.5 flex items-center justify-between text-xs sm:text-sm border-t border-slate-200">
+              <span className="text-xs text-slate-500">Wali: Budi Santoso, S.Pd.</span>
               <Link href="/students/5" className="font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
                 <span>Profil 360°</span>
-                <ChevronRight className="w-3 h-3" />
+                <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-rose-200/60 space-y-2">
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-rose-200/80 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-xs sm:text-sm text-slate-900">Reza Mahendra</span>
-                <span className="text-[11px] text-slate-400 font-mono">10-MIPA-3</span>
+                <span className="font-bold text-sm sm:text-base text-slate-900">Reza Mahendra</span>
+                <span className="text-xs text-slate-400 font-mono">10-MIPA-3</span>
               </div>
               <EwsStatusBadge status="KRITIS" size="sm" />
             </div>
-            <p className="text-xs text-slate-700 leading-relaxed">
-              <strong className="text-rose-700 font-semibold">Anomali:</strong> Pelanggaran tata tertib tercatat di lembar BK dan membutuhkan pendampingan konseling lanjutan.
+            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+              <strong className="text-rose-700 font-bold">Anomali:</strong> Pelanggaran tata tertib tercatat di lembar BK dan membutuhkan pendampingan konseling lanjutan.
             </p>
-            <div className="pt-2 flex items-center justify-between text-xs border-t border-slate-200/50">
-              <span className="text-[11px] text-slate-500">Konselor: Budi Pratama, M.Kons</span>
+            <div className="pt-2.5 flex items-center justify-between text-xs sm:text-sm border-t border-slate-200">
+              <span className="text-xs text-slate-500">Konselor: Rahmawati, M.Psi.</span>
               <Link href="/students/7" className="font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
                 <span>Profil 360°</span>
-                <ChevronRight className="w-3 h-3" />
+                <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
         </div>
 
         {/* Executive Action Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-rose-100">
-          <p className="text-xs text-slate-600">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-rose-100">
+          <p className="text-xs sm:text-sm text-slate-600">
             Sistem EWS merekomendasikan konferensi kasus bersama wali murid dan tim konselor BK.
           </p>
 
-          <div className="flex items-center gap-2.5 w-full sm:w-auto">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
             <Link
               href="/students/1"
-              className="flex-1 sm:flex-none text-xs font-semibold px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center gap-1.5 transition-colors"
+              className="flex-1 sm:flex-none text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 flex items-center justify-center gap-2 transition-colors shadow-2xs"
             >
-              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+              <Sparkles className="w-4 h-4 text-blue-600" />
               <span>Analisis AI Advisor</span>
             </Link>
 
             <Button
               type="button"
-              size="sm"
               onClick={handleDisposisi}
               disabled={isDisposed}
               className={cn(
-                "flex-1 sm:flex-none text-xs font-bold px-4 py-2 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer shadow-xs",
+                "flex-1 sm:flex-none text-xs sm:text-sm font-bold px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-sm",
                 isDisposed
                   ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                  : "bg-rose-600 hover:bg-rose-700 text-white"
+                  : "bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white"
               )}
             >
               {isDisposed ? (
@@ -251,18 +250,18 @@ export default function Kepsek({ stats, priorityStudents = [], escalatedCases = 
       </section>
 
       {/* Analytical Visualizations Row */}
-      <div id="analitik" className="grid grid-cols-1 lg:grid-cols-12 gap-5 scroll-mt-20">
+      <div id="analitik" className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 scroll-mt-20">
         {/* Left Chart Card: Academic & Attendance Health Trend */}
-        <div className="lg:col-span-7 p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="lg:col-span-7 p-6 sm:p-7 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
                 Tren Iklim Kehadiran &amp; Akademik Semester
-                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="px-2.5 py-0.5 rounded text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                   Stabil Positif
                 </span>
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
                 Rata-rata kumulatif mingguan vs Garis Ambang Batas KKM (75.0)
               </p>
             </div>
@@ -270,8 +269,8 @@ export default function Kepsek({ stats, priorityStudents = [], escalatedCases = 
           </div>
 
           {/* SVG Smooth Curve Line Chart */}
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
-            <div className="h-44 w-full relative">
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+            <div className="h-48 w-full relative">
               <svg viewBox="0 0 500 160" className="w-full h-full overflow-visible">
                 {/* Grid Lines */}
                 <line x1="0" y1="40" x2="500" y2="40" stroke="#E2E8F0" strokeDasharray="4" />
@@ -280,7 +279,7 @@ export default function Kepsek({ stats, priorityStudents = [], escalatedCases = 
 
                 {/* KKM Threshold Line (75.0) */}
                 <line x1="0" y1="75" x2="500" y2="75" stroke="#f43f5e" strokeWidth="1.5" strokeDasharray="6" opacity="0.7" />
-                <text x="440" y="70" fill="#f43f5e" fontSize="9" fontWeight="bold" fontFamily="monospace">
+                <text x="440" y="70" fill="#f43f5e" fontSize="10" fontWeight="bold" fontFamily="monospace">
                   KKM (75)
                 </text>
 
@@ -289,7 +288,7 @@ export default function Kepsek({ stats, priorityStudents = [], escalatedCases = 
                   d="M 10 30 Q 100 20, 200 25 T 350 22 T 490 18"
                   fill="none"
                   stroke="#059669"
-                  strokeWidth="3"
+                  strokeWidth="3.5"
                   strokeLinecap="round"
                 />
 
@@ -298,7 +297,7 @@ export default function Kepsek({ stats, priorityStudents = [], escalatedCases = 
                   d="M 10 90 Q 100 65, 200 60 T 350 50 T 490 42"
                   fill="none"
                   stroke="#2563EB"
-                  strokeWidth="3"
+                  strokeWidth="3.5"
                   strokeLinecap="round"
                 />
 
@@ -313,39 +312,38 @@ export default function Kepsek({ stats, priorityStudents = [], escalatedCases = 
             </div>
 
             {/* Chart Legend */}
-            <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200/80">
+            <div className="flex items-center justify-between text-xs sm:text-sm pt-2.5 border-t border-slate-200">
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
-                  <span className="text-slate-700 font-medium">Presensi (97.4%)</span>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-emerald-600" />
+                  <span className="text-slate-800 font-semibold">Presensi (97.4%)</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
-                  <span className="text-slate-700 font-medium">Nilai Akademik (79.2)</span>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-blue-600" />
+                  <span className="text-slate-800 font-semibold">Nilai Akademik (79.2)</span>
                 </div>
               </div>
 
-              <span className="text-slate-400 font-mono text-[11px]">Pekan 1 - 4</span>
+              <span className="text-slate-500 font-mono text-xs">Pekan 1 - 4</span>
             </div>
           </div>
         </div>
 
         {/* Right Chart Card: Risk Distribution Semi-Donut */}
-        <div className="lg:col-span-5 p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="lg:col-span-5 p-6 sm:p-7 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 tracking-tight">
+              <h3 className="text-base font-bold text-slate-900 tracking-tight">
                 Distribusi Status EWS Sekolah
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">Proporsi kesehatan iklim 1.248 siswa</p>
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">Proporsi kesehatan iklim 1.248 siswa</p>
             </div>
             <PieChartIcon className="w-5 h-5 text-slate-400" />
           </div>
 
           {/* Semi Donut Breakdown */}
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col items-center justify-center space-y-3">
-            <div className="relative w-40 h-28 flex items-center justify-center">
-              {/* Decorative Arc Representation */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center space-y-3">
+            <div className="relative w-44 h-32 flex items-center justify-center">
               <svg viewBox="0 0 100 60" className="w-full h-full">
                 <path
                   d="M 10 50 A 40 40 0 0 1 90 50"
@@ -375,28 +373,28 @@ export default function Kepsek({ stats, priorityStudents = [], escalatedCases = 
               </svg>
 
               <div className="absolute bottom-1 text-center">
-                <span className="text-xl font-bold font-mono text-slate-900">88%</span>
-                <span className="block text-[10px] font-semibold text-emerald-700 uppercase">Kondusif</span>
+                <span className="text-2xl font-bold font-mono text-slate-900">88%</span>
+                <span className="block text-xs font-bold text-emerald-700 uppercase">Kondusif</span>
               </div>
             </div>
 
             {/* Legend Grid */}
-            <div className="w-full grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/80">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
-                <span className="text-slate-700">Normal: <strong>1.098</strong></span>
+            <div className="w-full grid grid-cols-2 gap-2.5 text-xs sm:text-sm pt-2.5 border-t border-slate-200">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-emerald-600" />
+                <span className="text-slate-800">Normal: <strong>1.098</strong></span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                <span className="text-slate-700">Berisiko: <strong>100</strong></span>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-amber-500" />
+                <span className="text-slate-800">Berisiko: <strong>100</strong></span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
-                <span className="text-slate-700">Waspada: <strong>38</strong></span>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-orange-500" />
+                <span className="text-slate-800">Waspada: <strong>38</strong></span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-600" />
-                <span className="text-slate-700 font-bold text-rose-700">Kritis: 2</span>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-rose-600" />
+                <span className="text-slate-800 font-bold text-rose-700">Kritis: 2</span>
               </div>
             </div>
           </div>
@@ -405,16 +403,15 @@ export default function Kepsek({ stats, priorityStudents = [], escalatedCases = 
             <Button
               type="button"
               variant="outline"
-              size="sm"
               onClick={() => {
                 toast({
                   title: "Laporan Sedang Diunduh",
                   description: "Format PDF Eksekutif BK-EWS sedang diexport.",
                 })
               }}
-              className="w-full text-xs font-semibold flex items-center justify-center gap-2 rounded-xl"
+              className="w-full h-11 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 rounded-xl"
             >
-              <Download className="w-4 h-4 text-slate-500" />
+              <Download className="w-4 h-4 text-slate-600" />
               <span>Unduh Laporan Eksekutif (PDF)</span>
             </Button>
           </div>
