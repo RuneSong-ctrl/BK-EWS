@@ -266,16 +266,16 @@ export function AiBkStructuringModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-6 sm:p-7 rounded-3xl bg-white border border-slate-200 shadow-2xl z-[100]">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-6 sm:p-7 rounded-3xl bg-[#EEF2F7] border border-white/80 shadow-[6px_6px_16px_rgba(166,178,196,0.45),-6px_-6px_16px_rgba(255,255,255,0.95)] z-[100]">
         {/* Header */}
-        <DialogHeader className="border-b border-slate-100 pb-4">
+        <DialogHeader className="border-b border-slate-200/70 pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center shrink-0">
-                <IconHandshake className="w-5 h-5" />
+              <div className="w-11 h-11 rounded-2xl neo-btn text-indigo-700 flex items-center justify-center shrink-0 border border-white/90">
+                <IconHandshake className="w-6 h-6" />
               </div>
               <div>
-                <DialogTitle className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                <DialogTitle className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
                   <span>Asisten Penulisan &amp; Auto-Complete AI (Konselor BK)</span>
                 </DialogTitle>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -285,38 +285,38 @@ export function AiBkStructuringModal({
             </div>
 
             {/* System Status Indicator Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-semibold shrink-0 self-start sm:self-auto">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full neo-pill bg-[#EEF2F7] border border-white/90 text-slate-700 text-xs font-semibold shrink-0 self-start sm:self-auto">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>Sistem Siap</span>
             </div>
           </div>
         </DialogHeader>
 
         <div className="space-y-5 py-2">
-          {/* STEP 1: Quick Selection Controls */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-indigo-50/40 border border-indigo-100/80 space-y-4">
-            <div className="flex items-center justify-between border-b border-indigo-100/60 pb-2">
+          {/* STEP 1: Quick Selection Controls inside neo-inset */}
+          <div className="p-4 sm:p-5 rounded-2xl neo-inset bg-[#E7EDF4] border border-slate-300/40 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-300/50 pb-2">
               <Label className="text-xs font-extrabold uppercase tracking-wider text-indigo-950 flex items-center gap-1.5">
-                <IconAi className="w-3.5 h-3.5 text-indigo-600" />
-                <span>Langkah 1: Kategori Kasus &amp; Opsi Cepat Gejala Konseling</span>
+                <IconAi className="w-3.5 h-3.5 text-indigo-700" />
+                <span>Langkah 1: Pilih Bidang Masalah &amp; Topik Cepat</span>
               </Label>
-              <span className="text-[11px] text-indigo-600 font-semibold">Pilih Cepat &bull; Hemat Waktu</span>
+              <span className="text-[11px] text-indigo-700 font-bold">Pilih Cepat &bull; Hemat Waktu</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
               {/* Category Select */}
               <div className="sm:col-span-7 space-y-1.5">
-                <Label className="text-xs font-bold text-slate-700">Kategori Kasus BK:</Label>
+                <Label className="text-xs font-bold text-slate-700">Bidang Bimbingan:</Label>
                 <Select value={caseCategory} onValueChange={handleCategoryChange}>
-                  <SelectTrigger className="h-10 text-xs sm:text-sm bg-white border-slate-200 font-medium rounded-xl">
-                    <SelectValue placeholder="Pilih Kategori Kasus" />
+                  <SelectTrigger className="h-10 text-xs sm:text-sm neo-card-subtle bg-[#EEF2F7] border border-white/90 font-medium rounded-xl">
+                    <SelectValue placeholder="Pilih Bidang Bimbingan" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border border-slate-200 shadow-xl z-[99999]">
-                    <SelectItem value="PSIKOSOSIAL_ADAPTASI">Masalah Psikososial &amp; Penyesuaian Diri</SelectItem>
-                    <SelectItem value="TEKANAN_AKADEMIK">Tekanan &amp; Stresor Akademik</SelectItem>
-                    <SelectItem value="KONFLIK_PEER">Konflik Antar Teman Sebaya</SelectItem>
-                    <SelectItem value="KEDISIPLINAN_TATA_TERTIB">Pelanggaran Tata Tertib &amp; Alpa</SelectItem>
-                    <SelectItem value="MOTIVASI_KARIR">Bimbingan Karir &amp; Minat Belajar</SelectItem>
+                  <SelectContent className="bg-[#EEF2F7] border border-white/90 shadow-xl z-[99999]">
+                    <SelectItem value="PSIKOSOSIAL_ADAPTASI">Pribadi &amp; Penyesuaian Diri</SelectItem>
+                    <SelectItem value="TEKANAN_AKADEMIK">Kesulitan Belajar &amp; Motivasi</SelectItem>
+                    <SelectItem value="KONFLIK_PEER">Hubungan Sosial &amp; Teman Sebaya</SelectItem>
+                    <SelectItem value="KEDISIPLINAN_TATA_TERTIB">Kedisiplinan &amp; Presensi</SelectItem>
+                    <SelectItem value="MOTIVASI_KARIR">Bimbingan Karir &amp; Peminatan</SelectItem>
                     <SelectItem value="DUGAAN_BULLYING">Dugaan Bullying / Intimidasi</SelectItem>
                   </SelectContent>
                 </Select>
@@ -324,18 +324,18 @@ export function AiBkStructuringModal({
 
               {/* Urgency Select */}
               <div className="sm:col-span-5 space-y-1.5">
-                <Label className="text-xs font-bold text-slate-700">Tingkat Urgensi Kasus:</Label>
+                <Label className="text-xs font-bold text-slate-700">Tingkat Urgensi Masalah:</Label>
                 <Select
                   value={urgencyLevel}
                   onValueChange={(val: "RINGAN" | "SEDANG" | "BERAT") => setUrgencyLevel(val)}
                 >
-                  <SelectTrigger className="h-10 text-xs sm:text-sm bg-white border-slate-200 font-medium rounded-xl">
+                  <SelectTrigger className="h-10 text-xs sm:text-sm neo-card-subtle bg-[#EEF2F7] border border-white/90 font-medium rounded-xl">
                     <SelectValue placeholder="Pilih Urgensi" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border border-slate-200 shadow-xl z-[99999]">
-                    <SelectItem value="RINGAN">Ringan (Konseling Rutin)</SelectItem>
-                    <SelectItem value="SEDANG">Sedang (Pemantauan Terarah)</SelectItem>
-                    <SelectItem value="BERAT">Berat (Kasus Kritis / Rujukan)</SelectItem>
+                  <SelectContent className="bg-[#EEF2F7] border border-white/90 shadow-xl z-[99999]">
+                    <SelectItem value="RINGAN">Ringan (Konsultasi Rutin)</SelectItem>
+                    <SelectItem value="SEDANG">Sedang (Perlu Dipantau)</SelectItem>
+                    <SelectItem value="BERAT">Berat (Tindakan Cepat / Rujukan)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -344,7 +344,7 @@ export function AiBkStructuringModal({
             {/* Quick Preset Chips */}
             <div className="space-y-2">
               <Label className="text-xs font-bold text-slate-700 block">
-                Pilihan Cepat Gejala / Dinamika Konseling:
+                Topik / Gejala yang Dihadapi Siswa:
               </Label>
               <div className="flex flex-wrap gap-1.5">
                 {(BK_PRESET_OPTIONS[caseCategory] || []).map((preset, idx) => (
@@ -356,10 +356,10 @@ export function AiBkStructuringModal({
                       setCustomKeywords(preset)
                     }}
                     className={cn(
-                      "text-xs px-2.5 py-1 rounded-full border transition-all cursor-pointer text-left font-medium",
+                      "text-xs px-3 py-1 rounded-xl border transition-all cursor-pointer text-left font-semibold",
                       presetTopic === preset
-                        ? "bg-indigo-50 border-indigo-400 text-indigo-700 font-bold shadow-2xs"
-                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                        ? "neo-btn-primary text-white shadow-xs"
+                        : "neo-btn bg-[#EEF2F7] text-slate-700 hover:text-slate-900 border-white/80"
                     )}
                   >
                     {preset}
@@ -371,15 +371,15 @@ export function AiBkStructuringModal({
             {/* Keyword Input & Generate Button */}
             <div className="space-y-1.5 pt-1">
               <Label className="text-xs font-bold text-slate-700">
-                Kata Kunci Tambahan / Catatan Verbatim Singkat (Opsional):
+                Catatan Singkat Tambahan (Opsional):
               </Label>
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   value={customKeywords}
                   onChange={(e) => setCustomKeywords(e.target.value)}
-                  placeholder="Ketik catatan kasar, misal: 'merasa cemas saat presentasi dan takut ditertawakan'..."
-                  className="w-full h-10 px-3.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  placeholder="Ketik poin penting, misal: 'merasa tertekan saat ujian dan sering menyendiri'..."
+                  className="w-full h-10 px-3.5 rounded-xl neo-card-subtle bg-[#EEF2F7] border border-white/90 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault()
@@ -387,19 +387,19 @@ export function AiBkStructuringModal({
                     }
                   }}
                 />
-                <Button
+                <button
                   type="button"
                   onClick={() => handleGenerate()}
                   disabled={isLoading}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold px-4 rounded-xl shrink-0 flex items-center gap-1.5 shadow-xs cursor-pointer"
+                  className="neo-btn-primary text-white text-xs sm:text-sm font-bold px-4 h-10 rounded-xl shrink-0 flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
                 >
                   {isLoading ? (
                     <IconRefresh className="w-4 h-4 animate-spin" />
                   ) : (
                     <IconMagicWand className="w-4 h-4" />
                   )}
-                  <span>Generate Draf dengan AI</span>
-                </Button>
+                  <span>Buat Draf AI</span>
+                </button>
               </div>
             </div>
           </div>
@@ -408,8 +408,8 @@ export function AiBkStructuringModal({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label className="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                <span>Langkah 2: Draf Catatan Sesi Konseling Hasil AI</span>
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                <span>Langkah 2: Draf Catatan Bimbingan Hasil AI</span>
+                <span className="text-[10px] font-bold text-emerald-800 neo-pill bg-emerald-50/80 px-2 py-0.5 rounded-full border border-white/80">
                   Dapat Diedit
                 </span>
               </Label>
@@ -417,7 +417,7 @@ export function AiBkStructuringModal({
                 type="button"
                 onClick={() => handleGenerate()}
                 disabled={isLoading}
-                className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
+                className="text-xs font-bold text-indigo-700 hover:text-indigo-900 flex items-center gap-1 cursor-pointer"
               >
                 <IconRefresh className={cn("w-3.5 h-3.5", isLoading && "animate-spin")} />
                 <span>{isLoading ? "Sedang Menyusun..." : "Buat Ulang Variasi"}</span>
@@ -428,36 +428,36 @@ export function AiBkStructuringModal({
               rows={4}
               value={generatedDraft}
               onChange={(e) => setGeneratedDraft(e.target.value)}
-              placeholder="Belum ada draf. Pilih kategori/gejala di Langkah 1 atau ketik kata kunci singkat, lalu klik 'Generate Draf dengan AI'..."
-              className="text-xs sm:text-sm text-slate-800 bg-white border-slate-200 rounded-2xl p-4 leading-relaxed focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-sans min-h-[110px] shadow-2xs"
+              placeholder="Belum ada draf. Pilih topik di Langkah 1 atau ketik catatan singkat, lalu klik 'Buat Draf AI'..."
+              className="text-xs sm:text-sm text-slate-800 neo-inset bg-[#E7EDF4] rounded-2xl p-4 leading-relaxed font-sans min-h-[110px] border-0 focus:outline-none"
             />
 
             {/* AI Psychosocial & Intervention Insights Card */}
             {(psychosocialSummary || counselorIntervention) && (
-              <div className="p-3.5 rounded-2xl bg-indigo-50/50 border border-indigo-200/70 space-y-2 text-xs">
-                <div className="flex items-center gap-1.5 font-bold text-indigo-800 border-b border-indigo-200/50 pb-1.5">
-                  <IconAi className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Hasil Strukturasi Dinamika Konseling AI:</span>
+              <div className="p-3.5 rounded-2xl neo-card-subtle bg-[#EEF2F7] border border-white/90 space-y-2 text-xs">
+                <div className="flex items-center gap-1.5 font-bold text-indigo-800 border-b border-slate-200/60 pb-1.5">
+                  <IconAi className="w-3.5 h-3.5 text-indigo-700" />
+                  <span>Ringkasan Analisis AI:</span>
                 </div>
                 {psychosocialSummary && (
                   <div className="text-slate-700">
-                    <strong className="text-slate-900">Ringkasan Psikososial:</strong> {psychosocialSummary}
+                    <strong className="text-slate-900">Kondisi Siswa:</strong> {psychosocialSummary}
                   </div>
                 )}
                 {counselorIntervention && (
                   <div className="text-slate-700">
-                    <strong className="text-slate-900">Saran Intervensi Konselor:</strong> {counselorIntervention}
+                    <strong className="text-slate-900">Saran Tindak Lanjut Guru BK:</strong> {counselorIntervention}
                   </div>
                 )}
               </div>
             )}
 
-            <div className="p-3 rounded-2xl bg-indigo-50/60 border border-indigo-200/60 flex items-start gap-2.5 text-xs text-indigo-950">
+            <div className="p-3 rounded-2xl neo-card-subtle bg-[#EEF2F7] border border-white/90 flex items-start gap-2.5 text-xs text-slate-700">
               <IconAlert className="w-4 h-4 shrink-0 mt-0.5 text-indigo-600" />
               <div>
-                <span className="font-semibold">Catatan Alur: </span>
+                <span className="font-semibold">Petunjuk: </span>
                 <span>
-                  Mengklik tombol konfirmasi di bawah akan memasang draf narasi ini ke <strong>Langkah 3: Catatan Sesi Konseling Verbatim</strong>. Anda dapat membaca, menyunting teks, dan mengatur slider evaluasi konseling secara manual sebelum menyimpan.
+                  Mengklik tombol di bawah akan memasukkan draf narasi ini ke kolom Catatan Hasil Bimbingan di form utama. Anda tetap dapat membaca dan menyunting teks sebelum menyimpannya ke database.
                 </span>
               </div>
             </div>
@@ -465,25 +465,24 @@ export function AiBkStructuringModal({
         </div>
 
         {/* Footer */}
-        <DialogFooter className="border-t border-slate-100 pt-4 flex flex-col-reverse sm:flex-row sm:justify-between items-center gap-3">
-          <Button
+        <DialogFooter className="border-t border-slate-200/70 pt-4 flex flex-col-reverse sm:flex-row sm:justify-between items-center gap-3">
+          <button
             type="button"
-            variant="ghost"
             onClick={onClose}
-            className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 rounded-xl w-full sm:w-auto cursor-pointer"
+            className="text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 neo-btn bg-[#EEF2F7] border border-white/90 px-4 py-2 rounded-xl w-full sm:w-auto cursor-pointer"
           >
             Batal
-          </Button>
+          </button>
 
-          <Button
+          <button
             type="button"
             onClick={handleApply}
             disabled={!generatedDraft && !customKeywords && !presetTopic}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold px-5 py-2.5 rounded-xl shadow-xs flex items-center justify-center gap-2 cursor-pointer w-full sm:w-auto"
+            className="neo-btn-primary text-white text-xs sm:text-sm font-bold px-5 py-2.5 rounded-xl shadow-xs flex items-center justify-center gap-2 cursor-pointer w-full sm:w-auto"
           >
             <IconCheck className="w-4 h-4" />
-            <span>Konfirmasi &amp; Pasang ke Catatan Konseling</span>
-          </Button>
+            <span>Gunakan Catatan Ini di Form</span>
+          </button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

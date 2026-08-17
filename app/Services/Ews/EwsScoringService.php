@@ -58,11 +58,13 @@ class EwsScoringService
             || ($academicResult['sub_status'] === self::STATUS_KRITIS)
             || ($behaviorResult['sub_status'] === self::STATUS_KRITIS);
 
-        // 6. Data Completeness Gate
-        $isDataComplete = ($academicResult['sub_status'] !== 'PENDING')
-            && ($attendanceResult['sub_status'] !== 'PENDING');
+        // 6. Data Completeness Gate: Jika ada data di salah satu pilar, langsung evaluasi skor EWS
+        $hasAnyData = ($academicResult['sub_status'] !== 'PENDING')
+            || ($attendanceResult['sub_status'] !== 'PENDING')
+            || ($behaviorResult['sub_status'] !== 'PENDING')
+            || ($bkResult['sub_status'] !== 'PENDING');
 
-        if (!$isDataComplete && !$isEmergencyCritical) {
+        if (!$hasAnyData && !$isEmergencyCritical) {
             $finalStatus = self::STATUS_DATA_BELUM_LENGKAP;
         } else {
             // Algoritma Max-Severity (Worst-Case Paradigm)
@@ -103,13 +105,13 @@ class EwsScoringService
             ->take(10)
             ->get();
 
-        if ($records->count() < 2) {
+        if ($records->count() === 0) {
             return ['sub_status' => 'PENDING', 'trigger' => null];
         }
 
         $avgScore = (float) $records->avg('score');
 
-        // Cek tren penurunan
+        // Cek tren penurunan jika ada minimal 3 data
         $isDecreasingTrend = false;
         if ($records->count() >= 3) {
             $s1 = (float) $records[0]->score; // terbaru
@@ -146,11 +148,11 @@ class EwsScoringService
             ->orderBy('date', 'desc')
             ->get();
 
-        if ($records->count() < 5) {
+        if ($records->count() === 0) {
             return ['sub_status' => 'PENDING', 'trigger' => null];
         }
 
-        // Hitung Alpa Berturut-turut
+        // Hitung Alpa Berturut-turut & Total Alpa
         $consecutiveAlpha = 0;
         foreach ($records as $rec) {
             if ($rec->status === 'ALPA') {
@@ -161,25 +163,26 @@ class EwsScoringService
         }
 
         $totalRecords = $records->count();
+        $totalAlpa = $records->where('status', 'ALPA')->count();
         $presentCount = $records->whereIn('status', ['HADIR', 'TERLAMBAT'])->count();
         $rate = ($presentCount / $totalRecords) * 100;
 
-        if ($consecutiveAlpha > 5 || $rate < 80.0) {
+        if ($consecutiveAlpha > 5 || $totalAlpa >= 5 || $rate < 80.0) {
             return [
                 'sub_status' => self::STATUS_KRITIS,
-                'trigger' => $consecutiveAlpha > 5 ? 'ALPA_LEBIH_DARI_5_HARI' : 'KEHADIRAN_DIBAWAH_80_PERSEN',
+                'trigger' => $consecutiveAlpha > 5 ? 'ALPA_LEBIH_DARI_5_HARI' : ($totalAlpa >= 5 ? 'TOTAL_ALPA_5_HARI' : 'KEHADIRAN_DIBAWAH_80_PERSEN'),
             ];
         }
 
-        if ($consecutiveAlpha >= 3 || $rate < 90.0) {
+        if ($consecutiveAlpha >= 3 || $totalAlpa >= 3 || $rate < 90.0) {
             return [
                 'sub_status' => self::STATUS_WASPADA,
-                'trigger' => $consecutiveAlpha >= 3 ? 'ALPA_3_SAMPAI_5_HARI' : 'KEHADIRAN_DIBAWAH_90_PERSEN',
+                'trigger' => $consecutiveAlpha >= 3 ? 'ALPA_3_SAMPAI_5_HARI' : ($totalAlpa >= 3 ? 'TOTAL_ALPA_3_HARI' : 'KEHADIRAN_DIBAWAH_90_PERSEN'),
             ];
         }
 
-        if ($consecutiveAlpha >= 1 || $rate < 95.0) {
-            return ['sub_status' => self::STATUS_BERISIKO, 'trigger' => 'ALPA_1_SAMPAI_2_HARI'];
+        if ($consecutiveAlpha >= 1 || $totalAlpa >= 1 || $rate < 95.0) {
+            return ['sub_status' => self::STATUS_BERISIKO, 'trigger' => 'ALPA_TERCATAT'];
         }
 
         return ['sub_status' => self::STATUS_NORMAL, 'trigger' => null];

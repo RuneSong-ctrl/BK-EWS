@@ -59,15 +59,15 @@ export function StudentAutocomplete({
       {label && <label className="text-xs sm:text-sm font-bold text-slate-800">{label}</label>}
 
       {selectedStudent ? (
-        <div className="flex items-center justify-between p-3 rounded-2xl bg-blue-50/40 border border-blue-200/90 shadow-2xs">
+        <div className="flex items-center justify-between p-3.5 rounded-2xl neo-card-subtle bg-[#EEF2F7] border border-white/90 shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs">
+            <div className="w-10 h-10 rounded-2xl neo-btn bg-[#EEF2F7] text-blue-700 font-extrabold text-xs flex items-center justify-center border border-white/90 shrink-0">
               {selectedStudent.name.charAt(0)}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-slate-900">{selectedStudent.name}</span>
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white text-slate-700 border border-slate-200/80 shadow-2xs">
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold neo-pill bg-white text-slate-700 border border-white/80">
                   {selectedStudent.class_name}
                 </span>
               </div>
@@ -80,7 +80,7 @@ export function StudentAutocomplete({
             <button
               type="button"
               onClick={() => onSelect(null)}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all cursor-pointer"
+              className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all cursor-pointer"
               title="Ganti Siswa"
             >
               <IconClose className="w-4 h-4" />
@@ -100,13 +100,13 @@ export function StudentAutocomplete({
               }}
               onFocus={() => setIsOpen(true)}
               placeholder={placeholder}
-              className="w-full h-11 pl-10 pr-4 rounded-2xl bg-slate-50/80 border border-slate-200 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-2xs"
+              className="w-full h-11 pl-10 pr-4 rounded-2xl neo-inset bg-[#E7EDF4] text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none transition-all"
             />
           </div>
 
           {isOpen && (
-            <div className="absolute top-full left-0 right-0 mt-1.5 z-50 rounded-2xl bg-white border border-slate-200 shadow-xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150">
-              <div className="px-3.5 py-2.5 bg-slate-50/90 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            <div className="absolute top-full left-0 right-0 mt-1.5 z-50 rounded-2xl neo-card bg-[#EEF2F7] border border-white/90 shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150">
+              <div className="px-3.5 py-2.5 bg-[#E7EDF4] border-b border-slate-200/60 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                 {filteredStudents.length > 0 ? "Pilih Siswa Binaan" : "Siswa Tidak Ditemukan"}
               </div>
 

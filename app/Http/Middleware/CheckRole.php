@@ -19,11 +19,12 @@ class CheckRole
         $user = $request->user();
 
         if (!$user) {
-            return redirect()->route('login');
+            return redirect()->guest(route('login'));
         }
 
         if (!in_array($user->role, $roles)) {
-            abort(403, 'Akses Ditolak: Anda tidak memiliki izin untuk mengakses halaman ini.');
+            // Jika user mengakses modul yang bukan perannya, alihkan ke dashboard perannya sendiri
+            return redirect()->route('dashboard')->with('error', 'Akses Ditolak: Peran akun Anda (' . $user->role . ') tidak memiliki izin untuk membuka halaman tersebut.');
         }
 
         return $next($request);

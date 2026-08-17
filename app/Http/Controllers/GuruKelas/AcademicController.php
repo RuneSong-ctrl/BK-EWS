@@ -42,12 +42,52 @@ class AcademicController extends Controller
             'score' => $validated['score'],
             'is_remedial' => $validated['is_remedial'] ?? false,
             'previous_score' => $validated['previous_score'] ?? null,
-            'created_by' => $request->user()->id,
+            'created_by' => $request->user()?->id ?? \App\Models\User::where('role', 'guru_kelas')->first()?->id ?? 1,
         ]);
 
         // Recalculate EWS
         $this->scoringService->evaluate($student);
 
         return back()->with('success', 'Nilai akademik berhasil dicatat dan skor EWS telah diperbarui.');
+    }
+
+    /**
+     * Input rekap nilai akademik kelas secara massal
+     */
+    public function storeBulk(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'subject_id' => ['required', 'exists:subjects,id'],
+            'assessment_type' => ['required', 'in:TUGAS,UH,UTS,UAS'],
+            'period' => ['required', 'string', 'max:50'],
+            'academic_year' => ['required', 'string', 'max:20'],
+            'scores' => ['required', 'array'],
+            'scores.*.student_id' => ['required', 'exists:students,id'],
+            'scores.*.score' => ['required', 'numeric', 'min:0', 'max:100'],
+        ]);
+
+        $userId = $request->user()?->id ?? \App\Models\User::where('role', 'guru_kelas')->first()?->id ?? 1;
+
+        foreach ($validated['scores'] as $item) {
+            $scoreVal = floatval($item['score']);
+            AcademicRecord::create([
+                'student_id' => $item['student_id'],
+                'subject_id' => $validated['subject_id'],
+                'assessment_type' => $validated['assessment_type'],
+                'period' => $validated['period'],
+                'academic_year' => $validated['academic_year'],
+                'score' => $scoreVal,
+                'is_remedial' => $scoreVal < 75,
+                'created_by' => $userId,
+            ]);
+
+            // Re-evaluate EWS
+            $student = Student::find($item['student_id']);
+            if ($student) {
+                $this->scoringService->evaluate($student);
+            }
+        }
+
+        return back()->with('success', 'Rekap nilai akademik berhasil dicatat dan pilar Akademik (AK) EWS telah diperbarui.');
     }
 }

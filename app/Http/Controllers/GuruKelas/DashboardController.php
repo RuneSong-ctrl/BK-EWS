@@ -65,20 +65,22 @@ class DashboardController extends Controller
                 $avgScore = $hasAcademic ? round($std->academicRecords->avg('score'), 1) : null;
 
                 $totalAtt = $std->attendanceRecords->count();
-                $hadirCount = $std->attendanceRecords->where('status', 'HADIR')->count();
+                $presentCount = $std->attendanceRecords->whereIn('status', ['HADIR', 'TERLAMBAT'])->count();
                 $alpaCount = $std->attendanceRecords->where('status', 'ALPA')->count();
                 $hasAttendance = $totalAtt > 0;
-                $attRate = $hasAttendance ? round(($hadirCount / $totalAtt) * 100, 1) : null;
+                $attRate = $hasAttendance ? round(($presentCount / $totalAtt) * 100, 1) : null;
 
                 // Pillars mapping
                 $akStatus = $std->ewsScore ? $std->ewsScore->academic_sub_status : 'DATA_BELUM_LENGKAP';
                 $khStatus = $std->ewsScore ? $std->ewsScore->attendance_sub_status : 'DATA_BELUM_LENGKAP';
                 $prStatus = $std->ewsScore ? $std->ewsScore->behavior_sub_status : 'PENDING';
+                $bkStatus = $std->ewsScore ? $std->ewsScore->bk_sub_status : 'NORMAL';
                 
                 // fallback if PENDING or not set
                 if ($prStatus === 'PENDING') $prStatus = 'NORMAL';
                 if ($akStatus === 'PENDING') $akStatus = 'DATA_BELUM_LENGKAP';
                 if ($khStatus === 'PENDING') $khStatus = 'DATA_BELUM_LENGKAP';
+                if ($bkStatus === 'PENDING') $bkStatus = 'NORMAL';
 
                 $students[] = [
                     'id' => $std->id,
@@ -95,7 +97,7 @@ class DashboardController extends Controller
                         'ak' => $akStatus,
                         'kh' => $khStatus,
                         'pr' => $prStatus,
-                        'bk' => 'NORMAL',
+                        'bk' => $bkStatus,
                     ],
                     'ews_status' => $status,
                 ];

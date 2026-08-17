@@ -73,12 +73,12 @@ class DashboardController extends Controller
         }
         $recentCases = $casesQuery->latest('incident_date')->take(10)->get()->map(fn ($c) => [
             'id' => $c->id,
-            'title' => $c->title,
+            'title' => !empty($c->case_types) ? implode(', ', (array)$c->case_types) : 'Sesi Bimbingan Konseling',
             'student_name' => $c->student?->name ?? 'Siswa Terdaftar',
             'class_name' => $c->student?->currentClass()?->name ?? '-',
             'severity' => $c->severity,
             'status' => $c->status,
-            'date' => $c->incident_date?->format('d M Y') ?? '14 Agu 2026',
+            'date' => $c->incident_date?->format('d M Y') ?? now()->format('d M Y'),
             'counselor' => $c->handler?->name ?? 'Guru BK',
         ]);
 

@@ -99,19 +99,28 @@ class AiAdvisorService
         $endpoint = config('services.ai.endpoint') ?? config('services.gemini.endpoint') ?? env('AI_ENDPOINT') ?? env('GEMINI_ENDPOINT');
 
         $systemPrompt = <<<PROMPT
-Anda adalah Konsultan Ahli Bimbingan Konseling dan Early Warning System Sekolah.
-Analisis data agregat siswa berikut (data telah dianonimkan) dan berikan saran terarah untuk Guru Kelas, Guru BK, dan Kepala Sekolah.
+Anda adalah Konsultan Pakar Psikologi Pendidikan & Early Warning System (EWS) Sekolah Menengah.
+Tugas: Menganalisis profil data agregat 4 pilar siswa (Akademik, Kehadiran, Perilaku, Kasus BK) dan merumuskan intervensi presisi terkoordinasi untuk 3 pemangku kepentingan.
 
-Format Output JSON:
+Pedoman Analisis:
+1. `risk_overview`: Rumuskan akar masalah secara holistik dalam 2-3 kalimat (korelasikan tren nilai, presensi, dan dinamika perilaku).
+2. `primary_concerns`: Daftar 2-4 poin risiko paling mendesak yang butuh atensi cepat.
+3. `recommendations`:
+   - `for_homeroom_teacher`: Langkah taktis harian di kelas (pendekatan personal, adaptasi pembelajaran, pemantauan presensi).
+   - `for_counselor_bk`: Strategi intervensi konseling terarah (konseling individual/kelompok, asesmen psikososial, koordinasi orang tua).
+   - `for_principal`: Arahan manajerial pimpinan sekolah (dukungan kebijakan, monitoring SOP eskalasi, mitigasi risiko kelembagaan).
+4. `data_limitation_note`: Catatan keterbatasan data bila salah satu pilar masih PENDING.
+
+Format Output WAJIB JSON murni:
 {
-  "risk_overview": "Analisis akar masalah 2-3 kalimat",
-  "primary_concerns": ["Poin perhatian utama 1", "Poin perhatian utama 2"],
+  "risk_overview": "Ringkasan analisis akar masalah 2-3 kalimat",
+  "primary_concerns": ["Fokus risiko 1", "Fokus risiko 2"],
   "recommendations": {
-    "for_homeroom_teacher": "Aksi spesifik untuk wali kelas",
-    "for_counselor_bk": "Aksi intervensi/konseling untuk BK",
-    "for_principal": "Arah monitoring manajerial untuk Kepsek"
+    "for_homeroom_teacher": "Aksi taktis konkret wali kelas",
+    "for_counselor_bk": "Aksi intervensi spesifik konselor BK",
+    "for_principal": "Arahan manajerial Kepala Sekolah"
   },
-  "data_limitation_note": "Catatan jika data belum lengkap"
+  "data_limitation_note": "Catatan kelengkapan data atau null jika data lengkap"
 }
 PROMPT;
 
