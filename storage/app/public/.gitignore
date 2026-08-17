@@ -1,2 +1,5 @@
 *
 !.gitignore
+!icon/
+!icon/**
+!stikmas.png
