@@ -33,13 +33,13 @@ export function EwsStatusBadge({
         return {
           label: "Waspada",
           classes: "bg-orange-50 text-orange-800 border-orange-200/90",
-          dotColor: "bg-orange-500 animate-pulse",
+          dotColor: "bg-orange-500",
         }
       case "KRITIS":
         return {
           label: "Kritis",
           classes: "bg-rose-50 text-rose-800 border-rose-300 shadow-sm",
-          dotColor: "bg-rose-600 animate-ping",
+          dotColor: "bg-rose-600",
         }
       case "DATA_KURANG":
       default:
@@ -69,12 +69,7 @@ export function EwsStatusBadge({
       )}
     >
       {showDot && (
-        <span className="relative flex h-2 w-2">
-          {status === "KRITIS" && (
-            <span className="absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75 animate-ping" />
-          )}
-          <span className={cn("relative inline-flex rounded-full h-2 w-2", config.dotColor)} />
-        </span>
+        <span className={cn("inline-flex rounded-full h-2 w-2 shrink-0", config.dotColor)} />
       )}
       <span>{config.label}</span>
     </span>

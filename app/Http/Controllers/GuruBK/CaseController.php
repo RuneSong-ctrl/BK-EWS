@@ -5,15 +5,51 @@ namespace App\Http\Controllers\GuruBK;
 use App\Http\Controllers\Controller;
 use App\Models\BkCase;
 use App\Models\Student;
+use App\Services\Ai\AiTextStructuringService;
 use App\Services\Ews\EwsScoringService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class CaseController extends Controller
 {
     public function __construct(
-        protected EwsScoringService $scoringService
+        protected EwsScoringService $scoringService,
+        protected AiTextStructuringService $aiStructuringService
     ) {}
+
+    /**
+     * AI structuring & auto-complete helper untuk konseling BK
+     */
+    public function structureWithAi(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'raw_text' => ['nullable', 'string'],
+            'case_category' => ['nullable', 'string'],
+            'category' => ['nullable', 'string'],
+            'urgency_level' => ['nullable', 'string', 'in:RINGAN,SEDANG,BERAT'],
+            'severity' => ['nullable', 'string', 'in:RINGAN,SEDANG,BERAT'],
+            'preset_topic' => ['nullable', 'string'],
+            'keywords' => ['nullable', 'string'],
+            'student_name' => ['nullable', 'string'],
+        ]);
+
+        $rawText = $validated['raw_text'] ?? $validated['keywords'] ?? $validated['preset_topic'] ?? '';
+        $options = [
+            'case_category' => $validated['case_category'] ?? $validated['category'] ?? null,
+            'urgency_level' => $validated['urgency_level'] ?? $validated['severity'] ?? null,
+            'preset_topic' => $validated['preset_topic'] ?? null,
+            'keywords' => $validated['keywords'] ?? null,
+            'student_name' => $validated['student_name'] ?? 'Siswa',
+        ];
+
+        $structured = $this->aiStructuringService->structureBkObservation($rawText, $options);
+
+        return response()->json([
+            'success' => true,
+            'data' => $structured,
+        ]);
+    }
 
     /**
      * Input kasus bimbingan konseling baru

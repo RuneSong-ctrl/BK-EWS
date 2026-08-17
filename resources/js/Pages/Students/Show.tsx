@@ -1,24 +1,19 @@
 import * as React from "react"
 import {
-  User,
-  GraduationCap,
-  CalendarCheck,
-  Activity,
-  HeartHandshake,
-  ArrowLeft,
-  Calendar,
-  Lock,
-  Clock,
-  Sparkles,
-  TrendingDown,
-  AlertTriangle,
-} from "lucide-react"
-import { Link } from "@inertiajs/react"
+  IconArrowLeft,
+  IconGraduationCap,
+  IconCalendarCheck,
+  IconAlert,
+  IconHandshake,
+  IconCalendar,
+} from "@/components/ui/storage-icon"
+import { Link, usePage } from "@inertiajs/react"
 import { AppLayout } from "@/Layouts/AppLayout"
 import { Button } from "@/components/ui/button"
 import { EwsStatusBadge } from "@/components/ews/EwsStatusBadge"
 import { PillarIndicators } from "@/components/ews/PillarIndicators"
 import { AiAdvisorCard, type AiAdvisorData } from "@/components/ews/AiAdvisorCard"
+import { cn } from "@/lib/utils"
 
 export interface StudentShowProps {
   student?: any
@@ -31,25 +26,52 @@ export default function StudentShow({
   bkCases = [],
   currentClass,
 }: StudentShowProps = {}) {
+  const page = usePage()
+  const authUser = (page.props as any)?.auth?.user
+  const userRole = (authUser?.role || "guru_kelas") as "guru_kelas" | "guru_bk" | "kepsek"
+
+  // Dynamically resolve dashboard back URL and text based on role
+  const getDashboardBackInfo = () => {
+    switch (userRole) {
+      case "guru_bk":
+        return {
+          href: "/guru-bk/dashboard",
+          label: "Kembali ke Dashboard Guru BK",
+        }
+      case "kepsek":
+        return {
+          href: "/kepsek/dashboard",
+          label: "Kembali ke Dashboard Kepala Sekolah",
+        }
+      case "guru_kelas":
+      default:
+        return {
+          href: "/guru-kelas/dashboard",
+          label: "Kembali ke Dashboard Kelas",
+        }
+    }
+  }
+
+  const backInfo = getDashboardBackInfo()
   const hasAcademic = Boolean(student?.academic_records?.length)
   const academicAvg = hasAcademic
     ? (
-        student.academic_records.reduce(
-          (acc: number, curr: any) => acc + (Number(curr.score) || 0),
-          0
-        ) / student.academic_records.length
-      ).toFixed(1)
+      student.academic_records.reduce(
+        (acc: number, curr: any) => acc + (Number(curr.score) || 0),
+        0
+      ) / student.academic_records.length
+    ).toFixed(1)
     : "-"
 
   const hasAttendance = Boolean(student?.attendance_records?.length)
   const attendanceRate = hasAttendance
     ? (
-        (student.attendance_records.filter(
-          (r: any) => r.status === "HADIR" || r.status === "TERLAMBAT"
-        ).length /
-          student.attendance_records.length) *
-        100
-      ).toFixed(1) + "%"
+      (student.attendance_records.filter(
+        (r: any) => r.status === "HADIR" || r.status === "TERLAMBAT"
+      ).length /
+        student.attendance_records.length) *
+      100
+    ).toFixed(1)
     : "-"
 
   const alpaCount = student?.attendance_records
@@ -152,51 +174,51 @@ export default function StudentShow({
 
   return (
     <AppLayout
-      currentRole="guru_kelas"
+      currentRole={userRole}
       activeMenu="siswa_profile"
       title="Lembar Profil Siswa 360° & AI Advisor"
       subtitle="Evaluasi menyeluruh 4 pilar EWS, rekam jejak longitudinal, dan narasi intervensi terpadu"
     >
-      {/* Back Link */}
+      {/* Dynamic Back Link */}
       <div>
         <Link
-          href="/dashboard/guru-kelas"
-          className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors p-2 rounded-xl hover:bg-white shadow-2xs"
+          href={backInfo.href}
+          className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors p-2.5 px-4 rounded-xl hover:bg-white shadow-2xs"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Kembali ke Dashboard Kelas</span>
+          <IconArrowLeft className="w-4 h-4" />
+          <span>{backInfo.label}</span>
         </Link>
       </div>
 
       {/* Header Profile Card */}
-      <section className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-4">
+      <section className="p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] border border-slate-200/80 space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start sm:items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-blue-600 text-white font-bold text-xl flex items-center justify-center shrink-0 shadow-md">
+            <div className="w-14 h-14 rounded-2xl neo-btn bg-[#EEF2F7] text-blue-600 font-extrabold text-2xl flex items-center justify-center shrink-0 shadow-sm">
               {studentData.name.charAt(0)}
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2.5">
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
                   {studentData.name}
                 </h1>
-                <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                <span className="px-3 py-1 rounded-xl text-xs font-bold neo-pill bg-[#E6EDF5] text-slate-700">
                   {studentData.class_name}
                 </span>
                 <span className="text-xs sm:text-sm text-slate-500 font-mono">
                   NISN: {studentData.nisn}
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              <p className="text-xs sm:text-sm text-slate-500 mt-1.5 font-medium">
                 Wali Kelas: <strong className="text-slate-800">{studentData.homeroom_teacher}</strong> &bull; Tahun Ajaran: {studentData.academic_year}
               </p>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
             <div className="text-right hidden sm:block">
               <span className="text-xs uppercase tracking-wider text-slate-400 font-bold block">
-                Status EWS
+                Status EWS Sistem
               </span>
               <span className="text-xs text-slate-500 font-medium">Update: {studentData.updated_at}</span>
             </div>
@@ -206,79 +228,79 @@ export default function StudentShow({
       </section>
 
       {/* 4 Pilar Evaluation Grid (2x2) */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
         {/* Pilar 1: Akademik */}
-        <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="p-6 sm:p-7 rounded-3xl neo-card bg-[#EEF2F7] border border-slate-200/80 flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-300/40 pb-3.5">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                <GraduationCap className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-2xl neo-btn bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <IconGraduationCap className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">
                   1. Pilar Akademik
                 </h3>
-                <span className="text-xs text-slate-400">{studentData.academic.total_subjects} Mata Pelajaran</span>
+                <span className="text-xs text-slate-500 font-medium">{studentData.academic.total_subjects} Mata Pelajaran</span>
               </div>
             </div>
             <EwsStatusBadge status={studentData.pillars.ak} size="sm" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90">
-              <span className="text-xs text-slate-500 block">Rata-rata Nilai:</span>
-              <span className="text-2xl font-bold font-mono text-slate-900">
+          <div className="grid grid-cols-2 gap-3.5 text-xs sm:text-sm">
+            <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1">
+              <span className="text-xs text-slate-500 font-medium block">Rata-rata Nilai:</span>
+              <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block">
                 {studentData.academic.avg_score}
               </span>
-              <span className="text-xs text-rose-600 block font-bold mt-0.5">
+              <span className="text-xs text-rose-600 font-bold block">
                 {studentData.academic.trend}
               </span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90">
-              <span className="text-xs text-slate-500 block">Mapel Terendah:</span>
-              <span className="text-xs sm:text-sm font-bold text-rose-700 block mt-0.5">
+            <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1">
+              <span className="text-xs text-slate-500 font-medium block">Mapel Terendah:</span>
+              <span className="text-xs sm:text-sm font-bold text-rose-700 block truncate">
                 {studentData.academic.lowest_subject}
               </span>
-              <span className="text-xs text-slate-400 mt-0.5 block">KKM: 75.0</span>
+              <span className="text-xs text-slate-400 block font-medium">KKM: 75.0</span>
             </div>
           </div>
         </div>
 
         {/* Pilar 2: Kehadiran */}
-        <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="p-6 sm:p-7 rounded-3xl neo-card bg-[#EEF2F7] border border-slate-200/80 flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-300/40 pb-3.5">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
-                <CalendarCheck className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-2xl neo-btn bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
+                <IconCalendarCheck className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">
                   2. Pilar Kehadiran
                 </h3>
-                <span className="text-xs text-slate-400">Rekap 30 Hari Terakhir</span>
+                <span className="text-xs text-slate-500 font-medium">Rekapitulasi 30 Hari Terakhir</span>
               </div>
             </div>
             <EwsStatusBadge status={studentData.pillars.kh} size="sm" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90">
-              <span className="text-xs text-slate-500 block">Persentase Hadir:</span>
-              <span className="text-2xl font-bold font-mono text-slate-900">
-                {studentData.attendance.rate}%
+          <div className="grid grid-cols-2 gap-3.5 text-xs sm:text-sm">
+            <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1">
+              <span className="text-xs text-slate-500 font-medium block">Persentase Hadir:</span>
+              <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block">
+                {studentData.attendance.rate === "-" ? "-" : `${studentData.attendance.rate}%`}
               </span>
-              <span className="text-xs text-orange-600 block font-bold mt-0.5">
+              <span className="text-xs text-orange-600 font-bold block">
                 Ambang Batas &lt;85%
               </span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90">
-              <span className="text-xs text-slate-500 block">Alpa Beruntun:</span>
-              <span className="text-2xl font-bold font-mono text-rose-600">
+            <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1">
+              <span className="text-xs text-slate-500 font-medium block">Alpa Beruntun:</span>
+              <span className="text-2xl sm:text-3xl font-extrabold text-rose-600 block">
                 {studentData.attendance.consecutive_alpa} Hari
               </span>
-              <span className="text-xs text-slate-500 block mt-0.5 font-medium">
+              <span className="text-[11px] text-slate-500 block font-medium">
                 Izin: {studentData.attendance.total_izin} &bull; Sakit: {studentData.attendance.total_sakit}
               </span>
             </div>
@@ -286,67 +308,67 @@ export default function StudentShow({
         </div>
 
         {/* Pilar 3: Perilaku */}
-        <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="p-6 sm:p-7 rounded-3xl neo-card bg-[#EEF2F7] border border-slate-200/80 flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-300/40 pb-3.5">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                <Activity className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-2xl neo-btn bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                <IconAlert className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">
                   3. Pilar Perilaku Kelas
                 </h3>
-                <span className="text-xs text-slate-400">Observasi Terstruktur Guru</span>
+                <span className="text-xs text-slate-500 font-medium">Observasi Naratif Guru Kelas</span>
               </div>
             </div>
             <EwsStatusBadge status={studentData.pillars.pr} size="sm" />
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 text-xs sm:text-sm space-y-1.5">
+          <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] text-xs sm:text-sm space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-bold text-slate-800">Kategori: {studentData.behavior.latest_category}</span>
               <span className="text-xs font-bold text-amber-700 uppercase">
                 Status: {studentData.behavior.severity}
               </span>
             </div>
-            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+            <p className="text-slate-700 text-xs sm:text-sm leading-relaxed font-medium">
               {studentData.behavior.notes}
             </p>
           </div>
         </div>
 
         {/* Pilar 4: Konseling BK */}
-        <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="p-6 sm:p-7 rounded-3xl neo-card bg-[#EEF2F7] border border-slate-200/80 flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-300/40 pb-3.5">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                <HeartHandshake className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-2xl neo-btn bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <IconHandshake className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">
                   4. Pilar Bimbingan Konseling
                 </h3>
-                <span className="text-xs text-slate-400">Portofolio Konselor</span>
+                <span className="text-xs text-slate-500 font-medium">Portofolio &amp; Kasus BK</span>
               </div>
             </div>
             <EwsStatusBadge status={studentData.pillars.bk} size="sm" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90">
-              <span className="text-xs text-slate-500 block">Kasus Aktif:</span>
-              <span className="text-2xl font-bold font-mono text-emerald-700">
+          <div className="grid grid-cols-2 gap-3.5 text-xs sm:text-sm">
+            <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1">
+              <span className="text-xs text-slate-500 font-medium block">Kasus Aktif:</span>
+              <span className="text-2xl sm:text-3xl font-extrabold text-emerald-700 block">
                 {studentData.counseling.active_cases} Kasus
               </span>
-              <span className="text-xs text-slate-400 block mt-0.5 font-medium">Status Kondusif</span>
+              <span className="text-xs text-slate-400 block font-medium">Status Penanganan</span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90">
-              <span className="text-xs text-slate-500 block">Total Sesi:</span>
-              <span className="text-2xl font-bold font-mono text-slate-900">
+            <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1">
+              <span className="text-xs text-slate-500 font-medium block">Total Sesi Konseling:</span>
+              <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block">
                 {studentData.counseling.total_sessions} Kali
               </span>
-              <span className="text-xs text-slate-400 block mt-0.5 font-medium">
+              <span className="text-xs text-slate-400 block font-medium truncate">
                 Terakhir: {studentData.counseling.last_session}
               </span>
             </div>
@@ -354,72 +376,53 @@ export default function StudentShow({
         </div>
       </section>
 
-      {/* AI EWS Advisor Card */}
-      <div className="relative">
-        <div className="flex justify-end mb-2">
-          <Button
-            size="sm"
-            onClick={() => {
-              // Inertia post to generate AI
-              import("@inertiajs/react").then(({ router }) => {
-                const btn = document.getElementById("btn-generate-ai");
-                if (btn) btn.innerHTML = '<span class="animate-pulse">Memproses AI...</span>';
-                router.post(`/guru-bk/student-profile/${studentData.id}/generate-ai`, {}, {
-                  preserveScroll: true,
-                  onFinish: () => {
-                    if (btn) btn.innerHTML = 'Generate Ulang AI';
-                  }
-                });
-              });
-            }}
-            id="btn-generate-ai"
-            className="text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md transition-all"
-          >
-            Generate Ulang AI
-          </Button>
-        </div>
+      {/* Grand AI EWS Advisor Panel */}
+      <section id="ai-advisor" className="scroll-mt-20">
         <AiAdvisorCard
+          studentId={studentData.id}
           data={aiAdvisorData}
           studentName={studentData.name}
           ews_status={studentData.ews_status}
         />
-      </div>
+      </section>
 
       {/* Longitudinal Observation & Activity Timeline */}
-      <section className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-5">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+      <section className="p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] border border-slate-200/80 space-y-5">
+        <div className="flex items-center justify-between border-b border-slate-300/40 pb-4">
           <div>
-            <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+            <h2 className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight">
               Rekam Jejak Longitudinal Siswa
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              Kronologi observasi guru, perubahan metrik absensi, dan log konseling
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              Kronologi observasi harian pendidik, perubahan presensi, dan rekam bimbingan konseling
             </p>
           </div>
-          <Clock className="w-5 h-5 text-slate-400" />
+          <IconCalendar className="w-5 h-5 text-slate-400" />
         </div>
 
-        <div className="relative pl-7 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
-          {timelineLogs.map((log) => (
-            <div key={log.id} className="relative space-y-1.5">
-              <span className="absolute -left-7 top-1.5 w-2.5 h-2.5 rounded-full bg-blue-600 ring-4 ring-white" />
-
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5">
-                  <h4 className="text-xs sm:text-sm font-bold text-slate-900">{log.title}</h4>
-                  <span
-                    className={`px-2.5 py-0.5 rounded text-xs font-bold ${log.badgeColor}`}
-                  >
+        <div className="relative pl-7 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-300/60">
+          {timelineLogs.length === 0 ? (
+            <div className="p-6 text-center text-xs sm:text-sm text-slate-400 neo-inset bg-[#E7EDF4] rounded-2xl">
+              Belum ada riwayat aktivitas atau observasi longitudinal tercatat untuk siswa ini.
+            </div>
+          ) : (
+            timelineLogs.map((log) => (
+              <div key={log.id} className="relative space-y-1.5 group">
+                <span className="absolute -left-7 top-1 w-3.5 h-3.5 rounded-full bg-blue-600 border-2 border-[#EEF2F7] shadow-xs" />
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-mono font-bold text-slate-400">{log.date}</span>
+                  <span className="text-xs font-bold text-slate-700">&bull; {log.actor}</span>
+                  <span className={cn("px-2 py-0.5 rounded text-[10px] font-bold", log.badgeColor)}>
                     {log.badge}
                   </span>
                 </div>
-                <span className="text-xs text-slate-500 font-mono">{log.date}</span>
+                <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] text-xs sm:text-sm space-y-1">
+                  <h4 className="font-bold text-slate-900">{log.title}</h4>
+                  <p className="text-slate-700 leading-relaxed font-medium">{log.description}</p>
+                </div>
               </div>
-
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{log.description}</p>
-              <span className="text-xs text-slate-400 block font-medium">Oleh: {log.actor}</span>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </section>
     </AppLayout>

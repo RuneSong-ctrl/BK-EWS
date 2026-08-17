@@ -20,15 +20,29 @@ class ObservationController extends Controller
     ) {}
 
     /**
-     * API: Autocomplete AI text structuring for observation input
+     * API: Autocomplete & draft AI text structuring for observation input
      */
     public function structureWithAi(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'raw_text' => ['required', 'string', 'min:2'],
+            'raw_text' => ['nullable', 'string'],
+            'category' => ['nullable', 'string'],
+            'severity' => ['nullable', 'string'],
+            'preset_topic' => ['nullable', 'string'],
+            'keywords' => ['nullable', 'string'],
+            'student_name' => ['nullable', 'string'],
         ]);
 
-        $structured = $this->aiStructuringService->structureObservation($validated['raw_text']);
+        $rawText = $validated['raw_text'] ?? '';
+        $options = [
+            'category' => $validated['category'] ?? null,
+            'severity' => $validated['severity'] ?? null,
+            'preset_topic' => $validated['preset_topic'] ?? null,
+            'keywords' => $validated['keywords'] ?? null,
+            'student_name' => $validated['student_name'] ?? 'Siswa',
+        ];
+
+        $structured = $this->aiStructuringService->structureObservation($rawText, $options);
 
         return response()->json([
             'success' => true,
@@ -53,6 +67,21 @@ class ObservationController extends Controller
         $rawCategory = $request->input('category');
         if (isset($categoryMap[$rawCategory])) {
             $request->merge(['category' => $categoryMap[$rawCategory]]);
+        }
+
+        $rawText = $request->input('raw_text') ?? $request->input('notes') ?? 'Observasi perilaku kelas';
+        $request->merge(['raw_text' => $rawText]);
+
+        if (!$request->has('category') || empty($request->input('category'))) {
+            $request->merge(['category' => 'TIDAK_FOKUS']);
+        }
+
+        if (!$request->has('severity') || empty($request->input('severity'))) {
+            $request->merge(['severity' => 'RINGAN']);
+        }
+
+        if (!$request->has('ai_structured_summary') || empty($request->input('ai_structured_summary'))) {
+            $request->merge(['ai_structured_summary' => mb_substr($rawText, 0, 200)]);
         }
 
         $validated = $request->validate([

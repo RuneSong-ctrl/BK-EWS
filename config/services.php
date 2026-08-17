@@ -35,9 +35,18 @@ return [
         ],
     ],
 
+    'ai' => [
+        'api_key' => env('AI_API_KEY') ?? env('GEMINI_API_KEY'),
+        'endpoint' => env('AI_ENDPOINT') ?? env('GEMINI_ENDPOINT'),
+        'model' => env('AI_MODEL') ?? env('GEMINI_MODEL', 'gemini-2.5-flash'),
+        'provider' => env('AI_PROVIDER', 'auto'),
+    ],
+
     'gemini' => [
-        'api_key' => env('GEMINI_API_KEY'),
-        'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+        'api_key' => env('GEMINI_API_KEY') ?? env('AI_API_KEY'),
+        'endpoint' => env('GEMINI_ENDPOINT') ?? env('AI_ENDPOINT'),
+        'model' => env('GEMINI_MODEL') ?? env('AI_MODEL', 'gemini-2.5-flash'),
+        'provider' => env('AI_PROVIDER', 'auto'),
     ],
 
 ];

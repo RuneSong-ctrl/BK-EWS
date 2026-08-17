@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Search, User, Check, X } from "lucide-react"
+import { IconSearch, IconUser, IconCheck, IconClose } from "@/components/ui/storage-icon"
 import { cn } from "@/lib/utils"
 import { EwsStatusBadge, type EwsStatus } from "@/components/ews/EwsStatusBadge"
 
@@ -56,18 +56,18 @@ export function StudentAutocomplete({
 
   return (
     <div ref={wrapperRef} className={cn("relative space-y-1.5", className)}>
-      {label && <label className="text-sm font-semibold text-slate-800">{label}</label>}
+      {label && <label className="text-xs sm:text-sm font-bold text-slate-800">{label}</label>}
 
       {selectedStudent ? (
-        <div className="flex items-center justify-between p-2.5 rounded-xl neo-card border border-blue-200 bg-white">
+        <div className="flex items-center justify-between p-3 rounded-2xl bg-blue-50/40 border border-blue-200/90 shadow-2xs">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs">
+            <div className="w-9 h-9 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-700 font-bold text-xs">
               {selectedStudent.name.charAt(0)}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-slate-900">{selectedStudent.name}</span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white text-slate-700 border border-slate-200/80 shadow-2xs">
                   {selectedStudent.class_name}
                 </span>
               </div>
@@ -75,22 +75,22 @@ export function StudentAutocomplete({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <EwsStatusBadge status={selectedStudent.ews_status} size="sm" />
             <button
               type="button"
               onClick={() => onSelect(null)}
-              className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+              className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all cursor-pointer"
               title="Ganti Siswa"
             >
-              <X className="w-4 h-4" />
+              <IconClose className="w-4 h-4" />
             </button>
           </div>
         </div>
       ) : (
         <div className="relative">
           <div className="relative flex items-center">
-            <Search className="w-4 h-4 absolute left-3.5 text-slate-400 pointer-events-none" />
+            <IconSearch className="w-4 h-4 absolute left-3.5 text-slate-400 pointer-events-none" />
             <input
               type="text"
               value={query}
@@ -100,14 +100,14 @@ export function StudentAutocomplete({
               }}
               onFocus={() => setIsOpen(true)}
               placeholder={placeholder}
-              className="w-full h-11 pl-10 pr-4 rounded-xl neo-inset bg-[#F0F3F8] text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all"
+              className="w-full h-11 pl-10 pr-4 rounded-2xl bg-slate-50/80 border border-slate-200 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-2xs"
             />
           </div>
 
           {isOpen && (
-            <div className="absolute top-full left-0 right-0 mt-1.5 z-50 rounded-xl neo-card bg-white border border-slate-200 shadow-xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150">
-              <div className="p-2 border-b border-slate-100 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                {filteredStudents.length > 0 ? "Pilih Siswa Terdaftar" : "Siswa Tidak Ditemukan"}
+            <div className="absolute top-full left-0 right-0 mt-1.5 z-50 rounded-2xl bg-white border border-slate-200 shadow-xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150">
+              <div className="px-3.5 py-2.5 bg-slate-50/90 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                {filteredStudents.length > 0 ? "Pilih Siswa Binaan" : "Siswa Tidak Ditemukan"}
               </div>
 
               <div className="max-h-60 overflow-y-auto divide-y divide-slate-100">
@@ -121,18 +121,18 @@ export function StudentAutocomplete({
                         setIsOpen(false)
                         setQuery("")
                       }}
-                      className="w-full flex items-center justify-between p-3 text-left hover:bg-blue-50/80 transition-colors group cursor-pointer"
+                      className="w-full flex items-center justify-between p-3 px-3.5 text-left hover:bg-blue-50/60 transition-colors group cursor-pointer"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 rounded-full bg-slate-100 group-hover:bg-blue-200 text-slate-700 group-hover:text-blue-800 flex items-center justify-center text-xs font-bold transition-colors">
+                        <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-blue-100 group-hover:text-blue-700 text-slate-700 flex items-center justify-center text-xs font-bold transition-colors border border-slate-200/80">
                           {student.name.charAt(0)}
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-slate-800 group-hover:text-blue-700">
+                            <span className="text-sm font-bold text-slate-800 group-hover:text-blue-700">
                               {student.name}
                             </span>
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                            <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
                               {student.class_name}
                             </span>
                           </div>
@@ -144,7 +144,7 @@ export function StudentAutocomplete({
                     </button>
                   ))
                 ) : (
-                  <div className="p-4 text-center text-xs text-slate-500">
+                  <div className="p-5 text-center text-xs text-slate-500">
                     Tidak ada siswa yang cocok dengan kata kunci &quot;{query}&quot;
                   </div>
                 )}

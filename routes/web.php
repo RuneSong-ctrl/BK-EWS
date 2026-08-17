@@ -40,10 +40,12 @@ Route::get('/students/{student}', [GuruBK\StudentProfileController::class, 'show
 
 // Public AI Structuring Helper API
 Route::post('/api/ai/structure-observation', [GuruKelas\ObservationController::class, 'structureWithAi'])->name('api.ai.structure');
+Route::post('/api/ai/structure-bk-observation', [GuruBK\CaseController::class, 'structureWithAi'])->name('api.ai.structure-bk');
 
 // Base Authenticated Route
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/students/{student}/ai-advice', [GuruBK\StudentProfileController::class, 'generateAiAdvice'])->name('students.ai-advice');
 
     // Modul: Guru Kelas / Wali Kelas
     Route::middleware(['role:guru_kelas'])->prefix('guru-kelas')->name('guru-kelas.')->group(function () {

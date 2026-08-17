@@ -2,19 +2,14 @@ import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
-    Shield,
-    Sparkles,
-    UserCheck,
-    HeartHandshake,
-    Award,
-    Users,
-    ArrowRight,
-    Lock,
-    Zap,
-    CheckCircle2,
-    LogIn,
-    UserPlus,
-} from 'lucide-react';
+    IconUserCheck,
+    IconHandshake,
+    IconKepsek,
+    IconLogIn,
+    IconArrowRight,
+    IconGroup,
+    IconAi,
+} from '@/components/ui/storage-icon';
 import { Button } from '@/components/ui/button';
 import { EwsStatusBadge } from '@/components/ews/EwsStatusBadge';
 
@@ -24,7 +19,7 @@ export default function Welcome() {
             title: 'Guru / Wali Kelas',
             desc: 'Pencatatan observasi perilaku cepat berbantuan AI, skala linear partisipasi, dan pemantauan 4 pilar siswa kelas.',
             href: '/dashboard/guru-kelas',
-            icon: UserCheck,
+            icon: IconUserCheck,
             color: 'text-blue-600',
             bg: 'bg-blue-50 border-blue-200',
             badge: 'Kelas 10-MIPA-1',
@@ -33,7 +28,7 @@ export default function Welcome() {
             title: 'Guru BK / Konselor',
             desc: 'Konsolidasi portofolio konseling, watchlist siswa darurat, feed kasus, dan matriks holistik lintas jenjang sekolah.',
             href: '/dashboard/guru-bk',
-            icon: HeartHandshake,
+            icon: IconHandshake,
             color: 'text-indigo-600',
             bg: 'bg-indigo-50 border-indigo-200',
             badge: 'Konselor Sekolah',
@@ -42,7 +37,7 @@ export default function Welcome() {
             title: 'Kepala Sekolah',
             desc: 'Executive summary iklim sekolah, navigasi berbasis anomali siswa kritis, tren akademik vs absensi, dan disposisi.',
             href: '/dashboard/kepsek',
-            icon: Award,
+            icon: IconKepsek,
             color: 'text-amber-600',
             bg: 'bg-amber-50 border-amber-200',
             badge: 'Pimpinan Eksekutif',
@@ -51,7 +46,7 @@ export default function Welcome() {
 
     return (
         <>
-            <Head title="BK-EWS AI - Sistem Bimbingan Konseling & Early Warning System" />
+            <Head title="E-Jurnal STIKMAS - Sistem Observasi & Early Warning System" />
 
             <div className="relative min-h-screen bg-[#F0F3F8] text-slate-900 selection:bg-blue-600 selection:text-white font-sans antialiased overflow-hidden flex flex-col justify-between">
                 {/* Background Soft Glows */}
@@ -61,19 +56,19 @@ export default function Welcome() {
                 {/* Top Navbar */}
                 <header className="relative z-10 border-b border-slate-200/80 bg-white/80 backdrop-blur-xl sticky top-0 px-6 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
-                            <Shield className="w-5 h-5" />
+                        <div className="w-11 h-11 rounded-2xl bg-white border border-slate-200/80 p-1.5 flex items-center justify-center shadow-md shadow-blue-500/10 overflow-hidden shrink-0">
+                            <img src="/storage/stikmas.png" alt="Logo E-Jurnal STIKMAS" width={38} height={38} loading="eager" className="w-full h-full object-contain" />
                         </div>
                         <div>
                             <div className="flex items-center gap-1.5">
-                                <span className="font-bold text-base text-slate-900 tracking-tight">
-                                    BK-EWS AI
+                                <span className="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight">
+                                    E-Jurnal STIKMAS
                                 </span>
                                 <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
-                                    PRO
+                                    AI
                                 </span>
                             </div>
-                            <p className="text-xs text-slate-500">SMA Negeri Terpadu</p>
+                            <p className="text-xs text-slate-500 font-medium">Sistem Observasi &amp; Peringatan Dini</p>
                         </div>
                     </div>
 
@@ -82,7 +77,7 @@ export default function Welcome() {
                             href="/login"
                             className="text-xs font-bold text-slate-700 hover:text-blue-600 px-3 py-2 rounded-xl transition-colors flex items-center gap-1.5"
                         >
-                            <LogIn className="w-4 h-4" />
+                            <IconLogIn className="w-4 h-4" />
                             <span>Masuk Sesi</span>
                         </Link>
 
@@ -90,7 +85,7 @@ export default function Welcome() {
                             href="/register"
                             className="neo-button bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-md flex items-center gap-1.5 transition-all"
                         >
-                            <UserPlus className="w-4 h-4" />
+                            <IconUserCheck className="w-4 h-4" />
                             <span>Daftar Staf</span>
                         </Link>
                     </div>
@@ -100,7 +95,7 @@ export default function Welcome() {
                 <main className="relative z-10 max-w-6xl mx-auto px-6 pt-12 pb-16 space-y-12">
                     <div className="text-center space-y-5 max-w-3xl mx-auto">
                         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full neo-pill bg-white border border-blue-200/80 text-blue-700 text-xs font-bold shadow-sm">
-                            <Sparkles className="w-4 h-4 text-blue-600" />
+                            <IconAi className="w-4 h-4 text-blue-600" />
                             <span>Soft Neomorphism + Clean Minimalist SaaS &bull; AI Powered</span>
                         </div>
 
@@ -170,7 +165,7 @@ export default function Welcome() {
 
                                             <div className="pt-6 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-blue-600 group-hover:translate-x-1 transition-transform">
                                                 <span>Buka Dashboard</span>
-                                                <ArrowRight className="w-4 h-4" />
+                                                <IconArrowRight className="w-4 h-4" />
                                             </div>
                                         </Link>
                                     </motion.div>
@@ -183,7 +178,7 @@ export default function Welcome() {
                     <div className="p-6 rounded-3xl neo-card bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
                         <div className="space-y-1.5 text-center sm:text-left">
                             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-xs font-bold">
-                                <Users className="w-3.5 h-3.5" />
+                                <IconGroup className="w-3.5 h-3.5" />
                                 <span>Contoh Lembar Kasus Interaktif</span>
                             </div>
                             <h3 className="text-lg font-bold">Lembar Profil Siswa 360° &amp; Rekomendasi Terpadu AI Advisor</h3>
@@ -197,14 +192,14 @@ export default function Welcome() {
                             className="neo-button bg-white text-blue-700 hover:bg-blue-50 text-xs font-bold px-5 py-3 rounded-2xl shadow-lg flex items-center gap-2 shrink-0 transition-transform hover:scale-105"
                         >
                             <span>Lihat Profil Siswa #1</span>
-                            <ArrowRight className="w-4 h-4" />
+                            <IconArrowRight className="w-4 h-4" />
                         </Link>
                     </div>
                 </main>
 
                 {/* Footer */}
                 <footer className="relative z-10 border-t border-slate-200/80 bg-white/50 backdrop-blur-md py-6 text-center text-xs text-slate-500 space-y-1">
-                    <p className="font-semibold text-slate-700">Sistem BK-EWS AI &bull; SMA Negeri Terpadu 2026</p>
+                    <p className="font-semibold text-slate-700">E-Jurnal STIKMAS &bull; Sistem Observasi &amp; Early Warning 2026</p>
                     <p className="text-[11px] text-slate-400">Arsitektur Laravel 13 + Inertia React 19 + Tailwind v4 + Soft Neomorphism</p>
                 </footer>
             </div>

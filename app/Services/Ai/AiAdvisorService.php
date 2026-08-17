@@ -96,6 +96,8 @@ class AiAdvisorService
 
     private function callLlmApi(array $context, string $apiKey, string $model = 'gemini-2.5-flash'): ?array
     {
+        $endpoint = config('services.ai.endpoint') ?? config('services.gemini.endpoint') ?? env('AI_ENDPOINT') ?? env('GEMINI_ENDPOINT');
+
         $systemPrompt = <<<PROMPT
 Anda adalah Konsultan Ahli Bimbingan Konseling dan Early Warning System Sekolah.
 Analisis data agregat siswa berikut (data telah dianonimkan) dan berikan saran terarah untuk Guru Kelas, Guru BK, dan Kepala Sekolah.
@@ -113,28 +115,97 @@ Format Output JSON:
 }
 PROMPT;
 
-        $response = Http::withoutVerifying()
-            ->timeout(10)
-            ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
-                'contents' => [
-                    [
-                        'parts' => [
-                            ['text' => $systemPrompt . "\n\nKonteks Siswa:\n" . json_encode($context, JSON_PRETTY_PRINT)],
+        $userContent = "Konteks Agregat Siswa:\n" . json_encode($context, JSON_PRETTY_PRINT);
+
+        $isOpenAiFormat = $endpoint && (
+            str_contains($endpoint, '/chat/completions') ||
+            str_contains($endpoint, '/v1') ||
+            str_contains($endpoint, 'openrouter') ||
+            str_contains($endpoint, 'groq') ||
+            str_contains($endpoint, 'deepseek') ||
+            str_contains($endpoint, 'openai')
+        );
+
+        if ($isOpenAiFormat) {
+            $url = str_ends_with($endpoint, '/chat/completions') ? $endpoint : rtrim($endpoint, '/') . '/chat/completions';
+            $response = Http::withoutVerifying()
+                ->withHeaders([
+                    'Authorization' => "Bearer {$apiKey}",
+                    'Content-Type' => 'application/json',
+                ])
+                ->timeout(25)
+                ->post($url, [
+                    'model' => $model,
+                    'messages' => [
+                        ['role' => 'system', 'content' => $systemPrompt],
+                        ['role' => 'user', 'content' => $userContent],
+                    ],
+                    'temperature' => 0.2,
+                ]);
+
+            if ($response->successful()) {
+                $body = trim($response->body());
+
+                // 1. Standard JSON response
+                $json = json_decode($body, true);
+                $content = $json['choices'][0]['message']['content'] ?? null;
+
+                // 2. SSE Stream chunks response (data: { ... })
+                if (!$content && str_contains($body, 'data:')) {
+                    $lines = explode("\n", $body);
+                    $streamText = '';
+                    foreach ($lines as $line) {
+                        $line = trim($line);
+                        if (str_starts_with($line, 'data:')) {
+                            $payload = trim(substr($line, 5));
+                            if ($payload === '[DONE]') continue;
+                            $chunk = json_decode($payload, true);
+                            if (isset($chunk['choices'][0]['delta']['content'])) {
+                                $streamText .= $chunk['choices'][0]['delta']['content'];
+                            }
+                        }
+                    }
+                    if (!empty($streamText)) {
+                        $content = $streamText;
+                    }
+                }
+
+                if ($content) {
+                    $cleanJson = preg_replace('/^```(?:json)?\s*/i', '', trim($content));
+                    $cleanJson = preg_replace('/\s*```$/', '', $cleanJson);
+                    $decoded = json_decode($cleanJson, true);
+                    if (is_array($decoded)) {
+                        return $decoded;
+                    }
+                }
+            }
+        } else {
+            $baseUrl = $endpoint ? rtrim($endpoint, '/') : 'https://generativelanguage.googleapis.com/v1beta';
+            $url = "{$baseUrl}/models/{$model}:generateContent?key={$apiKey}";
+
+            $response = Http::withoutVerifying()
+                ->timeout(15)
+                ->post($url, [
+                    'contents' => [
+                        [
+                            'parts' => [
+                                ['text' => $systemPrompt . "\n\n" . $userContent],
+                            ],
                         ],
                     ],
-                ],
-                'generationConfig' => [
-                    'responseMimeType' => 'application/json',
-                    'temperature' => 0.2,
-                ],
-            ]);
+                    'generationConfig' => [
+                        'responseMimeType' => 'application/json',
+                        'temperature' => 0.2,
+                    ],
+                ]);
 
-        if ($response->successful()) {
-            $jsonText = $response->json('candidates.0.content.parts.0.text');
-            if ($jsonText) {
-                $cleanJson = preg_replace('/^```(?:json)?\s*/i', '', trim($jsonText));
-                $cleanJson = preg_replace('/\s*```$/', '', $cleanJson);
-                return json_decode($cleanJson, true);
+            if ($response->successful()) {
+                $jsonText = $response->json('candidates.0.content.parts.0.text');
+                if ($jsonText) {
+                    $cleanJson = preg_replace('/^```(?:json)?\s*/i', '', trim($jsonText));
+                    $cleanJson = preg_replace('/\s*```$/', '', $cleanJson);
+                    return json_decode($cleanJson, true);
+                }
             }
         }
 

@@ -1,5 +1,15 @@
 import * as React from "react"
-import { Shield, Lock, Mail, User, UserCheck, HeartHandshake, Award, ArrowRight, AlertCircle } from "lucide-react"
+import {
+  IconShield,
+  IconLock,
+  IconMail,
+  IconUser,
+  IconUserCheck,
+  IconHandshake,
+  IconKepsek,
+  IconArrowRight,
+  IconAlert,
+} from "@/components/ui/storage-icon"
 import { Link, useForm } from "@inertiajs/react"
 import { AuthLayout } from "@/Layouts/AuthLayout"
 import { Label } from "@/components/ui/label"
@@ -23,7 +33,8 @@ export default function Register() {
   return (
     <AuthLayout
       title="Registrasi Staf Pendidik"
-      subtitle="Daftarkan akun pendidik atau konselor untuk akses sistem BK-EWS"
+      subtitle="Daftarkan akun pendidik atau konselor untuk akses sistem E-Jurnal STIKMAS"
+      maxWidth="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Role Selection */}
@@ -42,7 +53,7 @@ export default function Register() {
                   : "text-slate-500 hover:text-slate-800"
               )}
             >
-              <UserCheck className="w-3.5 h-3.5" />
+              <IconUserCheck className="w-3.5 h-3.5" />
               <span>Wali Kelas</span>
             </button>
 
@@ -56,7 +67,7 @@ export default function Register() {
                   : "text-slate-500 hover:text-slate-800"
               )}
             >
-              <HeartHandshake className="w-3.5 h-3.5" />
+              <IconHandshake className="w-3.5 h-3.5" />
               <span>Guru BK</span>
             </button>
 
@@ -70,7 +81,7 @@ export default function Register() {
                   : "text-slate-500 hover:text-slate-800"
               )}
             >
-              <Award className="w-3.5 h-3.5" />
+              <IconKepsek className="w-3.5 h-3.5" />
               <span>Kepsek</span>
             </button>
           </div>
@@ -83,7 +94,7 @@ export default function Register() {
             Nama Lengkap &amp; Gelar
           </Label>
           <div className="relative">
-            <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <IconUser className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               id="name"
               type="text"
@@ -103,7 +114,7 @@ export default function Register() {
             Nomor Induk Pegawai (NIP / NIK)
           </Label>
           <div className="relative">
-            <Shield className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <IconShield className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               id="nip"
               type="text"
@@ -123,7 +134,7 @@ export default function Register() {
             Alamat Email Sekolah (@sch.id)
           </Label>
           <div className="relative">
-            <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <IconMail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               id="email"
               type="email"
@@ -144,7 +155,7 @@ export default function Register() {
               Kata Sandi
             </Label>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <IconLock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 id="password"
                 type="password"
@@ -163,7 +174,7 @@ export default function Register() {
               Ulangi Sandi
             </Label>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <IconLock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 id="password_confirmation"
                 type="password"
@@ -184,7 +195,7 @@ export default function Register() {
           className="w-full h-11 neo-btn-primary text-white text-xs sm:text-sm font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50 mt-2"
         >
           <span>{processing ? "Mendaftarkan Akun..." : "Daftarkan Akun Pendidik"}</span>
-          <ArrowRight className="w-4 h-4 text-white" />
+          <IconArrowRight className="w-4 h-4 text-white" />
         </button>
 
         <div className="text-center pt-2 text-xs text-slate-500">
