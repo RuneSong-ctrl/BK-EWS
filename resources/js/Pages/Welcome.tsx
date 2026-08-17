@@ -96,7 +96,7 @@ export default function Welcome() {
                     <div className="text-center space-y-5 max-w-3xl mx-auto">
                         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full neo-pill bg-white border border-blue-200/80 text-blue-700 text-xs font-bold shadow-sm">
                             <IconAi className="w-4 h-4 text-blue-600" />
-                            <span>Soft Neomorphism + Clean Minimalist SaaS &bull; AI Powered</span>
+                            <span>Soft Neomorphism + Clean Minimalist SaaS • AI Powered</span>
                         </div>
 
                         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight">
@@ -199,7 +199,7 @@ export default function Welcome() {
 
                 {/* Footer */}
                 <footer className="relative z-10 border-t border-slate-200/80 bg-white/50 backdrop-blur-md py-6 text-center text-xs text-slate-500 space-y-1">
-                    <p className="font-semibold text-slate-700">E-Jurnal STIKMAS &bull; Sistem Observasi &amp; Early Warning 2026</p>
+                    <p className="font-semibold text-slate-700">E-Jurnal STIKMAS • Sistem Observasi &amp; Early Warning 2026</p>
                     <p className="text-[11px] text-slate-400">Arsitektur Laravel 13 + Inertia React 19 + Tailwind v4 + Soft Neomorphism</p>
                 </footer>
             </div>

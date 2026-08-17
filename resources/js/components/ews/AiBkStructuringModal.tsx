@@ -300,7 +300,7 @@ export function AiBkStructuringModal({
                 <IconAi className="w-3.5 h-3.5 text-indigo-700" />
                 <span>Langkah 1: Pilih Bidang Masalah &amp; Topik Cepat</span>
               </Label>
-              <span className="text-[11px] text-indigo-700 font-bold">Pilih Cepat &bull; Hemat Waktu</span>
+              <span className="text-[11px] text-indigo-700 font-bold">Pilih Cepat • Hemat Waktu</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">

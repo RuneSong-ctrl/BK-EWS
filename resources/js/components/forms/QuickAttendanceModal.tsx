@@ -176,7 +176,7 @@ export function QuickAttendanceModal({
                 Input Presensi Harian Kelas {classNameTitle}
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500 font-medium mt-0.5">
-                Pilar Kehadiran (KH) &bull; Terintegrasi deteksi dini risiko EWS
+                Pilar Kehadiran (KH) • Terintegrasi deteksi dini risiko EWS
               </DialogDescription>
             </div>
           </div>

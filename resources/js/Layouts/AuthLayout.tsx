@@ -82,7 +82,7 @@ export function AuthLayout({
       <div className="w-full max-w-md mx-auto text-center py-4 space-y-1">
         <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500 font-medium">
           <IconShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-          <span>Kepatuhan Privasi Data Siswa &bull; UU PDP No. 27/2022</span>
+          <span>Kepatuhan Privasi Data Siswa • UU PDP No. 27/2022</span>
         </div>
       </div>
     </div>

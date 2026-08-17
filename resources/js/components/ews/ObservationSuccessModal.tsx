@@ -100,7 +100,7 @@ export function ObservationSuccessModal({
                     {detail.student_name}
                   </h4>
                   <p className="text-[11px] font-mono text-slate-500 truncate">
-                    NISN: {detail.nisn || "-"} &bull; Kelas {detail.class_name}
+                    NISN: {detail.nisn || "-"} • Kelas {detail.class_name}
                   </p>
                 </div>
               </div>

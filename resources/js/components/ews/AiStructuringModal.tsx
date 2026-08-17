@@ -315,9 +315,9 @@ export function AiStructuringModal({
                     <SelectValue placeholder="Pilih Tingkat" />
                   </SelectTrigger>
                   <SelectContent className="bg-white border border-slate-200 shadow-2xl z-[99999]">
-                    <SelectItem value="RINGAN">Ringan &bull; Observasi Berkala Wali Kelas</SelectItem>
-                    <SelectItem value="SEDANG">Sedang &bull; Perlu Dialog Khusus</SelectItem>
-                    <SelectItem value="BERAT">Berat &bull; Butuh Koordinasi BK Segera</SelectItem>
+                    <SelectItem value="RINGAN">Ringan • Observasi Berkala Wali Kelas</SelectItem>
+                    <SelectItem value="SEDANG">Sedang • Perlu Dialog Khusus</SelectItem>
+                    <SelectItem value="BERAT">Berat • Butuh Koordinasi BK Segera</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -279,7 +279,7 @@ export function AiAdvisorCard({
       <div className="pt-4 border-t border-slate-300/40 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
         <div className="flex items-center gap-1.5">
           <IconShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
-          <span>Kerahasiaan Terjamin &bull; Kepatuhan Privasi Data Siswa UU PDP No. 27/2022</span>
+          <span>Kerahasiaan Terjamin • Kepatuhan Privasi Data Siswa UU PDP No. 27/2022</span>
         </div>
         {data.last_updated && (
           <span className="font-mono text-[11px] text-slate-400">

@@ -259,7 +259,7 @@ export default function GuruKelas({
     <AppLayout
       currentRole="guru_kelas"
       activeMenu="dashboard"
-      title={`Dashboard Wali Kelas &bull; ${className}`}
+      title={`Dashboard Wali Kelas • ${className}`}
       subtitle="Pemantauan perkembangan siswa, presensi harian, nilai akademik, dan catatan jurnal observasi"
     >
       {/* Top Quick Action Bar */}
@@ -341,7 +341,7 @@ export default function GuruKelas({
                   Total Siswa di Kelas
                 </span>
                 <span className="text-xs text-slate-500 font-medium block">
-                  {atensiCount > 0 ? `${atensiCount} Siswa Perlu Perhatian Khusus` : "Seluruh Siswa Kondusif"} &bull; {normalCount} Siswa Aman/Normal
+                  {atensiCount > 0 ? `${atensiCount} Siswa Perlu Perhatian Khusus` : "Seluruh Siswa Kondusif"} • {normalCount} Siswa Aman/Normal
                 </span>
               </div>
             </div>
@@ -565,7 +565,7 @@ export default function GuruKelas({
             <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 shadow-2xs">
               Perlu Observasi Khusus
             </span>
-            <span className="text-[11px] text-slate-500 font-medium">{kritisCount} Kritis &bull; {waspadaCount} Waspada</span>
+            <span className="text-[11px] text-slate-500 font-medium">{kritisCount} Kritis • {waspadaCount} Waspada</span>
           </div>
         </div>
 

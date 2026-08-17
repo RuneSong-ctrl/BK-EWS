@@ -353,7 +353,7 @@ export default function Kepsek({
                 Status Normal (Kondusif)
               </span>
               <span className="text-xs text-slate-500 font-medium mt-0.5 block">
-                Zona Hijau &bull; Performa Akademik &amp; Presensi Prima
+                Zona Hijau • Performa Akademik &amp; Presensi Prima
               </span>
             </div>
             <div className="w-12 h-12 rounded-2xl neo-btn text-emerald-600 flex items-center justify-center shrink-0 shadow-xs border border-white/90">
@@ -592,7 +592,7 @@ export default function Kepsek({
                     <div>
                       <h4 className="font-extrabold text-slate-900 text-sm sm:text-base">{std.name}</h4>
                       <p className="text-xs font-mono text-slate-500">
-                        NISN: {std.nisn || "-"} &bull; Kelas {std.class_name}
+                        NISN: {std.nisn || "-"} • Kelas {std.class_name}
                       </p>
                     </div>
                   </div>
@@ -712,7 +712,7 @@ export default function Kepsek({
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 mt-0.5">
-                        Konselor: <strong className="text-slate-800">{c.handler_name}</strong> &bull; Tanggal: {c.incident_date}
+                        Konselor: <strong className="text-slate-800">{c.handler_name}</strong> • Tanggal: {c.incident_date}
                       </p>
                     </div>
                   </div>

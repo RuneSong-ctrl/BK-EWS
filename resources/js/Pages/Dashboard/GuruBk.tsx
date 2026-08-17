@@ -270,7 +270,7 @@ export default function GuruBk({
               </span>
             </div>
             <p className="text-xs text-slate-500 font-medium">
-              {totalSchool} Total Siswa &bull; {watchlist.length} Siswa Terdeteksi Butuh Perhatian Khusus
+              {totalSchool} Total Siswa • {watchlist.length} Siswa Terdeteksi Butuh Perhatian Khusus
             </p>
           </div>
         </div>
@@ -332,7 +332,7 @@ export default function GuruBk({
                   Siswa Masuk Kategori Kritis &amp; Waspada
                 </span>
                 <span className="text-xs text-slate-500 font-medium block">
-                  {kritisSchool} Status Kritis &bull; {waspadaSchool} Status Waspada &bull; {activeCasesCount} Kasus Sedang Berjalan
+                  {kritisSchool} Status Kritis • {waspadaSchool} Status Waspada • {activeCasesCount} Kasus Sedang Berjalan
                 </span>
               </div>
             </div>
@@ -521,7 +521,7 @@ export default function GuruBk({
             <span className="text-[11px] font-bold text-blue-800 neo-pill bg-blue-50/80 px-2.5 py-1 rounded-lg border border-white/80">
               Koordinasi Lanjutan
             </span>
-            <span className="text-[11px] text-slate-500 font-medium">Wali Murid &bull; Pimpinan</span>
+            <span className="text-[11px] text-slate-500 font-medium">Wali Murid • Pimpinan</span>
           </div>
         </div>
       </div>
@@ -540,7 +540,7 @@ export default function GuruBk({
               <h2 className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
                 Form Pencatatan Layanan Bimbingan Konseling
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-bold neo-pill bg-indigo-50/80 text-indigo-800 border border-white/80">
-                  Guru BK &bull; AI
+                  Guru BK • AI
                 </span>
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
@@ -893,7 +893,7 @@ export default function GuruBk({
                     <div>
                       <h4 className="text-xs sm:text-sm font-bold text-slate-900">{caseItem.title}</h4>
                       <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                        {caseItem.student_name} ({caseItem.class_name}) &bull; {caseItem.date}
+                        {caseItem.student_name} ({caseItem.class_name}) • {caseItem.date}
                       </p>
                     </div>
 

@@ -266,7 +266,7 @@ export default function StudentShow({
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-slate-500 mt-1.5 font-medium">
-                Wali Kelas: <strong className="text-slate-800">{homeroomTeacherName}</strong> &bull; Tahun Ajaran: {academicYear}
+                Wali Kelas: <strong className="text-slate-800">{homeroomTeacherName}</strong> • Tahun Ajaran: {academicYear}
               </p>
             </div>
           </div>
@@ -379,7 +379,7 @@ export default function StudentShow({
                     {consecutiveAlpa} Hari
                   </span>
                   <span className="text-[11px] text-slate-500 block font-medium">
-                    Sakit: {sakitCount} &bull; Izin: {izinCount} &bull; Terlambat: {terlambatCount}
+                    Sakit: {sakitCount} • Izin: {izinCount} • Terlambat: {terlambatCount}
                   </span>
                 </div>
               </div>
@@ -600,7 +600,7 @@ export default function StudentShow({
                             </span>
                           </div>
                           <p className="text-xs text-slate-500 font-mono mt-1">
-                            Tanggal Kejadian: <strong>{caseItem.incident_date}</strong> &bull; Dilaporkan: {caseItem.reported_date || caseItem.incident_date}
+                            Tanggal Kejadian: <strong>{caseItem.incident_date}</strong> • Dilaporkan: {caseItem.reported_date || caseItem.incident_date}
                           </p>
                         </div>
                       </div>
@@ -673,7 +673,7 @@ export default function StudentShow({
                   Riwayat Catatan Nilai Akademik Siswa
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                  Rata-rata: <strong className="text-slate-800 font-mono">{academicAvg}</strong> &bull; Total {academicRecords.length} rekap penilaian tercatat
+                  Rata-rata: <strong className="text-slate-800 font-mono">{academicAvg}</strong> • Total {academicRecords.length} rekap penilaian tercatat
                 </p>
               </div>
             </div>
@@ -764,7 +764,7 @@ export default function StudentShow({
                   Log Presensi &amp; Kehadiran Siswa (30 Hari Terakhir)
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                  Tingkat Kehadiran: <strong className="text-slate-800 font-mono">{attendanceRate}%</strong> &bull; Total {attendanceRecords.length} data harian
+                  Tingkat Kehadiran: <strong className="text-slate-800 font-mono">{attendanceRate}%</strong> • Total {attendanceRecords.length} data harian
                 </p>
               </div>
             </div>
@@ -977,7 +977,7 @@ export default function StudentShow({
                 <span className="absolute -left-7 top-1 w-3.5 h-3.5 rounded-full bg-blue-600 border-2 border-[#EEF2F7] shadow-xs" />
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs font-mono font-bold text-slate-500">{log.date}</span>
-                  <span className="text-xs font-bold text-slate-700">&bull; {log.actor}</span>
+                  <span className="text-xs font-bold text-slate-700">• {log.actor}</span>
                   <span className={cn("px-2.5 py-0.5 rounded-md text-[10px] font-bold neo-pill border border-white/80", log.badgeColor)}>
                     {log.badge}
                   </span>
