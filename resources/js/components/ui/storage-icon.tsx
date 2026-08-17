@@ -105,10 +105,18 @@ export const StorageIcon = React.forwardRef<HTMLSpanElement, StorageIconProps>(
         }
       : {}
 
+    const hasExplicitWidth = className?.includes("w-") || className?.includes("size-") || size
+    const hasExplicitHeight = className?.includes("h-") || className?.includes("size-") || size
+
     return (
       <span
         ref={ref}
-        className={cn("inline-block shrink-0 bg-current align-middle", className)}
+        className={cn(
+          "inline-block shrink-0 bg-current align-middle",
+          !hasExplicitWidth && "w-4",
+          !hasExplicitHeight && "h-4",
+          className
+        )}
         style={{
           maskImage: `url("${src}")`,
           WebkitMaskImage: `url("${src}")`,
