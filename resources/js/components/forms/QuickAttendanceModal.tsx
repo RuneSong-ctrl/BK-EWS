@@ -15,7 +15,7 @@ import {
   IconAlert,
   IconSave,
 } from "@/components/ui/storage-icon"
-import { DatePickerInput } from "@/components/ui/date-picker-input"
+import { DatePickerInput, formatLocalDateToYMD } from "@/components/ui/date-picker-input"
 import { toast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 
@@ -57,10 +57,7 @@ export function QuickAttendanceModal({
   classNameTitle,
   students,
 }: QuickAttendanceModalProps) {
-  const todayStr = React.useMemo(() => {
-    const d = new Date()
-    return d.toISOString().split("T")[0]
-  }, [])
+  const todayStr = React.useMemo(() => formatLocalDateToYMD(new Date()), [])
 
   const [date, setDate] = React.useState<string>(todayStr)
   const [attendanceData, setAttendanceData] = React.useState<AttendanceStudentItem[]>([])

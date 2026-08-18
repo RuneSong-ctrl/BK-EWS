@@ -15,6 +15,13 @@ interface DatePickerInputProps {
   showDayName?: boolean
 }
 
+export function formatLocalDateToYMD(d: Date = new Date()): string {
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
 function getDayAndFormattedDate(dateStr?: string): { dayName: string; formattedDate: string; isToday: boolean; isYesterday: boolean } {
   if (!dateStr) {
     return { dayName: "", formattedDate: "Pilih Tanggal...", isToday: false, isYesterday: false }
@@ -26,7 +33,7 @@ function getDayAndFormattedDate(dateStr?: string): { dayName: string; formattedD
       return { dayName: "", formattedDate: dateStr, isToday: false, isYesterday: false }
     }
 
-    const targetDate = new Date(year, month - 1, day)
+    const targetDate = new Date(year, month - 1, day, 12, 0, 0)
     const today = new Date()
     const yesterday = new Date()
     yesterday.setDate(today.getDate() - 1)
@@ -57,9 +64,11 @@ function getDayAndFormattedDate(dateStr?: string): { dayName: string; formattedD
 function adjustDays(dateStr: string, deltaDays: number): string {
   try {
     const [year, month, day] = dateStr.split("-").map(Number)
-    const d = new Date(year, month - 1, day)
+    if (!year || !month || !day) return dateStr
+    // Use noon 12:00 to completely avoid any midnight timezone UTC shifts
+    const d = new Date(year, month - 1, day, 12, 0, 0)
     d.setDate(d.getDate() + deltaDays)
-    return d.toISOString().split("T")[0]
+    return formatLocalDateToYMD(d)
   } catch {
     return dateStr
   }
@@ -86,14 +95,15 @@ export function DatePickerInput({
   const handleStepDay = (delta: number, e: React.MouseEvent) => {
     e.stopPropagation()
     if (disabled) return
-    const newDate = adjustDays(value || new Date().toISOString().split("T")[0], delta)
+    const current = value || formatLocalDateToYMD(new Date())
+    const newDate = adjustDays(current, delta)
     onChange(newDate)
   }
 
   const handleJumpToToday = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (disabled) return
-    const todayStr = new Date().toISOString().split("T")[0]
+    const todayStr = formatLocalDateToYMD(new Date())
     onChange(todayStr)
   }
 

@@ -27,7 +27,7 @@ import { AiStructuringModal, type AiDraftResult, type AiStructuredResult } from 
 import { QuickAttendanceModal } from "@/components/forms/QuickAttendanceModal"
 import { QuickAcademicModal } from "@/components/forms/QuickAcademicModal"
 import { ObservationSuccessModal, type SavedObservationDetail } from "@/components/ews/ObservationSuccessModal"
-import { DatePickerInput } from "@/components/ui/date-picker-input"
+import { DatePickerInput, formatLocalDateToYMD } from "@/components/ui/date-picker-input"
 import { toast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 
@@ -127,7 +127,7 @@ export default function GuruKelas({
     }
   }, [studentList])
 
-  const [observationDate, setObservationDate] = React.useState(new Date().toISOString().split("T")[0])
+  const [observationDate, setObservationDate] = React.useState(formatLocalDateToYMD(new Date()))
   const [participationScore, setParticipationScore] = React.useState(3)
   const [homeworkScore, setHomeworkScore] = React.useState(3)
   const [quizScore, setQuizScore] = React.useState(3)

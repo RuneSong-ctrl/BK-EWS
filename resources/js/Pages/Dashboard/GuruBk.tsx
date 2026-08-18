@@ -26,7 +26,7 @@ import { LinearScale } from "@/components/forms/LinearScale"
 import { StudentAutocomplete, type StudentOption } from "@/components/forms/StudentAutocomplete"
 import { AiBkStructuringModal, type AiBkDraftResult, type AiBkStructuredResult } from "@/components/ews/AiBkStructuringModal"
 import { BkCaseSuccessModal, type BkCaseSuccessDetail } from "@/components/ews/BkCaseSuccessModal"
-import { DatePickerInput } from "@/components/ui/date-picker-input"
+import { DatePickerInput, formatLocalDateToYMD } from "@/components/ui/date-picker-input"
 import { toast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 
@@ -95,7 +95,7 @@ export default function GuruBk({
     }
   }, [studentOptions])
 
-  const [incidentDate, setIncidentDate] = React.useState(new Date().toISOString().split("T")[0])
+  const [incidentDate, setIncidentDate] = React.useState(formatLocalDateToYMD(new Date()))
   const [problemDomain, setProblemDomain] = React.useState("PRIBADI_SOSIAL")
   const [serviceFormat, setServiceFormat] = React.useState("KONSELING_INDIVIDU")
   const [urgencyLevel, setUrgencyLevel] = React.useState<"RINGAN" | "SEDANG" | "BERAT">("SEDANG")
