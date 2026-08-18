@@ -120,7 +120,8 @@ export function AppLayout({
             <input
               type="text"
               placeholder="Cari nama siswa, NISN, atau kelas..."
-              className="w-full h-10 pl-10 pr-4 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none font-medium transition-all"
+              aria-label="Pencarian cepat siswa, NISN, atau rombel kelas"
+              className="w-full h-10 pl-10 pr-4 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/20 focus:outline-none font-medium transition-all"
             />
           </div>
 
@@ -140,8 +141,9 @@ export function AppLayout({
             {/* Notification Button */}
             <button
               type="button"
-              className="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-slate-300 flex items-center justify-center relative cursor-pointer shrink-0 shadow-2xs hover:shadow-xs transition-all"
+              className="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-slate-300 flex items-center justify-center relative cursor-pointer shrink-0 shadow-2xs hover:shadow-xs transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
               title="Notifikasi EWS"
+              aria-label="Notifikasi peringatan dini EWS"
             >
               <IconBell className="w-4 h-4" />
               <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
@@ -167,7 +169,8 @@ export function AppLayout({
               type="button"
               onClick={handleLogout}
               title="Keluar dari Akun"
-              className="w-10 h-10 rounded-xl bg-white border border-rose-100 text-rose-600 hover:bg-rose-50 hover:border-rose-200 flex items-center justify-center cursor-pointer shrink-0 shadow-2xs hover:shadow-xs transition-all"
+              aria-label="Keluar dari akun pendidik"
+              className="w-10 h-10 rounded-xl bg-white border border-rose-100 text-rose-600 hover:bg-rose-50 hover:border-rose-200 flex items-center justify-center cursor-pointer shrink-0 shadow-2xs hover:shadow-xs transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none"
             >
               <IconLogOut className="w-4 h-4" />
             </button>

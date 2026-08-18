@@ -41,12 +41,12 @@ export function LinearScale({
   }, [min, max, step])
 
   const getColorClass = (val: number) => {
-    if (!colorGradient) return "bg-blue-600 text-white shadow-xs shadow-blue-500/30 border-blue-600"
+    if (!colorGradient) return "bg-blue-600 text-white shadow-xs border-blue-600"
     const ratio = (val - min) / (max - min)
-    if (ratio < 0.3) return "bg-rose-600 text-white shadow-xs shadow-rose-500/30 border-rose-600"
-    if (ratio < 0.6) return "bg-amber-500 text-white shadow-xs shadow-amber-500/30 border-amber-500"
-    if (ratio < 0.8) return "bg-blue-600 text-white shadow-xs shadow-blue-500/30 border-blue-600"
-    return "bg-emerald-600 text-white shadow-xs shadow-emerald-500/30 border-emerald-600"
+    if (ratio < 0.3) return "bg-rose-600 text-white shadow-xs border-rose-600"
+    if (ratio < 0.6) return "bg-amber-500 text-white shadow-xs border-amber-500"
+    if (ratio < 0.8) return "bg-blue-600 text-white shadow-xs border-blue-600"
+    return "bg-emerald-600 text-white shadow-xs border-emerald-600"
   }
 
   const getTrackColor = (val: number) => {
@@ -62,7 +62,11 @@ export function LinearScale({
       {(label || description) && (
         <div className="flex items-start justify-between gap-3">
           <div>
-            {label && <label className="text-xs sm:text-sm font-bold text-slate-800 block">{label}</label>}
+            {label && (
+              <label className="text-xs sm:text-sm font-bold text-slate-800 block">
+                {label}
+              </label>
+            )}
             {description && <p className="text-xs text-slate-500 mt-0.5 leading-snug">{description}</p>}
           </div>
           <div
@@ -84,19 +88,27 @@ export function LinearScale({
 
       {mode === "discrete" ? (
         <div className="space-y-1.5 pt-0.5">
-          <div className="flex items-center gap-1.5 p-1.5 rounded-2xl neo-inset bg-[#E7EDF4] max-w-md">
+          <div
+            role="radiogroup"
+            aria-label={label || "Skala Penilaian"}
+            className="flex items-center gap-1.5 p-1.5 rounded-2xl neo-inset bg-[#E7EDF4] max-w-md"
+          >
             {steps.map((s) => {
               const isSelected = value === s
               return (
                 <button
                   key={s}
                   type="button"
+                  role="radio"
+                  aria-checked={isSelected}
+                  aria-label={`Nilai ${s} dari ${max}`}
                   onClick={() => onChange(s)}
                   className={cn(
-                    "flex-1 h-9 sm:h-10 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center",
+                    "flex-1 h-9 sm:h-10 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center select-none",
+                    "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none active:scale-95",
                     isSelected
-                      ? cn("scale-[1.03] font-extrabold shadow-sm", getColorClass(s))
-                      : "neo-btn bg-[#EEF2F7] text-slate-700 hover:text-slate-900 border border-white/80"
+                      ? cn("scale-[1.03] font-extrabold shadow-sm ring-1 ring-white/50", getColorClass(s))
+                      : "neo-btn bg-[#EEF2F7] text-slate-700 hover:text-slate-900 hover:bg-white border border-white/80"
                   )}
                 >
                   {s}
@@ -106,7 +118,7 @@ export function LinearScale({
           </div>
 
           {(minLabel || midLabel || maxLabel) && (
-            <div className="flex items-center justify-between text-[11px] sm:text-xs font-semibold text-slate-500 px-1.5 max-w-md">
+            <div className="flex items-center justify-between text-[11px] sm:text-xs font-semibold text-slate-500 px-1.5 max-w-md select-none">
               <span>{minLabel}</span>
               {midLabel && <span>{midLabel}</span>}
               <span>{maxLabel}</span>
@@ -123,14 +135,15 @@ export function LinearScale({
               step={step}
               value={value}
               onChange={(e) => onChange(Number(e.target.value))}
-              className="w-full h-2.5 bg-slate-300/80 rounded-lg appearance-none cursor-pointer accent-blue-600 transition-all focus:outline-none"
+              aria-label={label || "Skala Kontinu"}
+              className="w-full h-2.5 bg-slate-300/80 rounded-lg appearance-none cursor-pointer accent-blue-600 transition-all focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
               style={{
                 accentColor: getTrackColor(value),
               }}
             />
           </div>
           {(minLabel || maxLabel) && (
-            <div className="flex items-center justify-between text-[11px] sm:text-xs font-semibold text-slate-500 px-1.5">
+            <div className="flex items-center justify-between text-[11px] sm:text-xs font-semibold text-slate-500 px-1.5 select-none">
               <span>{minLabel || `${min} (Rendah)`}</span>
               <span>{maxLabel || `${max} (Baik)`}</span>
             </div>

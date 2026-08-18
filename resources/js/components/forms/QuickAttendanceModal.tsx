@@ -31,16 +31,24 @@ export interface AttendanceStudentItem {
   notes?: string
 }
 
+interface StudentWithAttendances {
+  id: number
+  name: string
+  nisn: string
+  gender?: string
+  attendances?: Array<{
+    date: string
+    status: AttendanceStatus
+    late_minutes?: number
+    notes?: string
+  }>
+}
+
 interface QuickAttendanceModalProps {
   isOpen: boolean
   onClose: () => void
   classNameTitle: string
-  students: Array<{
-    id: number
-    name: string
-    nisn: string
-    gender?: string
-  }>
+  students: StudentWithAttendances[]
 }
 
 export function QuickAttendanceModal({
@@ -58,22 +66,36 @@ export function QuickAttendanceModal({
   const [attendanceData, setAttendanceData] = React.useState<AttendanceStudentItem[]>([])
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
-  // Initialize or reset students list with default status HADIR
+  // Sync attendanceData with students' existing attendance record for the selected date
   React.useEffect(() => {
     if (students && students.length > 0) {
       setAttendanceData(
-        students.map((s) => ({
-          id: s.id,
-          name: s.name,
-          nisn: s.nisn,
-          gender: s.gender,
-          status: "HADIR",
-          late_minutes: 0,
-          notes: "",
-        }))
+        students.map((s) => {
+          const existingRecord = s.attendances?.find((a) => a.date === date)
+          if (existingRecord) {
+            return {
+              id: s.id,
+              name: s.name,
+              nisn: s.nisn,
+              gender: s.gender,
+              status: existingRecord.status,
+              late_minutes: existingRecord.late_minutes ?? 0,
+              notes: existingRecord.notes ?? "",
+            }
+          }
+          return {
+            id: s.id,
+            name: s.name,
+            nisn: s.nisn,
+            gender: s.gender,
+            status: "HADIR",
+            late_minutes: 0,
+            notes: "",
+          }
+        })
       )
     }
-  }, [students, isOpen])
+  }, [students, isOpen, date])
 
   const handleStatusChange = (studentId: number, newStatus: AttendanceStatus) => {
     setAttendanceData((prev) =>
@@ -138,7 +160,7 @@ export function QuickAttendanceModal({
       onSuccess: () => {
         toast({
           title: "Presensi Berhasil Disimpan",
-          description: `Rekap absensi tanggal ${date} untuk ${attendanceData.length} siswa berhasil diperbarui.`,
+          description: `Rekap absensi tanggal ${date} untuk ${attendanceData.length} siswa berhasil diperbarui di database.`,
         })
         onClose()
       },
@@ -163,6 +185,10 @@ export function QuickAttendanceModal({
   const countAlpa = attendanceData.filter((s) => s.status === "ALPA").length
   const countTerlambat = attendanceData.filter((s) => s.status === "TERLAMBAT").length
 
+  const hasExistingDataForDate = React.useMemo(() => {
+    return students.some((s) => s.attendances?.some((a) => a.date === date))
+  }, [students, date])
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="w-[96vw] max-w-4xl p-0 gap-0 overflow-hidden bg-[#EEF2F7] border border-white/85 shadow-[6px_6px_20px_rgba(166,178,196,0.45),-6px_-6px_20px_rgba(255,255,255,0.95)] rounded-3xl max-h-[88vh] flex flex-col z-[100]">
@@ -173,9 +199,21 @@ export function QuickAttendanceModal({
               <IconCalendarCheck className="w-5 h-5" />
             </div>
             <div>
-              <DialogTitle className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
-                Input Presensi Harian Kelas {classNameTitle}
-              </DialogTitle>
+              <div className="flex items-center gap-2">
+                <DialogTitle className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
+                  Input Presensi Harian Kelas {classNameTitle}
+                </DialogTitle>
+                <span
+                  className={cn(
+                    "px-2 py-0.5 rounded-md text-[10px] font-bold border",
+                    hasExistingDataForDate
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-blue-50 text-blue-700 border-blue-200"
+                  )}
+                >
+                  {hasExistingDataForDate ? "Tersimpan di DB" : "Draf Baru"}
+                </span>
+              </div>
               <DialogDescription className="text-xs text-slate-500 font-medium mt-0.5">
                 Pilar Kehadiran (KH) • Terintegrasi deteksi dini risiko EWS
               </DialogDescription>

@@ -93,6 +93,19 @@ class DashboardController extends Controller
                     'score_trend' => $avgScore !== null ? ($avgScore >= 75 ? 'Stabil' : 'Turun') : '-',
                     'attendance_rate' => $attRate,
                     'alpa_count' => $alpaCount,
+                    'attendances' => $std->attendanceRecords->map(fn ($att) => [
+                        'date' => \Carbon\Carbon::parse($att->date)->format('Y-m-d'),
+                        'status' => $att->status,
+                        'late_minutes' => $att->late_minutes ?? 0,
+                        'notes' => $att->notes ?? '',
+                    ])->values()->all(),
+                    'academic_records' => $std->academicRecords->map(fn ($rec) => [
+                        'id' => $rec->id,
+                        'subject_id' => $rec->subject_id,
+                        'assessment_type' => $rec->assessment_type,
+                        'period' => $rec->period,
+                        'score' => $rec->score,
+                    ])->values()->all(),
                     'pillars' => [
                         'ak' => $akStatus,
                         'kh' => $khStatus,

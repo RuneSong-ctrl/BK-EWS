@@ -35,11 +35,25 @@ interface StudentRow {
   id: number
   name: string
   nisn: string
+  gender?: string
   class_name: string
-  avg_score: number
+  avg_score: number | null
   score_trend: "Naik" | "Turun" | "Stabil" | "-"
-  attendance_rate: number
+  attendance_rate: number | null
   alpa_count: number
+  attendances?: Array<{
+    date: string
+    status: "HADIR" | "SAKIT" | "IZIN" | "ALPA" | "TERLAMBAT"
+    late_minutes?: number
+    notes?: string
+  }>
+  academic_records?: Array<{
+    id: number
+    subject_id: number
+    assessment_type: string
+    period: string
+    score: number
+  }>
   pillars: PillarStatuses
   ews_status: EwsStatus
 }
@@ -839,21 +853,21 @@ export default function GuruKelas({
           </div>
 
           {/* Table Filters */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
             <input
               type="text"
               placeholder="Cari nama atau NISN..."
               aria-label="Cari siswa di kelas berdasarkan nama atau NISN"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-10 px-3.5 rounded-xl neo-inset bg-[#EEF2F7] text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 w-48 focus:outline-none"
+              className="h-10 px-3.5 rounded-xl neo-inset bg-[#EEF2F7] text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 w-full sm:w-48 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             />
 
             <select
               value={statusFilter}
               aria-label="Filter status risiko siswa EWS"
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-10 px-3.5 rounded-xl neo-inset bg-[#EEF2F7] text-xs sm:text-sm font-semibold text-slate-700 cursor-pointer focus:outline-none"
+              className="h-10 px-3.5 rounded-xl neo-inset bg-[#EEF2F7] text-xs sm:text-sm font-semibold text-slate-700 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 shrink-0"
             >
               <option value="ALL">Semua Status</option>
               <option value="NORMAL">Normal</option>
@@ -863,6 +877,52 @@ export default function GuruKelas({
               <option value="DATA_BELUM_LENGKAP">Data Belum Lengkap</option>
             </select>
           </div>
+        </div>
+
+        {/* Quick Filter Segment Tabs */}
+        <div
+          role="tablist"
+          aria-label="Filter Tab Status Siswa"
+          className="flex items-center gap-1.5 p-1 rounded-2xl neo-inset bg-[#E7EDF4] overflow-x-auto"
+        >
+          {(
+            [
+              { id: "ALL", label: "Semua Siswa", count: studentList.length, badgeColor: "bg-white text-slate-700 border border-slate-200" },
+              { id: "ATENSI", label: "Perlu Atensi", count: atensiCount, badgeColor: "bg-amber-100 text-amber-800" },
+              { id: "PRESENSI_RENDAH", label: "Presensi < 85%", count: lowAttendanceCount, badgeColor: "bg-rose-100 text-rose-800" },
+              { id: "NILAI_TURUN", label: "Tren Nilai Turun", count: scoreDropCount, badgeColor: "bg-orange-100 text-orange-800" },
+            ] as const
+          ).map((tab) => {
+            const isActive = activeTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={cn(
+                  "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 select-none",
+                  "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none active:scale-95",
+                  isActive
+                    ? "neo-btn-primary text-white shadow-xs"
+                    : "neo-btn bg-[#EEF2F7] text-slate-700 hover:text-slate-900 hover:bg-white border border-white/80"
+                )}
+              >
+                <span>{tab.label}</span>
+                <span
+                  className={cn(
+                    "px-1.5 py-0.2 rounded-md text-[10px] font-mono font-extrabold",
+                    isActive
+                      ? "bg-white/20 text-white"
+                      : tab.badgeColor || "bg-white text-slate-600 border border-slate-200"
+                  )}
+                >
+                  {tab.count}
+                </span>
+              </button>
+            )
+          })}
         </div>
 
         {/* Table Container */}

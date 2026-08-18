@@ -26,6 +26,7 @@ import { LinearScale } from "@/components/forms/LinearScale"
 import { StudentAutocomplete, type StudentOption } from "@/components/forms/StudentAutocomplete"
 import { AiBkStructuringModal, type AiBkDraftResult, type AiBkStructuredResult } from "@/components/ews/AiBkStructuringModal"
 import { BkCaseSuccessModal, type BkCaseSuccessDetail } from "@/components/ews/BkCaseSuccessModal"
+import { DatePickerInput } from "@/components/ui/date-picker-input"
 import { toast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 
@@ -81,6 +82,20 @@ export default function GuruBk({
   const [selectedStudent, setSelectedStudent] = React.useState<StudentOption | null>(
     studentOptions.length > 0 ? studentOptions[0] : null
   )
+
+  // Keep selectedStudent in sync with refreshed studentOptions
+  React.useEffect(() => {
+    if (selectedStudent && studentOptions.length > 0) {
+      const updated = studentOptions.find((s) => s.id === selectedStudent.id)
+      if (updated) {
+        setSelectedStudent(updated)
+      }
+    } else if (!selectedStudent && studentOptions.length > 0) {
+      setSelectedStudent(studentOptions[0])
+    }
+  }, [studentOptions])
+
+  const [incidentDate, setIncidentDate] = React.useState(new Date().toISOString().split("T")[0])
   const [problemDomain, setProblemDomain] = React.useState("PRIBADI_SOSIAL")
   const [serviceFormat, setServiceFormat] = React.useState("KONSELING_INDIVIDU")
   const [urgencyLevel, setUrgencyLevel] = React.useState<"RINGAN" | "SEDANG" | "BERAT">("SEDANG")
@@ -140,8 +155,9 @@ export default function GuruBk({
 
     setIsSubmitting(true)
     const currentStudent = selectedStudent
-    const currentNotes = notes
+    const currentNotes = notes.trim()
     const currentUrgency = urgencyLevel
+    const currentDate = incidentDate
     const currentStatus =
       caseResolutionStatus === "SELESAI"
         ? "SELESAI"
@@ -165,8 +181,8 @@ export default function GuruBk({
       "/guru-bk/cases",
       {
         student_id: currentStudent.id,
-        incident_date: new Date().toISOString().split("T")[0],
-        reported_date: new Date().toISOString().split("T")[0],
+        incident_date: currentDate,
+        reported_date: currentDate,
         case_types: [problemDomain, serviceFormat],
         bullying_role: null,
         severity: currentUrgency,
@@ -183,7 +199,7 @@ export default function GuruBk({
             student_name: currentStudent.name,
             class_name: currentStudent.class_name,
             nisn: currentStudent.nisn || "-",
-            date: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
+            date: currentDate,
             category: `${problemDomain} • ${serviceFormat}`,
             severity: currentUrgency,
             status: currentStatus,
@@ -278,7 +294,7 @@ export default function GuruBk({
         <div className="flex items-center gap-2.5 flex-wrap">
           <a
             href="#form-bk"
-            className="px-4 py-2.5 rounded-2xl neo-btn-primary text-white text-xs font-bold inline-flex items-center gap-2 shadow-xs transition-all cursor-pointer"
+            className="px-4 py-2.5 rounded-2xl neo-btn-primary text-white text-xs font-bold inline-flex items-center gap-2 shadow-xs transition-all cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
           >
             <IconFile className="w-4 h-4 text-white" />
             <span>Catat Layanan Bimbingan</span>
@@ -286,7 +302,7 @@ export default function GuruBk({
 
           <a
             href="#matriks"
-            className="px-4 py-2.5 rounded-2xl neo-btn bg-[#EEF2F7] text-slate-700 hover:text-slate-900 text-xs font-bold inline-flex items-center gap-2 border border-white/90 transition-all cursor-pointer"
+            className="px-4 py-2.5 rounded-2xl neo-btn bg-[#EEF2F7] hover:bg-white text-slate-700 hover:text-slate-900 text-xs font-bold inline-flex items-center gap-2 border border-white/90 transition-all cursor-pointer shadow-2xs active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
           >
             <IconSearch className="w-4 h-4 text-slate-500" />
             <span>Daftar Siswa &amp; Status EWS</span>
@@ -549,9 +565,19 @@ export default function GuruBk({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl neo-pill bg-[#EEF2F7] border border-white/90 text-slate-700 text-xs sm:text-sm font-semibold shrink-0">
-            <IconLock className="w-4 h-4 text-emerald-600" />
-            <span>Kerahasiaan Data Terjamin</span>
+          <div className="flex items-center gap-3 shrink-0 flex-wrap sm:flex-nowrap">
+            <div className="flex items-center gap-2">
+              <span className="text-xs sm:text-sm font-bold text-slate-600">Tanggal:</span>
+              <DatePickerInput
+                value={incidentDate}
+                onChange={setIncidentDate}
+                size="md"
+              />
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-2 rounded-2xl neo-pill bg-[#EEF2F7] border border-white/90 text-slate-700 text-xs font-semibold shrink-0">
+              <IconLock className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Rahasia</span>
+            </div>
           </div>
         </div>
 

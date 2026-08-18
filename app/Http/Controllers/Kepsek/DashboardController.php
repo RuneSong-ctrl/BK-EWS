@@ -121,11 +121,11 @@ class DashboardController extends Controller
                     'class_name' => $c->student?->currentClass()?->name ?? '-',
                     'nisn' => $c->student?->nisn ?? '-',
                     'incident_date' => $c->incident_date ? Carbon::parse($c->incident_date)->format('d/m/Y') : '-',
-                    'category' => $c->category,
+                    'category' => is_array($c->case_types) ? implode(' • ', $c->case_types) : ($c->case_types ?? 'Konseling'),
                     'severity' => $c->severity,
                     'status' => $c->status,
-                    'summary_notes' => $c->summary_notes,
-                    'follow_up_plan' => $c->follow_up_plan ?? [],
+                    'summary_notes' => $c->confidential_notes ?? 'Sesi bimbingan konseling aktif.',
+                    'follow_up_plan' => $c->follow_up_actions ?? [],
                     'handler_name' => $c->handler?->name ?? 'Guru BK',
                 ];
             });
@@ -192,12 +192,16 @@ class DashboardController extends Controller
         if (!empty($validated['case_id'])) {
             $case = BkCase::find($validated['case_id']);
             if ($case) {
-                $plan = $case->follow_up_plan ?? [];
-                $plan[] = 'Disposisi Kepala Sekolah: ' . $validated['instruction'];
+                $actions = (array) ($case->follow_up_actions ?? []);
+                $actions[] = 'Disposisi Kepala Sekolah: ' . $validated['instruction'];
                 $case->update([
-                    'follow_up_plan' => $plan,
+                    'follow_up_actions' => $actions,
                     'status' => 'DALAM_PROSES',
                 ]);
+
+                if ($case->student) {
+                    app(\App\Services\Ews\EwsScoringService::class)->evaluate($case->student);
+                }
             }
         }
 
