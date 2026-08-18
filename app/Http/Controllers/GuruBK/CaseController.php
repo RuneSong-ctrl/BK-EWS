@@ -82,7 +82,7 @@ class CaseController extends Controller
             'follow_up_actions' => $validated['follow_up_actions'],
             'involved_students_count' => $validated['involved_students_count'] ?? 1,
             'confidential_notes' => $validated['confidential_notes'] ?? null,
-            'handled_by' => $request->user()?->id ?? \App\Models\User::where('role', 'guru_bk')->first()?->id ?? 3,
+            'handled_by' => $request->user()->id,
         ]);
 
         // Re-evaluate EWS

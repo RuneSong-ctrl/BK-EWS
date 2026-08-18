@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Request;
 
 class AuditLogger
 {
-    public static function log(User $user, string $action, string $targetResource, string|int $resourceId): AuditLog
+    public static function log(User $user, string $action, string $targetResource, string|int $resourceId, ?array $metadata = null): AuditLog
     {
         return AuditLog::create([
             'user_id' => $user->id,

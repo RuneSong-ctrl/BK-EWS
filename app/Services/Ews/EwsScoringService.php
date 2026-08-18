@@ -58,33 +58,33 @@ class EwsScoringService
             || ($academicResult['sub_status'] === self::STATUS_KRITIS)
             || ($behaviorResult['sub_status'] === self::STATUS_KRITIS);
 
-        // 6. Data Completeness Gate: Jika ada data di salah satu pilar, langsung evaluasi skor EWS
-        $hasAnyData = ($academicResult['sub_status'] !== 'PENDING')
-            || ($attendanceResult['sub_status'] !== 'PENDING')
-            || ($behaviorResult['sub_status'] !== 'PENDING')
-            || ($bkResult['sub_status'] !== 'PENDING');
+        // Algoritma Max-Severity (Worst-Case Paradigm)
+        $statuses = [
+            $academicResult['sub_status'],
+            $attendanceResult['sub_status'],
+            $behaviorResult['sub_status'],
+            $bkResult['sub_status'],
+        ];
 
-        if (!$hasAnyData && !$isEmergencyCritical) {
-            $finalStatus = self::STATUS_DATA_BELUM_LENGKAP;
-        } else {
-            // Algoritma Max-Severity (Worst-Case Paradigm)
-            $statuses = [
-                $academicResult['sub_status'],
-                $attendanceResult['sub_status'],
-                $behaviorResult['sub_status'],
-                $bkResult['sub_status'],
-            ];
+        $maxRank = 1;
+        $finalStatus = self::STATUS_NORMAL;
 
-            $maxRank = 1;
-            $finalStatus = self::STATUS_NORMAL;
-
-            foreach ($statuses as $st) {
-                $rank = $this->severityRank[$st] ?? 0;
-                if ($rank > $maxRank) {
-                    $maxRank = $rank;
-                    $finalStatus = $st;
-                }
+        foreach ($statuses as $st) {
+            $rank = $this->severityRank[$st] ?? 0;
+            if ($rank > $maxRank) {
+                $maxRank = $rank;
+                $finalStatus = $st;
             }
+        }
+
+        // 6. Data Completeness Gate: Siswa hanya berstatus NORMAL jika memiliki kuota minimum baseline data
+        // (minimal 2 rekam akademik atau 5 hari presensi). Jika tidak ada pemicu risiko dan data kurang -> DATA_BELUM_LENGKAP
+        $academicCount = $student->academicRecords()->count();
+        $attendanceCount = $student->attendanceRecords()->count();
+        $hasAdequateBaseline = ($academicCount >= 2) || ($attendanceCount >= 5);
+
+        if ($maxRank === 1 && !$hasAdequateBaseline) {
+            $finalStatus = self::STATUS_DATA_BELUM_LENGKAP;
         }
 
         // 7. Simpan Skor & Catat Riwayat Transisi Status

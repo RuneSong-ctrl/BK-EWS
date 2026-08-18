@@ -96,7 +96,7 @@ class ObservationController extends Controller
         $category = $categoryMap[$validated['category']] ?? $validated['category'];
         $student = Student::findOrFail($validated['student_id']);
 
-        $confirmedBy = $request->user()?->id ?? User::where('role', 'guru_kelas')->first()?->id ?? User::first()->id;
+        $confirmedBy = $request->user()->id;
 
         BehaviorObservation::create([
             'student_id' => $student->id,

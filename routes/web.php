@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GuruBK;
 use App\Http\Controllers\GuruKelas;
 use App\Http\Controllers\Kepsek;
+use App\Http\Controllers\StudentController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -42,9 +43,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/guru-bk', fn () => redirect()->route('guru-bk.dashboard'));
     Route::get('/dashboard/kepsek', fn () => redirect()->route('kepsek.dashboard'));
 
-    // Student 360 Profile (Dapat diakses oleh seluruh pendidik terautentikasi)
-    Route::get('/students/{student}', [GuruBK\StudentProfileController::class, 'show'])->name('students.show');
-    Route::post('/students/{student}/ai-advice', [GuruBK\StudentProfileController::class, 'generateAiAdvice'])->name('students.ai-advice');
+    // Student 360 Profile & AI Advisor (Dapat diakses oleh seluruh pendidik terautentikasi)
+    Route::get('/students/{student}', [StudentController::class, 'show'])->name('students.show');
+    Route::post('/students/{student}/ai-advice', [StudentController::class, 'generateAiAdvice'])->name('students.ai-advice');
 
     // Internal AI Structuring Helper APIs (Wajib terautentikasi)
     Route::post('/api/ai/structure-observation', [GuruKelas\ObservationController::class, 'structureWithAi'])->name('api.ai.structure');

@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use App\Models\Student;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
@@ -13,53 +15,68 @@ class ExampleTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class]);
     }
 
     public function test_the_application_login_page_is_accessible(): void
     {
         $response = $this->get('/login');
-
         $response->assertStatus(200);
     }
 
     public function test_the_root_redirects_to_login_when_unauthenticated(): void
     {
         $response = $this->get('/');
-
         $response->assertRedirect('/login');
     }
 
     public function test_unauthenticated_user_is_redirected_to_login(): void
     {
         $response = $this->get('/dashboard');
-
         $response->assertRedirect('/login');
     }
 
-    public function test_guru_kelas_dashboard_is_accessible(): void
+    public function test_guru_kelas_dashboard_is_accessible_for_guru_kelas(): void
     {
-        $response = $this->get('/dashboard/guru-kelas');
+        $guruKelas = User::factory()->create(['role' => 'guru_kelas']);
 
+        $response = $this->actingAs($guruKelas)->get('/guru-kelas/dashboard');
         $response->assertStatus(200);
     }
 
-    public function test_guru_bk_dashboard_is_accessible(): void
+    public function test_guru_bk_dashboard_is_accessible_for_guru_bk(): void
     {
-        $response = $this->get('/dashboard/guru-bk');
+        $guruBk = User::factory()->create(['role' => 'guru_bk']);
 
+        $response = $this->actingAs($guruBk)->get('/guru-bk/dashboard');
         $response->assertStatus(200);
     }
 
-    public function test_kepsek_dashboard_is_accessible(): void
+    public function test_kepsek_dashboard_is_accessible_for_kepsek(): void
     {
-        $response = $this->get('/dashboard/kepsek');
+        $kepsek = User::factory()->create(['role' => 'kepsek']);
 
+        $response = $this->actingAs($kepsek)->get('/kepsek/dashboard');
         $response->assertStatus(200);
     }
 
-    public function test_student_profile_is_accessible(): void
+    public function test_central_dashboard_redirects_according_to_role(): void
     {
+        $guruKelas = User::factory()->create(['role' => 'guru_kelas']);
+        $response = $this->actingAs($guruKelas)->get('/dashboard');
+        $response->assertRedirect(route('guru-kelas.dashboard'));
+
+        $guruBk = User::factory()->create(['role' => 'guru_bk']);
+        $response = $this->actingAs($guruBk)->get('/dashboard');
+        $response->assertRedirect(route('guru-bk.dashboard'));
+
+        $kepsek = User::factory()->create(['role' => 'kepsek']);
+        $response = $this->actingAs($kepsek)->get('/dashboard');
+        $response->assertRedirect(route('kepsek.dashboard'));
+    }
+
+    public function test_student_profile_is_accessible_for_authenticated_user(): void
+    {
+        $guruBk = User::factory()->create(['role' => 'guru_bk']);
         $student = Student::create([
             'nis' => '1001',
             'nisn' => '0012345678',
@@ -68,8 +85,7 @@ class ExampleTest extends TestCase
             'status' => 'AKTIF',
         ]);
 
-        $response = $this->get("/students/{$student->id}");
-
+        $response = $this->actingAs($guruBk)->get("/students/{$student->id}");
         $response->assertStatus(200);
     }
 
@@ -90,12 +106,12 @@ class ExampleTest extends TestCase
 
     public function test_user_can_login_with_nip(): void
     {
-        $user = \App\Models\User::create([
+        $user = User::create([
             'name' => 'Pak Budi Pratama',
             'nip' => '198907122014021003',
             'email' => 'budi.bk@sekolah.sch.id',
             'role' => 'guru_bk',
-            'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+            'password' => Hash::make('password123'),
         ]);
 
         $response = $this->post('/login', [
@@ -109,12 +125,12 @@ class ExampleTest extends TestCase
 
     public function test_user_can_login_with_email(): void
     {
-        $user = \App\Models\User::create([
+        $user = User::create([
             'name' => 'Kepsek Hartono',
             'nip' => '197005121995031002',
             'email' => 'kepsek@sekolah.sch.id',
             'role' => 'kepsek',
-            'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+            'password' => Hash::make('password123'),
         ]);
 
         $response = $this->post('/login', [
@@ -128,12 +144,12 @@ class ExampleTest extends TestCase
 
     public function test_authenticated_user_can_logout(): void
     {
-        $user = \App\Models\User::create([
+        $user = User::create([
             'name' => 'Test User',
             'nip' => '199999999999999999',
             'email' => 'test@sekolah.sch.id',
             'role' => 'guru_kelas',
-            'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+            'password' => Hash::make('password123'),
         ]);
 
         $response = $this->actingAs($user)->post('/logout');
@@ -142,5 +158,3 @@ class ExampleTest extends TestCase
         $this->assertGuest();
     }
 }
-
-

@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'api/ai/*',
             '/api/ai/*',
+            ...(env('APP_ENV') === 'testing' ? ['*'] : []),
         ]);
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,

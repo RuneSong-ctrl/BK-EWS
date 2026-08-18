@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\GuruBK;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\BkCase;
 use App\Models\Student;
 use App\Services\Ai\AiAdvisorService;
+use App\Services\Audit\AuditLogger;
 use App\Services\Ews\EwsScoringService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -13,15 +13,19 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class StudentProfileController extends Controller
+class StudentController extends Controller
 {
     public function __construct(
         protected AiAdvisorService $aiAdvisorService,
         protected EwsScoringService $scoringService
     ) {}
 
+    /**
+     * Tampilkan profil komprehensif Siswa 360 & EWS
+     */
     public function show(Request $request, $studentId): Response
     {
+        $user = $request->user();
         $student = Student::find($studentId);
 
         if (!$student) {
@@ -29,6 +33,16 @@ class StudentProfileController extends Controller
         }
 
         if ($student) {
+            // PDP Compliance Audit Log
+            if ($user) {
+                AuditLogger::log(
+                    user: $user,
+                    action: 'VIEW_STUDENT_EWS_MONITOR',
+                    targetResource: 'students',
+                    resourceId: $student->id
+                );
+            }
+
             $student->load([
                 'classes' => fn ($q) => $q->wherePivot('is_current', true)->with('homeroomTeacher'),
                 'ewsScore',
@@ -39,10 +53,10 @@ class StudentProfileController extends Controller
                 'aiLogs' => fn ($q) => $q->orderBy('generated_at', 'desc')->take(5),
             ]);
 
-            // Muat kasus BK sesuai hak akses Guru BK
+            // Muat kasus BK dengan filter hak akses peran (UU PDP / Confidentiality)
             $bkCasesQuery = BkCase::where('student_id', $student->id)->with('handler');
-            if ($request->user()) {
-                $bkCasesQuery->accessibleBy($request->user());
+            if ($user) {
+                $bkCasesQuery->accessibleBy($user);
             }
             $bkCases = $bkCasesQuery->orderBy('incident_date', 'desc')->get();
             $currentClass = $student->classes->first();

@@ -30,7 +30,7 @@ class AttendanceController extends Controller
             'attendances.*.notes' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $userId = $request->user()?->id ?? \App\Models\User::where('role', 'guru_kelas')->first()?->id ?? \App\Models\User::first()?->id ?? 1;
+        $userId = $request->user()->id;
         $date = $validated['date'];
 
         foreach ($validated['attendances'] as $item) {

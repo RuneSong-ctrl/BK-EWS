@@ -42,7 +42,7 @@ class AcademicController extends Controller
             'score' => $validated['score'],
             'is_remedial' => $validated['is_remedial'] ?? false,
             'previous_score' => $validated['previous_score'] ?? null,
-            'created_by' => $request->user()?->id ?? \App\Models\User::where('role', 'guru_kelas')->first()?->id ?? 1,
+            'created_by' => $request->user()->id,
         ]);
 
         // Recalculate EWS
@@ -66,7 +66,7 @@ class AcademicController extends Controller
             'scores.*.score' => ['required', 'numeric', 'min:0', 'max:100'],
         ]);
 
-        $userId = $request->user()?->id ?? \App\Models\User::where('role', 'guru_kelas')->first()?->id ?? 1;
+        $userId = $request->user()->id;
 
         foreach ($validated['scores'] as $item) {
             $scoreVal = floatval($item['score']);
