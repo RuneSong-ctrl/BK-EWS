@@ -146,10 +146,10 @@ export default function GuruBk({
       caseResolutionStatus === "SELESAI"
         ? "SELESAI"
         : escalateKepsek
-        ? "DIESKALASI_KE_KEPSEK"
-        : referExternal
-        ? "DIRUJUK_EKSTERNAL"
-        : "DALAM_PROSES"
+          ? "DIESKALASI_KE_KEPSEK"
+          : referExternal
+            ? "DIRUJUK_EKSTERNAL"
+            : "DALAM_PROSES"
 
     const currentFollowUp = [
       ...(callParent ? ["Pemanggilan Orang Tua"] : []),
@@ -642,7 +642,7 @@ export default function GuruBk({
                       className="px-4 py-2 rounded-xl text-xs font-bold neo-btn-primary text-white shadow-xs flex items-center gap-1.5 cursor-pointer transition-all"
                     >
                       <IconMagicWand className="w-3.5 h-3.5 text-indigo-200" />
-                      <span>✨ Bantu Tulis AI</span>
+                      <span> Bantu Tulis AI</span>
                     </button>
                   </div>
                 </div>

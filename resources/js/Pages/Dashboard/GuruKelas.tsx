@@ -294,7 +294,7 @@ export default function GuruKelas({
     <AppLayout
       currentRole="guru_kelas"
       activeMenu="dashboard"
-      title={`Dashboard Wali Kelas • ${className}`}
+      title={`Dashboard Wali Kelas  ${className}`}
       subtitle="Pemantauan perkembangan siswa, presensi harian, nilai akademik, dan catatan jurnal observasi"
     >
       {/* Top Quick Action Bar */}
