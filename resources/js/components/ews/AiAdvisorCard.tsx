@@ -13,14 +13,25 @@ import { router } from "@inertiajs/react"
 import { cn } from "@/lib/utils"
 import { toast } from "@/hooks/use-toast"
 
+export interface RoleActionDetail {
+  action: string
+  focus?: string
+  badge?: string
+  checklist?: string
+}
+
+export type RoleRecommendationInput = string | Partial<RoleActionDetail> | undefined
+
 export interface AiAdvisorData {
   risk_overview: string
   primary_concerns: string[]
-  recommendation_guru_kelas: string
-  recommendation_guru_bk: string
-  recommendation_kepsek: string
+  recommendation_guru_kelas: RoleRecommendationInput
+  recommendation_guru_bk: RoleRecommendationInput
+  recommendation_kepsek: RoleRecommendationInput
+  data_limitation_note?: string
   last_updated?: string
   confidence_score?: string
+  model_version?: string
 }
 
 interface AiAdvisorCardProps {
@@ -31,6 +42,194 @@ interface AiAdvisorCardProps {
   ews_status?: "NORMAL" | "BERISIKO" | "WASPADA" | "KRITIS" | "DATA_BELUM_LENGKAP"
   onRefresh?: () => void
   isRefreshing?: boolean
+}
+
+function formatSynthesisDate(dateStr?: string): string {
+  if (!dateStr) return "Sintesis AI Otomatis"
+  if (dateStr === "Sintesis AI Otomatis") return dateStr
+  try {
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return dateStr
+    return (
+      d.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }) + " WIB"
+    )
+  } catch {
+    return dateStr
+  }
+}
+
+function resolveRoleRecommendation(
+  input: RoleRecommendationInput,
+  role: "guru_kelas" | "guru_bk" | "kepsek",
+  status: "NORMAL" | "BERISIKO" | "WASPADA" | "KRITIS" | "DATA_BELUM_LENGKAP"
+): { action: string; focus: string; badge: string; checklist: string } {
+  const isObject = typeof input === "object" && input !== null
+  const providedAction = isObject ? input.action : typeof input === "string" ? input : ""
+  const providedFocus = isObject ? input.focus : undefined
+  const providedBadge = isObject ? input.badge : undefined
+  const providedChecklist = isObject ? input.checklist : undefined
+
+  if (role === "guru_kelas") {
+    const defaults = {
+      KRITIS: {
+        focus: "Intervensi Kelas & Pengawasan",
+        badge: "Prioritas 1",
+        checklist: "Pendampingan intensif & lapor harian ke BK",
+        action:
+          "Lakukan pengawasan intensif di kelas, amankan dinamika interaksi teman sebaya, dan berikan laporan perkembangan berkala ke Guru BK.",
+      },
+      WASPADA: {
+        focus: "Pendampingan & Presensi",
+        badge: "Harian",
+        checklist: "Dialog personal & monitoring presensi ketat",
+        action:
+          "Tingkatkan interaksi empatik harian, pantau ketat kehadiran dan penyelesaian tugas kelas, serta identifikasi kendala belajar awal.",
+      },
+      BERISIKO: {
+        focus: "Remedial & Motivasi",
+        badge: "Mingguan",
+        checklist: "Bimbingan tugas & penguatan motivasi kelas",
+        action:
+          "Berikan pendampingan akademik tambahan di kelas, fasilitasi tutor sebaya, dan berikan penguatan motivasi belajar secara berkala.",
+      },
+      DATA_BELUM_LENGKAP: {
+        focus: "Verifikasi & Input Data",
+        badge: "Mendesak",
+        checklist: "Lengkapi data nilai & presensi di EWS",
+        action:
+          "Segera verifikasi dan pastikan pengumpulan serta input data nilai akademik dari guru mata pelajaran dan data kehadiran siswa ke sistem EWS.",
+      },
+      NORMAL: {
+        focus: "Observasi & Apresiasi Positif",
+        badge: "Rutin",
+        checklist: "Pemeliharaan partisipasi aktif di kelas",
+        action:
+          "Berikan apresiasi atas konsistensi belajar siswa dan pelihara iklim kelas yang inklusif, aman, serta suportif.",
+      },
+    }[status] || {
+      focus: "Observasi & Dialog",
+      badge: "Harian",
+      checklist: "Pendekatan empatik di ruang kelas",
+      action: "Lakukan pemantauan aktif dan komunikasi empatik di ruang kelas.",
+    }
+
+    return {
+      action: providedAction || defaults.action,
+      focus: providedFocus || defaults.focus,
+      badge: providedBadge || defaults.badge,
+      checklist: providedChecklist || defaults.checklist,
+    }
+  }
+
+  if (role === "guru_bk") {
+    const defaults = {
+      KRITIS: {
+        focus: "Konseling Krisis & Konferensi Kasus",
+        badge: "Segera",
+        checklist: "Panggilan orang tua & case conference",
+        action:
+          "Jadwalkan konferensi kasus (case conference) darurat, lakukan pemanggilan orang tua/wali, serta susun kontrak perilaku dan asesmen mendalam.",
+      },
+      WASPADA: {
+        focus: "Bimbingan Preventif & Asesmen",
+        badge: "Konseling",
+        checklist: "Sesi konseling individual & pemetaan hambatan",
+        action:
+          "Lakukan asesmen psikososial terarah dan jadwalkan sesi bimbingan konseling individual terstruktur guna mendalami faktor personal atau keluarga.",
+      },
+      BERISIKO: {
+        focus: "Bimbingan Kelompok & Observasi",
+        badge: "Bimbingan",
+        checklist: "Identifikasi faktor penurunan & konseling berkala",
+        action:
+          "Fasilitasi bimbingan kelompok atau konseling suportif singkat guna mendeteksi faktor penghambat belajar dan meningkatkan motivasi.",
+      },
+      DATA_BELUM_LENGKAP: {
+        focus: "Asesmen Awal & Koordinasi",
+        badge: "Koordinasi",
+        checklist: "Koordinasi wali kelas untuk pemetaan awal",
+        action:
+          "Berkoordinasi aktif dengan wali kelas dan pihak terkait untuk mempercepat kelengkapan data serta siapkan asesmen diagnostik awal bila diperlukan.",
+      },
+      NORMAL: {
+        focus: "Bimbingan Karir & Minat",
+        badge: "Pengembangan",
+        checklist: "Eksplorasi potensi & bimbingan perkembangan",
+        action:
+          "Dukung eksplorasi minat, bakat, pembinaan kepemimpinan, dan perencanaan studi lanjut/karir siswa secara berkesinambungan.",
+      },
+    }[status] || {
+      focus: "Bimbingan Terarah",
+      badge: "Konseling",
+      checklist: "Rekam konseling verbatim terenkripsi",
+      action: "Fasilitasi bimbingan konseling terarah dan pemetaan perkembangan siswa.",
+    }
+
+    return {
+      action: providedAction || defaults.action,
+      focus: providedFocus || defaults.focus,
+      badge: providedBadge || defaults.badge,
+      checklist: providedChecklist || defaults.checklist,
+    }
+  }
+
+  // Kepala Sekolah
+  const defaults = {
+    KRITIS: {
+      focus: "Disposisi & Eskalasi Kebijakan",
+      badge: "Disposisi",
+      checklist: "Penerbitan disposisi khusus & monitoring mitigasi",
+      action:
+        "Terbitkan lembar disposisi penanganan khusus, tinjau mitigasi risiko kelembagaan, dan pimpin koordinasi terpadu lintas sektor secara berkala.",
+    },
+    WASPADA: {
+      focus: "Evaluasi Tindak Lanjut & Supervisi",
+      badge: "Evaluasi",
+      checklist: "Review berkala koordinasi wali kelas & BK",
+      action:
+        "Supervisi efektivitas kolaborasi tindak lanjut antara wali kelas dan guru BK, serta evaluasi tren penurunan risiko mingguan.",
+    },
+    BERISIKO: {
+      focus: "Monitoring Proaktif",
+      badge: "Monitoring",
+      checklist: "Pantau tren grafik EWS mingguan",
+      action:
+        "Pantau dinamika indikator risiko siswa secara proaktif melalui dashboard analitik EWS dan pastikan langkah preventif berjalan.",
+    },
+    DATA_BELUM_LENGKAP: {
+      focus: "Supervisi Kepatuhan Data EWS",
+      badge: "Manajerial",
+      checklist: "Instruksi percepatan kelengkapan 4 pilar",
+      action:
+        "Terbitkan arahan tegas terkait pemenuhan dan ketepatan waktu penginputan data 4 pilar EWS serta pantau progres penyelesaian status PENDING.",
+    },
+    NORMAL: {
+      focus: "Pengawasan Iklim & Apresiasi",
+      badge: "Manajemen",
+      checklist: "Pemeliharaan ekosistem belajar kondusif",
+      action:
+        "Dukung program pengayaan bakat siswa dan pemeliharaan iklim sekolah yang sehat, aman, inklusif, serta kondusif.",
+    },
+  }[status] || {
+    focus: "Disposisi & Evaluasi",
+    badge: "Manajemen",
+    checklist: "Monitoring berkala iklim sekolah",
+    action: "Pantau tata kelola dan evaluasi tindak lanjut penanganan siswa.",
+  }
+
+  return {
+    action: providedAction || defaults.action,
+    focus: providedFocus || defaults.focus,
+    badge: providedBadge || defaults.badge,
+    checklist: providedChecklist || defaults.checklist,
+  }
 }
 
 export function AiAdvisorCard({
@@ -44,6 +243,10 @@ export function AiAdvisorCard({
 }: AiAdvisorCardProps) {
   const [internalLoading, setInternalLoading] = React.useState(false)
   const isRefreshing = externalIsRefreshing ?? internalLoading
+
+  const homeroomAdvice = resolveRoleRecommendation(data.recommendation_guru_kelas, "guru_kelas", ews_status)
+  const bkAdvice = resolveRoleRecommendation(data.recommendation_guru_bk, "guru_bk", ews_status)
+  const kepsekAdvice = resolveRoleRecommendation(data.recommendation_kepsek, "kepsek", ews_status)
 
   const handleRefreshAi = () => {
     if (onRefresh) {
@@ -152,6 +355,17 @@ export function AiAdvisorCard({
           </p>
         </div>
 
+        {/* Optional Data Limitation Warning Banner */}
+        {data.data_limitation_note && (
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-50/80 border border-amber-200/80 text-amber-900 flex items-start gap-3 text-xs sm:text-sm font-medium">
+            <IconAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold">Catatan Kelengkapan Data: </span>
+              <span>{data.data_limitation_note}</span>
+            </div>
+          </div>
+        )}
+
         {/* Primary Concerns List */}
         {data.primary_concerns && data.primary_concerns.length > 0 && (
           <div className="p-4 sm:p-5 rounded-2xl neo-card-subtle bg-[#EEF2F7] border border-slate-200/70 space-y-2.5">
@@ -198,20 +412,20 @@ export function AiAdvisorCard({
                     <h3 className="text-xs sm:text-sm font-bold text-blue-950">
                       Wali / Guru Kelas
                     </h3>
-                    <span className="text-[11px] text-blue-600 font-medium">Observasi &amp; Dialog</span>
+                    <span className="text-[11px] text-blue-600 font-medium">{homeroomAdvice.focus}</span>
                   </div>
                 </div>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">
-                  Harian
+                  {homeroomAdvice.badge}
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-                {data.recommendation_guru_kelas}
+                {homeroomAdvice.action}
               </p>
             </div>
             <div className="pt-3 border-t border-slate-200/60 flex items-center gap-1.5 text-[11px] text-blue-700 font-semibold">
               <IconCheck className="w-3.5 h-3.5 shrink-0" />
-              <span>Pendekatan empatik di ruang kelas</span>
+              <span>{homeroomAdvice.checklist}</span>
             </div>
           </div>
 
@@ -227,20 +441,20 @@ export function AiAdvisorCard({
                     <h3 className="text-xs sm:text-sm font-bold text-indigo-950">
                       Guru BK / Konselor
                     </h3>
-                    <span className="text-[11px] text-indigo-600 font-medium">Bimbingan Terarah</span>
+                    <span className="text-[11px] text-indigo-600 font-medium">{bkAdvice.focus}</span>
                   </div>
                 </div>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800">
-                  Konseling
+                  {bkAdvice.badge}
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-                {data.recommendation_guru_bk}
+                {bkAdvice.action}
               </p>
             </div>
             <div className="pt-3 border-t border-slate-200/60 flex items-center gap-1.5 text-[11px] text-indigo-700 font-semibold">
               <IconCheck className="w-3.5 h-3.5 shrink-0" />
-              <span>Rekam konseling verbatim terenkripsi</span>
+              <span>{bkAdvice.checklist}</span>
             </div>
           </div>
 
@@ -256,20 +470,20 @@ export function AiAdvisorCard({
                     <h3 className="text-xs sm:text-sm font-bold text-amber-950">
                       Kepala Sekolah
                     </h3>
-                    <span className="text-[11px] text-amber-600 font-medium">Disposisi &amp; Evaluasi</span>
+                    <span className="text-[11px] text-amber-600 font-medium">{kepsekAdvice.focus}</span>
                   </div>
                 </div>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
-                  Manajemen
+                  {kepsekAdvice.badge}
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-                {data.recommendation_kepsek}
+                {kepsekAdvice.action}
               </p>
             </div>
             <div className="pt-3 border-t border-slate-200/60 flex items-center gap-1.5 text-[11px] text-amber-700 font-semibold">
               <IconCheck className="w-3.5 h-3.5 shrink-0" />
-              <span>Monitoring berkala iklim sekolah</span>
+              <span>{kepsekAdvice.checklist}</span>
             </div>
           </div>
         </div>
@@ -282,12 +496,11 @@ export function AiAdvisorCard({
           <span>Kerahasiaan Terjamin • Kepatuhan Privasi Data Siswa UU PDP No. 27/2022</span>
         </div>
         {data.last_updated && (
-          <span className="font-mono text-[11px] text-slate-400">
-            Sintesis Terakhir: {data.last_updated}
+          <span className="font-mono text-[11px] text-slate-500">
+            Sintesis Terakhir: {formatSynthesisDate(data.last_updated)}
           </span>
         )}
       </div>
     </div>
   )
 }
-

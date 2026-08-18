@@ -195,9 +195,14 @@ class EwsScoringService
             ->where('date', '>=', $sixMonthsAgo)
             ->get();
 
-        $beratCount = $observations->where('severity', 'BERAT')->count();
-        $sedangCount = $observations->where('severity', 'SEDANG')->count();
-        $ringanCount = $observations->where('severity', 'RINGAN')->count();
+        if ($observations->count() === 0) {
+            return ['sub_status' => 'PENDING', 'trigger' => null];
+        }
+
+        $negativeObservations = $observations->whereNotIn('category', ['PERILAKU_POSITIF', 'PROSOSIAL']);
+        $beratCount = $negativeObservations->where('severity', 'BERAT')->count();
+        $sedangCount = $negativeObservations->where('severity', 'SEDANG')->count();
+        $ringanCount = $negativeObservations->where('severity', 'RINGAN')->count();
 
         if ($beratCount >= 1 || $sedangCount >= 2 || $ringanCount > 5) {
             return ['sub_status' => self::STATUS_KRITIS, 'trigger' => 'PERILAKU_PELANGGARAN_BERAT_ATAU_BERULANG'];

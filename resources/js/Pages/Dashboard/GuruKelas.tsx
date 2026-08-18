@@ -27,6 +27,7 @@ import { AiStructuringModal, type AiDraftResult, type AiStructuredResult } from 
 import { QuickAttendanceModal } from "@/components/forms/QuickAttendanceModal"
 import { QuickAcademicModal } from "@/components/forms/QuickAcademicModal"
 import { ObservationSuccessModal, type SavedObservationDetail } from "@/components/ews/ObservationSuccessModal"
+import { DatePickerInput } from "@/components/ui/date-picker-input"
 import { toast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 
@@ -87,6 +88,31 @@ export default function GuruKelas({
       }
       : null
   )
+
+  // Keep selectedStudent in sync with refreshed studentList props
+  React.useEffect(() => {
+    if (selectedStudent && studentList.length > 0) {
+      const updated = studentList.find((s) => s.id === selectedStudent.id)
+      if (updated) {
+        setSelectedStudent({
+          id: updated.id,
+          name: updated.name,
+          nisn: updated.nisn,
+          class_name: updated.class_name || className,
+          ews_status: updated.ews_status,
+        })
+      }
+    } else if (!selectedStudent && studentList.length > 0) {
+      setSelectedStudent({
+        id: studentList[0].id,
+        name: studentList[0].name,
+        nisn: studentList[0].nisn,
+        class_name: studentList[0].class_name || className,
+        ews_status: studentList[0].ews_status,
+      })
+    }
+  }, [studentList])
+
   const [observationDate, setObservationDate] = React.useState(new Date().toISOString().split("T")[0])
   const [participationScore, setParticipationScore] = React.useState(3)
   const [homeworkScore, setHomeworkScore] = React.useState(3)
@@ -150,7 +176,7 @@ export default function GuruKelas({
 
     setIsSubmitting(true)
     const currentStudent = selectedStudent
-    const currentText = rawText
+    const currentText = rawText.trim()
     const currentScores = {
       participation: participationScore,
       homework: homeworkScore,
@@ -158,14 +184,23 @@ export default function GuruKelas({
     }
     const currentDate = observationDate
 
+    // Calculate smart category & severity based on linear scales
+    const isPositive = currentScores.participation >= 4 && currentScores.homework >= 4 && currentScores.quiz >= 4
+    const isSevere = currentScores.participation <= 1 || currentScores.homework <= 1
+    const category = isPositive ? "PERILAKU_POSITIF" : "TIDAK_FOKUS"
+    const severity = isSevere ? "SEDANG" : "RINGAN"
+    const finalNarrative = currentText || "Pengamatan rutin kelas oleh wali kelas."
+
     router.post(
       "/guru-kelas/observations",
       {
         student_id: currentStudent.id,
         date: currentDate,
-        category: "TIDAK_FOKUS",
-        severity: currentScores.participation <= 2 ? "SEDANG" : "RINGAN",
-        narrative: currentText || "Pengamatan rutin kelas oleh wali kelas.",
+        category: category,
+        severity: severity,
+        raw_text: finalNarrative,
+        narrative: finalNarrative,
+        ai_structured_summary: finalNarrative.length > 200 ? finalNarrative.substring(0, 197) + "..." : finalNarrative,
         scores: currentScores,
       },
       {
@@ -177,9 +212,9 @@ export default function GuruKelas({
             nisn: currentStudent.nisn,
             class_name: currentStudent.class_name || className,
             date: currentDate,
-            category: "TIDAK_FOKUS",
-            severity: currentScores.participation <= 2 ? "SEDANG" : "RINGAN",
-            narrative: currentText,
+            category: category,
+            severity: severity,
+            narrative: finalNarrative,
             scores: currentScores,
           })
           toast({
@@ -658,11 +693,10 @@ export default function GuruKelas({
 
           <div className="flex items-center gap-2 shrink-0">
             <span className="text-xs sm:text-sm font-bold text-slate-600">Tanggal:</span>
-            <input
-              type="date"
+            <DatePickerInput
               value={observationDate}
-              onChange={(e) => setObservationDate(e.target.value)}
-              className="h-10 px-3.5 rounded-xl neo-inset bg-[#E7EDF4] text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none cursor-pointer"
+              onChange={setObservationDate}
+              size="md"
             />
           </div>
         </div>

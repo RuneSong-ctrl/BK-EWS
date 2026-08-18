@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils"
 
-export type EwsStatus = "NORMAL" | "BERISIKO" | "WASPADA" | "KRITIS" | "DATA_KURANG"
+export type EwsStatus = "NORMAL" | "BERISIKO" | "WASPADA" | "KRITIS" | "DATA_KURANG" | "DATA_BELUM_LENGKAP" | "PENDING"
 
 interface EwsStatusBadgeProps {
-  status: EwsStatus
+  status: EwsStatus | string
   size?: "sm" | "md" | "lg"
   showDot?: boolean
   className?: string
@@ -15,7 +15,7 @@ export function EwsStatusBadge({
   showDot = true,
   className,
 }: EwsStatusBadgeProps) {
-  const getStatusConfig = (s: EwsStatus) => {
+  const getStatusConfig = (s: EwsStatus | string) => {
     switch (s) {
       case "NORMAL":
         return {
@@ -41,10 +41,12 @@ export function EwsStatusBadge({
           classes: "bg-rose-50 text-rose-800 border-rose-300 shadow-sm",
           dotColor: "bg-rose-600",
         }
+      case "DATA_BELUM_LENGKAP":
       case "DATA_KURANG":
+      case "PENDING":
       default:
         return {
-          label: "Data Kurang",
+          label: "Data Belum Lengkap",
           classes: "bg-slate-100 text-slate-700 border-slate-200",
           dotColor: "bg-slate-400",
         }

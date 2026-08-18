@@ -15,6 +15,7 @@ import {
   IconAlert,
   IconSave,
 } from "@/components/ui/storage-icon"
+import { DatePickerInput } from "@/components/ui/date-picker-input"
 import { toast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 
@@ -184,33 +185,32 @@ export function QuickAttendanceModal({
 
         {/* 2. Control & Summary Toolbar */}
         <div className="p-3 sm:px-5 bg-[#E7EDF4]/60 border-b border-slate-200/70 flex flex-wrap items-center justify-between gap-3 shrink-0">
-          {/* Date Picker on Left */}
+          {/* Custom Neumorphic Date Picker */}
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-slate-700">Tanggal KBM:</span>
-            <input
-              type="date"
+            <DatePickerInput
               value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="h-8 px-2.5 rounded-xl text-xs font-bold text-slate-800 neo-inset bg-[#E7EDF4] border border-slate-300/40 focus:outline-none cursor-pointer"
+              onChange={setDate}
+              size="sm"
             />
           </div>
 
           {/* Counters in Middle */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg neo-pill bg-white text-emerald-800 border border-white/80">
-              Hadir: {countHadir}
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg neo-pill bg-white text-emerald-800 border border-white/80 shadow-2xs">
+              Hadir: <strong>{countHadir}</strong>
             </span>
-            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg neo-pill bg-white text-amber-800 border border-white/80">
-              Sakit: {countSakit}
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg neo-pill bg-white text-amber-800 border border-white/80 shadow-2xs">
+              Sakit: <strong>{countSakit}</strong>
             </span>
-            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg neo-pill bg-white text-blue-800 border border-white/80">
-              Izin: {countIzin}
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg neo-pill bg-white text-blue-800 border border-white/80 shadow-2xs">
+              Izin: <strong>{countIzin}</strong>
             </span>
-            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg neo-pill bg-white text-rose-800 border border-white/80">
-              Alpa: {countAlpa}
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg neo-pill bg-white text-rose-800 border border-white/80 shadow-2xs">
+              Alpa: <strong>{countAlpa}</strong>
             </span>
-            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg neo-pill bg-white text-orange-800 border border-white/80">
-              Telat: {countTerlambat}
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg neo-pill bg-white text-orange-800 border border-white/80 shadow-2xs">
+              Telat: <strong>{countTerlambat}</strong>
             </span>
           </div>
 
@@ -218,7 +218,7 @@ export function QuickAttendanceModal({
           <button
             type="button"
             onClick={() => handleSetAll("HADIR")}
-            className="h-8 px-3 text-xs font-bold text-emerald-800 neo-btn bg-[#EEF2F7] hover:bg-white border border-white/90 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs"
+            className="h-8 px-3 text-xs font-bold text-emerald-800 neo-btn bg-[#EEF2F7] hover:bg-white border border-white/90 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs active:scale-[0.98]"
           >
             <IconCheck className="w-3.5 h-3.5 text-emerald-600" />
             <span>Tandai Semua Hadir</span>
@@ -358,7 +358,7 @@ export function QuickAttendanceModal({
               type="button"
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="px-5 py-2.5 text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer transition-all neo-btn-primary"
+              className="px-5 py-2.5 text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer transition-all neo-btn-primary active:scale-[0.98]"
             >
               <IconSave className="w-4 h-4 text-white" />
               <span>{isSubmitting ? "Menyimpan..." : "Simpan Rekap Presensi"}</span>

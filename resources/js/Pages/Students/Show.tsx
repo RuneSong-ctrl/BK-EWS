@@ -142,16 +142,12 @@ export default function StudentShow({
               ? `Penanganan Kasus BK: ${bkCases.length} sesi konseling aktif tercatat.`
               : "Tidak ada riwayat kasus bimbingan konseling berat aktif.",
           ],
-    recommendation_guru_kelas:
-      latestAiLog?.recommendations?.for_homeroom_teacher ||
-      "Lakukan dialog empatik harian di awal jam pelajaran, pantau presensi dan keterlibatan aktif siswa dalam tugas kelas.",
-    recommendation_guru_bk:
-      latestAiLog?.recommendations?.for_counselor_bk ||
-      "Lakukan pemetaan kebutuhan bimbingan individual dan koordinasikan dengan wali kelas bila ada anomali presensi.",
-    recommendation_kepsek:
-      latestAiLog?.recommendations?.for_principal ||
-      "Pantau tren agregat kelas dan pastikan kolaborasi tindak lanjut antara wali kelas dan guru BK berjalan aktif.",
+    recommendation_guru_kelas: latestAiLog?.recommendations?.for_homeroom_teacher,
+    recommendation_guru_bk: latestAiLog?.recommendations?.for_counselor_bk,
+    recommendation_kepsek: latestAiLog?.recommendations?.for_principal,
+    data_limitation_note: latestAiLog?.data_limitation_note,
     last_updated: latestAiLog?.generated_at || "Sintesis AI Otomatis",
+    model_version: latestAiLog?.model_version,
   }
 
   // 5. Dynamic Longitudinal Timeline

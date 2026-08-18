@@ -106,9 +106,9 @@ Pedoman Analisis:
 1. `risk_overview`: Rumuskan akar masalah secara holistik dalam 2-3 kalimat (korelasikan tren nilai, presensi, dan dinamika perilaku).
 2. `primary_concerns`: Daftar 2-4 poin risiko paling mendesak yang butuh atensi cepat.
 3. `recommendations`:
-   - `for_homeroom_teacher`: Langkah taktis harian di kelas (pendekatan personal, adaptasi pembelajaran, pemantauan presensi).
-   - `for_counselor_bk`: Strategi intervensi konseling terarah (konseling individual/kelompok, asesmen psikososial, koordinasi orang tua).
-   - `for_principal`: Arahan manajerial pimpinan sekolah (dukungan kebijakan, monitoring SOP eskalasi, mitigasi risiko kelembagaan).
+   - `for_homeroom_teacher`: Objek berformat { "action": "Aksi konkret taktis di kelas", "focus": "Fokus tindakan (misal: Observasi Kelas / Verifikasi Data / Remedial)", "badge": "Frekuensi/Urgensi (misal: Harian / Mendesak / Mingguan)", "checklist": "Target aksi konkret utama" }
+   - `for_counselor_bk`: Objek berformat { "action": "Strategi intervensi konseling terarah", "focus": "Fokus bimbingan (misal: Konseling Individu / Asesmen / Mediasi)", "badge": "Metode (misal: Konseling / Bimbingan / Segera)", "checklist": "Target aksi konkret utama" }
+   - `for_principal`: Objek berformat { "action": "Arahan manajerial pimpinan sekolah", "focus": "Fokus kebijakan (misal: Supervisi Data / Disposisi Kasus / Monitoring)", "badge": "Tingkat (misal: Manajerial / Disposisi / Evaluasi)", "checklist": "Target aksi konkret utama" }
 4. `data_limitation_note`: Catatan keterbatasan data bila salah satu pilar masih PENDING.
 
 Format Output WAJIB JSON murni:
@@ -116,9 +116,24 @@ Format Output WAJIB JSON murni:
   "risk_overview": "Ringkasan analisis akar masalah 2-3 kalimat",
   "primary_concerns": ["Fokus risiko 1", "Fokus risiko 2"],
   "recommendations": {
-    "for_homeroom_teacher": "Aksi taktis konkret wali kelas",
-    "for_counselor_bk": "Aksi intervensi spesifik konselor BK",
-    "for_principal": "Arahan manajerial Kepala Sekolah"
+    "for_homeroom_teacher": {
+      "action": "Langkah taktis guru kelas...",
+      "focus": "Fokus aksi",
+      "badge": "Harian",
+      "checklist": "Target aksi"
+    },
+    "for_counselor_bk": {
+      "action": "Langkah konseling BK...",
+      "focus": "Fokus bimbingan",
+      "badge": "Konseling",
+      "checklist": "Target aksi"
+    },
+    "for_principal": {
+      "action": "Arahan kepala sekolah...",
+      "focus": "Fokus manajerial",
+      "badge": "Manajemen",
+      "checklist": "Target aksi"
+    }
   },
   "data_limitation_note": "Catatan kelengkapan data atau null jika data lengkap"
 }
@@ -240,18 +255,117 @@ PROMPT;
             'WASPADA' => "Siswa mengalami penurunan performa multi-parameter yang membutuhkan komunikasi proaktif dan pendampingan terstruktur.",
             'BERISIKO' => "Siswa teridentifikasi mengalami hambatan awal (nilai di bawah KKM atau absensi sporadis) yang perlu dicegah sebelum memburuk.",
             'NORMAL' => "Perkembangan siswa secara umum stabil dan memenuhi standar akademik serta kehadiran.",
-            default => "Data siswa belum memenuhi ambang batas minimum untuk evaluasi komprehensif.",
+            default => "Data siswa belum memenuhi ambang batas minimum untuk evaluasi komprehensif 4 pilar.",
+        };
+
+        $recommendations = match ($status) {
+            'KRITIS' => [
+                'for_homeroom_teacher' => [
+                    'action' => 'Lakukan pengawasan intensif di kelas, amankan dinamika interaksi teman sebaya, dan berikan laporan berkala harian ke Guru BK.',
+                    'focus' => 'Intervensi Kelas & Pengawasan',
+                    'badge' => 'Prioritas 1',
+                    'checklist' => 'Pendampingan intensif & lapor harian ke BK',
+                ],
+                'for_counselor_bk' => [
+                    'action' => 'Jadwalkan konferensi kasus (case conference) darurat, panggil orang tua/wali, dan susun kontrak perilaku serta asesmen mendalam.',
+                    'focus' => 'Konseling Krisis & Konferensi Kasus',
+                    'badge' => 'Segera',
+                    'checklist' => 'Panggilan orang tua & case conference',
+                ],
+                'for_principal' => [
+                    'action' => 'Terbitkan lembar disposisi penanganan khusus, tinjau mitigasi risiko kelembagaan, dan pimpin koordinasi terpadu berkala.',
+                    'focus' => 'Disposisi & Eskalasi Kebijakan',
+                    'badge' => 'Disposisi',
+                    'checklist' => 'Penerbitan disposisi khusus & monitoring mitigasi',
+                ],
+            ],
+            'WASPADA' => [
+                'for_homeroom_teacher' => [
+                    'action' => 'Tingkatkan dialog empatik berkala, pantau kehadiran dan penyelesaian tugas harian, serta identifikasi kendala belajar awal.',
+                    'focus' => 'Pendampingan & Presensi',
+                    'badge' => 'Harian',
+                    'checklist' => 'Dialog personal & monitoring presensi ketat',
+                ],
+                'for_counselor_bk' => [
+                    'action' => 'Lakukan asesmen psikososial awal dan jadwalkan 2 sesi konseling individual untuk mendalami akar masalah siswa.',
+                    'focus' => 'Bimbingan Preventif & Asesmen',
+                    'badge' => 'Konseling',
+                    'checklist' => 'Sesi konseling individual & pemetaan hambatan',
+                ],
+                'for_principal' => [
+                    'action' => 'Supervisi koordinasi tindak lanjut antara wali kelas dan guru BK, serta evaluasi dinamika risiko mingguan.',
+                    'focus' => 'Evaluasi Tindak Lanjut & Supervisi',
+                    'badge' => 'Evaluasi',
+                    'checklist' => 'Review berkala koordinasi wali kelas & BK',
+                ],
+            ],
+            'BERISIKO' => [
+                'for_homeroom_teacher' => [
+                    'action' => 'Berikan pendampingan akademik tambahan, fasilitasi tutor sebaya, dan berikan penguatan motivasi di ruang kelas.',
+                    'focus' => 'Remedial & Motivasi',
+                    'badge' => 'Mingguan',
+                    'checklist' => 'Bimbingan tugas & penguatan motivasi kelas',
+                ],
+                'for_counselor_bk' => [
+                    'action' => 'Fasilitasi bimbingan kelompok atau konseling suportif singkat guna mendeteksi faktor penghambat belajar siswa.',
+                    'focus' => 'Bimbingan Kelompok & Observasi',
+                    'badge' => 'Bimbingan',
+                    'checklist' => 'Identifikasi faktor penurunan & konseling berkala',
+                ],
+                'for_principal' => [
+                    'action' => 'Pantau tren indikator risiko siswa secara proaktif melalui dashboard analitik EWS.',
+                    'focus' => 'Monitoring Proaktif',
+                    'badge' => 'Monitoring',
+                    'checklist' => 'Pantau tren grafik EWS mingguan',
+                ],
+            ],
+            'NORMAL' => [
+                'for_homeroom_teacher' => [
+                    'action' => 'Berikan apresiasi atas konsistensi belajar siswa dan pelihara iklim kelas yang inklusif serta suportif.',
+                    'focus' => 'Observasi & Apresiasi Positif',
+                    'badge' => 'Rutin',
+                    'checklist' => 'Pemeliharaan partisipasi aktif di kelas',
+                ],
+                'for_counselor_bk' => [
+                    'action' => 'Dukung eksplorasi minat, bakat, dan pembinaan karir/potensi masa depan secara berkelanjutan.',
+                    'focus' => 'Bimbingan Karir & Minat',
+                    'badge' => 'Pengembangan',
+                    'checklist' => 'Eksplorasi potensi & bimbingan perkembangan',
+                ],
+                'for_principal' => [
+                    'action' => 'Dukung program pengayaan dan pemeliharaan iklim sekolah yang aman, sehat, dan kondusif.',
+                    'focus' => 'Pengawasan Iklim & Apresiasi',
+                    'badge' => 'Manajemen',
+                    'checklist' => 'Pemeliharaan ekosistem belajar kondusif',
+                ],
+            ],
+            default => [
+                'for_homeroom_teacher' => [
+                    'action' => 'Segera verifikasi dan pastikan pengumpulan serta input data nilai akademik dari guru mapel dan data presensi siswa.',
+                    'focus' => 'Verifikasi & Input Data',
+                    'badge' => 'Mendesak',
+                    'checklist' => 'Lengkapi data nilai & presensi di EWS',
+                ],
+                'for_counselor_bk' => [
+                    'action' => 'Berkoordinasi aktif dengan wali kelas untuk mempercepat pengumpulan data serta siapkan asesmen diagnostik awal.',
+                    'focus' => 'Asesmen Awal & Koordinasi',
+                    'badge' => 'Koordinasi',
+                    'checklist' => 'Koordinasi wali kelas untuk pemetaan awal',
+                ],
+                'for_principal' => [
+                    'action' => 'Terbitkan arahan pemenuhan data 4 pilar EWS kepada wali kelas dan pantau penyelesaian status PENDING.',
+                    'focus' => 'Supervisi Kepatuhan Data EWS',
+                    'badge' => 'Manajerial',
+                    'checklist' => 'Instruksi percepatan kelengkapan 4 pilar',
+                ],
+            ],
         };
 
         return [
             'risk_overview' => $overview,
             'primary_concerns' => $concerns,
-            'recommendations' => [
-                'for_homeroom_teacher' => 'Lakukan pengecekan jurnal kehadiran harian dan koordinasikan dengan guru mata pelajaran terkait.',
-                'for_counselor_bk' => 'Jadwalkan sesi konseling individual untuk mendalami faktor personal, keluarga, atau lingkungan belajar.',
-                'for_principal' => 'Pastikan prosedur eskalasi kasus berat dijalankan sesuai SOP dan pantau tren agregat mingguan.',
-            ],
-            'data_limitation_note' => $status === 'DATA_BELUM_LENGKAP' ? 'Membutuhkan minimal 2 nilai akademik dan 5 hari absensi.' : null,
+            'recommendations' => $recommendations,
+            'data_limitation_note' => $status === 'DATA_BELUM_LENGKAP' ? 'Membutuhkan minimal 2 nilai akademik dan 5 hari absensi untuk kalkulasi 4 pilar penuh.' : null,
         ];
     }
 }

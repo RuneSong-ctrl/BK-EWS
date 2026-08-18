@@ -69,7 +69,7 @@ class ObservationController extends Controller
             $request->merge(['category' => $categoryMap[$rawCategory]]);
         }
 
-        $rawText = $request->input('raw_text') ?? $request->input('notes') ?? 'Observasi perilaku kelas';
+        $rawText = $request->input('raw_text') ?? $request->input('narrative') ?? $request->input('notes') ?? 'Observasi perilaku kelas';
         $request->merge(['raw_text' => $rawText]);
 
         if (!$request->has('category') || empty($request->input('category'))) {

@@ -2,10 +2,10 @@ import { cn } from "@/lib/utils"
 import type { EwsStatus } from "./EwsStatusBadge"
 
 export interface PillarStatuses {
-  ak: EwsStatus
-  kh: EwsStatus
-  pr: EwsStatus
-  bk: EwsStatus
+  ak: EwsStatus | string
+  kh: EwsStatus | string
+  pr: EwsStatus | string
+  bk: EwsStatus | string
 }
 
 interface PillarIndicatorsProps {
@@ -19,7 +19,7 @@ export function PillarIndicators({
   className,
   showLabels = false,
 }: PillarIndicatorsProps) {
-  const getPillarClass = (status: EwsStatus) => {
+  const getPillarClass = (status: EwsStatus | string) => {
     switch (status) {
       case "NORMAL":
         return "bg-emerald-50 text-emerald-700 border-emerald-200"
@@ -29,7 +29,9 @@ export function PillarIndicators({
         return "bg-orange-50 text-orange-700 border-orange-200"
       case "KRITIS":
         return "bg-rose-50 text-rose-700 border-rose-300 font-bold"
+      case "DATA_BELUM_LENGKAP":
       case "DATA_KURANG":
+      case "PENDING":
       default:
         return "bg-slate-100 text-slate-500 border-slate-200"
     }
