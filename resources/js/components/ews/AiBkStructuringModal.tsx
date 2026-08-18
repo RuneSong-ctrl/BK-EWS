@@ -285,8 +285,8 @@ export function AiBkStructuringModal({
             </div>
 
             {/* System Status Indicator Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full neo-pill bg-[#EEF2F7] border border-white/90 text-slate-700 text-xs font-semibold shrink-0 self-start sm:self-auto">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-slate-700 text-xs font-semibold shrink-0 self-start sm:self-auto">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 ring-3 ring-emerald-500/20 animate-pulse" />
               <span>Sistem Siap</span>
             </div>
           </div>
@@ -409,7 +409,7 @@ export function AiBkStructuringModal({
             <div className="flex items-center justify-between">
               <Label className="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-2">
                 <span>Langkah 2: Draf Catatan Bimbingan Hasil AI</span>
-                <span className="text-[10px] font-bold text-emerald-800 neo-pill bg-emerald-50/80 px-2 py-0.5 rounded-full border border-white/80">
+                <span className="text-[10px] font-bold text-emerald-800 bg-white/90 border border-slate-200/80 px-2.5 py-0.5 rounded-xl shadow-2xs">
                   Dapat Diedit
                 </span>
               </Label>

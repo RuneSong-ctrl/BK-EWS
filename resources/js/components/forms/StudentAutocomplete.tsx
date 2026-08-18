@@ -67,7 +67,7 @@ export function StudentAutocomplete({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-slate-900">{selectedStudent.name}</span>
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold neo-pill bg-white text-slate-700 border border-white/80">
+                <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-white/90 text-slate-700 border border-slate-200/80 shadow-2xs">
                   {selectedStudent.class_name}
                 </span>
               </div>

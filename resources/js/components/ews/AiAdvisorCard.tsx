@@ -315,9 +315,10 @@ export function AiAdvisorCard({
               <h2 className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight">
                 AI Early Warning System Advisor
               </h2>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100/90 text-blue-700">
-                Analisis Otomatis EWS
-              </span>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-[11px] font-bold text-blue-700">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 ring-2 ring-blue-500/20" />
+                <span>Analisis Otomatis EWS</span>
+              </div>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5 font-medium">
               Sintesis rekomendasi aksi preventif &amp; kuratif berbasis 4 pilar longitudinal
@@ -347,7 +348,7 @@ export function AiAdvisorCard({
       <div className="space-y-4">
         <div className="p-5 sm:p-6 rounded-2xl neo-inset bg-[#E7EDF4] space-y-2">
           <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wider">
-            <span className="w-2 h-2 rounded-full bg-blue-600" />
+            <span className="w-2 h-2 rounded-full bg-blue-600 ring-3 ring-blue-500/20" />
             <span>Diagnosa Risiko Pedagogis &amp; Tren Perilaku:</span>
           </div>
           <p className="text-sm sm:text-base leading-relaxed text-slate-800 font-medium">
@@ -379,7 +380,7 @@ export function AiAdvisorCard({
                   key={idx}
                   className="p-3 rounded-xl neo-inset bg-[#E7EDF4] text-xs sm:text-sm text-slate-700 flex items-start gap-2.5 font-medium"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 ring-2 ring-amber-500/20 mt-1.5 shrink-0" />
                   <span className="leading-relaxed">{concern}</span>
                 </div>
               ))}
@@ -415,7 +416,7 @@ export function AiAdvisorCard({
                     <span className="text-[11px] text-blue-600 font-medium">{homeroomAdvice.focus}</span>
                   </div>
                 </div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">
+                <span className="px-2.5 py-1 rounded-xl text-[11px] font-bold bg-white/90 text-blue-800 border border-slate-200/80 shadow-2xs">
                   {homeroomAdvice.badge}
                 </span>
               </div>
@@ -444,7 +445,7 @@ export function AiAdvisorCard({
                     <span className="text-[11px] text-indigo-600 font-medium">{bkAdvice.focus}</span>
                   </div>
                 </div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800">
+                <span className="px-2.5 py-1 rounded-xl text-[11px] font-bold bg-white/90 text-indigo-800 border border-slate-200/80 shadow-2xs">
                   {bkAdvice.badge}
                 </span>
               </div>
@@ -473,7 +474,7 @@ export function AiAdvisorCard({
                     <span className="text-[11px] text-amber-600 font-medium">{kepsekAdvice.focus}</span>
                   </div>
                 </div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
+                <span className="px-2.5 py-1 rounded-xl text-[11px] font-bold bg-white/90 text-amber-800 border border-slate-200/80 shadow-2xs">
                   {kepsekAdvice.badge}
                 </span>
               </div>

@@ -123,6 +123,19 @@ export default function StudentShow({
   // 3. Real Behavior Observations
   const observations: any[] = student?.behavior_observations || []
   const latestObservation = observations[0]
+  const obsScores = observations.filter((o: any) => o.participation_score || o.homework_score || o.quiz_score)
+  const participationAvg = obsScores.length > 0
+    ? (obsScores.reduce((acc: number, curr: any) => acc + (Number(curr.participation_score) || 3), 0) / obsScores.length).toFixed(1)
+    : "3.0"
+  const homeworkAvg = obsScores.length > 0
+    ? (obsScores.reduce((acc: number, curr: any) => acc + (Number(curr.homework_score) || 3), 0) / obsScores.length).toFixed(1)
+    : "3.0"
+  const quizAvg = obsScores.length > 0
+    ? (obsScores.reduce((acc: number, curr: any) => acc + (Number(curr.quiz_score > 5 ? Math.round(curr.quiz_score / 20) : curr.quiz_score) || 3), 0) / obsScores.length).toFixed(1)
+    : "3.0"
+
+  const activeBkCasesCount = bkCases.filter((c: any) => c.status !== "SELESAI").length
+  const resolvedBkCasesCount = bkCases.filter((c: any) => c.status === "SELESAI").length
 
   // 4. Real AI Advisor Data
   const latestAiLog = student?.ai_logs?.[0]
@@ -254,7 +267,7 @@ export default function StudentShow({
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
                   {studentName}
                 </h1>
-                <span className="px-3 py-1 rounded-xl text-xs font-bold neo-pill bg-white text-slate-700 border border-white/80">
+                <span className="px-3 py-1 rounded-xl text-xs font-bold bg-white/90 text-slate-700 border border-slate-200/80 shadow-2xs">
                   {studentClassName}
                 </span>
                 <span className="text-xs sm:text-sm text-slate-500 font-mono">
@@ -348,10 +361,10 @@ export default function StudentShow({
                   </div>
                   <div>
                     <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider">
-                      2. Pilar Kehadiran (KH)
+                      2. Pilar Kehadiran &amp; Presensi (KH)
                     </h3>
                     <span className="text-xs text-slate-500 font-medium">
-                      Rekapitulasi 30 Hari ({attendanceRecords.length} Hari KBM)
+                      {attendanceRecords.length} Log Presensi 30 Hari Terakhir
                     </span>
                   </div>
                 </div>
@@ -360,32 +373,40 @@ export default function StudentShow({
 
               <div className="grid grid-cols-2 gap-3.5 text-xs sm:text-sm">
                 <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1 border border-slate-300/40">
-                  <span className="text-xs text-slate-500 font-medium block">Persentase Hadir:</span>
+                  <span className="text-xs text-slate-500 font-medium block">Tingkat Kehadiran:</span>
                   <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block font-mono">
-                    {attendanceRate === "-" ? "-" : `${attendanceRate}%`}
+                    {attendanceRate}%
                   </span>
-                  <span className="text-xs text-orange-700 font-bold block">
-                    {alpaCount > 0 ? `${alpaCount} Alpa Tercatat` : "Disiplin Kehadiran Baik"}
+                  <span className="text-xs text-slate-500 font-medium block">
+                    {attendanceRecords.length - hadirCount} Hari Tidak Hadir
                   </span>
                 </div>
 
                 <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1 border border-slate-300/40">
-                  <span className="text-xs text-slate-500 font-medium block">Alpa Beruntun:</span>
-                  <span className="text-2xl sm:text-3xl font-extrabold text-rose-600 block font-mono">
-                    {consecutiveAlpa} Hari
-                  </span>
-                  <span className="text-[11px] text-slate-500 block font-medium">
-                    Sakit: {sakitCount} • Izin: {izinCount} • Terlambat: {terlambatCount}
-                  </span>
+                  <span className="text-xs text-slate-500 font-medium block">Rincian Absensi:</span>
+                  <div className="flex flex-wrap gap-1 text-[11px] font-semibold pt-0.5">
+                    <span className="px-2 py-0.5 rounded-md bg-white/90 text-emerald-800 border border-slate-200/80 shadow-2xs">
+                      H: {hadirCount}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-md bg-white/90 text-amber-800 border border-slate-200/80 shadow-2xs">
+                      S: {sakitCount}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-md bg-white/90 text-blue-800 border border-slate-200/80 shadow-2xs">
+                      I: {izinCount}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-md bg-white/90 text-rose-800 border border-slate-200/80 shadow-2xs">
+                      A: {alpaCount}
+                    </span>
+                  </div>
                 </div>
               </div>
 
               <div className="pt-2 flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">Ambang risiko absensi: &lt;85%</span>
+                <span className="text-slate-500 font-medium">Batas toleransi aman: &ge; 85%</span>
                 <button
                   type="button"
                   onClick={() => setActiveTab("attendance")}
-                  className="font-bold text-orange-700 hover:text-orange-900 cursor-pointer"
+                  className="font-bold text-orange-600 hover:text-orange-800 cursor-pointer"
                 >
                   Lihat Log Presensi &rarr;
                 </button>
@@ -401,47 +422,47 @@ export default function StudentShow({
                   </div>
                   <div>
                     <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider">
-                      3. Pilar Perilaku Kelas (PR)
+                      3. Pilar Perilaku &amp; Karakter (PR)
                     </h3>
                     <span className="text-xs text-slate-500 font-medium">
-                      {observations.length} Jurnal Observasi Guru
+                      {observations.length} Catatan Observasi Guru Kelas
                     </span>
                   </div>
                 </div>
-                <EwsStatusBadge status={student?.ews_score?.behavior_sub_status || "NORMAL"} size="sm" />
+                <EwsStatusBadge status={student?.ews_score?.behavior_sub_status || "DATA_BELUM_LENGKAP"} size="sm" />
               </div>
 
-              <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] text-xs sm:text-sm space-y-2 border border-slate-300/40">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-800">
-                    Kategori Terkini: {latestObservation?.category?.replace(/_/g, " ") || "Belum Ada Catatan"}
-                  </span>
-                  <span
-                    className={cn(
-                      "text-xs font-bold uppercase px-2 py-0.5 rounded-lg neo-pill border border-white/80",
-                      latestObservation?.severity === "BERAT"
-                        ? "bg-rose-100 text-rose-800"
-                        : latestObservation?.severity === "SEDANG"
-                        ? "bg-amber-100 text-amber-800"
-                        : "bg-emerald-100 text-emerald-800"
-                    )}
-                  >
-                    Tingkat: {latestObservation?.severity || "NORMAL"}
+              <div className="grid grid-cols-3 gap-2.5 text-xs sm:text-sm">
+                <div className="p-3.5 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1 text-center border border-slate-300/40">
+                  <span className="text-[11px] text-slate-500 font-medium block">Keaktifan</span>
+                  <span className="text-xl sm:text-2xl font-extrabold text-slate-900 font-mono block">
+                    {participationAvg}/5
                   </span>
                 </div>
-                <p className="text-slate-700 text-xs leading-relaxed font-medium line-clamp-3">
-                  {latestObservation?.ai_structured_summary || latestObservation?.raw_text || "Belum ada catatan observasi perilaku harian tercatat untuk siswa ini."}
-                </p>
+
+                <div className="p-3.5 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1 text-center border border-slate-300/40">
+                  <span className="text-[11px] text-slate-500 font-medium block">Ketertiban</span>
+                  <span className="text-xl sm:text-2xl font-extrabold text-slate-900 font-mono block">
+                    {homeworkAvg}/5
+                  </span>
+                </div>
+
+                <div className="p-3.5 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1 text-center border border-slate-300/40">
+                  <span className="text-[11px] text-slate-500 font-medium block">Fokus</span>
+                  <span className="text-xl sm:text-2xl font-extrabold text-slate-900 font-mono block">
+                    {quizAvg}/5
+                  </span>
+                </div>
               </div>
 
               <div className="pt-2 flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">Observasi terintegrasi AI</span>
+                <span className="text-slate-500 font-medium">Skala Likert 1 (Rendah) - 5 (Tinggi)</span>
                 <button
                   type="button"
                   onClick={() => setActiveTab("behavior")}
-                  className="font-bold text-amber-800 hover:text-amber-900 cursor-pointer"
+                  className="font-bold text-amber-700 hover:text-amber-900 cursor-pointer"
                 >
-                  Lihat Riwayat Observasi &rarr;
+                  Jurnal Observasi &rarr;
                 </button>
               </div>
             </div>
@@ -455,46 +476,46 @@ export default function StudentShow({
                   </div>
                   <div>
                     <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider">
-                      4. Pilar Bimbingan Konseling (BK)
+                      4. Pilar Penanganan BK (BK)
                     </h3>
                     <span className="text-xs text-slate-500 font-medium">
-                      Portofolio &amp; Lembar Kasus Konselor
+                      {bkCases.length} Kasus &amp; Sesi Bimbingan Tercatat
                     </span>
                   </div>
                 </div>
-                <EwsStatusBadge status={student?.ews_score?.bk_sub_status || "NORMAL"} size="sm" />
+                <EwsStatusBadge status={student?.ews_score?.bk_sub_status || "DATA_BELUM_LENGKAP"} size="sm" />
               </div>
 
               <div className="grid grid-cols-2 gap-3.5 text-xs sm:text-sm">
                 <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1 border border-slate-300/40">
-                  <span className="text-xs text-slate-500 font-medium block">Kasus Aktif:</span>
-                  <span className="text-2xl sm:text-3xl font-extrabold text-indigo-700 block font-mono">
-                    {bkCases.length} Kasus
+                  <span className="text-xs text-slate-500 font-medium block">Total Kasus Aktif:</span>
+                  <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block font-mono">
+                    {activeBkCasesCount}
                   </span>
-                  <span className="text-xs text-slate-500 block font-medium">
-                    {bkCases.filter((c: any) => c.status === "DALAM_PROSES").length} Dalam Mediasi
+                  <span className="text-xs text-slate-500 font-medium block">
+                    {resolvedBkCasesCount} Kasus Telah Selesai
                   </span>
                 </div>
 
                 <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1 border border-slate-300/40">
-                  <span className="text-xs text-slate-500 font-medium block">Total Sesi Bimbingan:</span>
-                  <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block font-mono">
-                    {bkCases.length} Kali
+                  <span className="text-xs text-slate-500 font-medium block">Kasus Terberat:</span>
+                  <span className="text-xs sm:text-sm font-bold text-slate-900 block truncate">
+                    {bkCases.length > 0 ? (Array.isArray(bkCases[0]?.case_types) ? bkCases[0].case_types[0]?.replace(/_/g, " ") : "Konseling") : "Tidak Ada Kasus"}
                   </span>
-                  <span className="text-xs text-slate-500 block font-medium truncate font-mono">
-                    {bkCases[0]?.incident_date ? `Terakhir: ${bkCases[0].incident_date}` : "Belum Ada Kasus"}
+                  <span className="text-xs text-slate-500 block font-medium">
+                    Status: <strong className="text-slate-800">{bkCases.length > 0 ? bkCases[0]?.status?.replace(/_/g, " ") : "Nihil"}</strong>
                   </span>
                 </div>
               </div>
 
               <div className="pt-2 flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">Kerahasiaan terjamin UU PDP</span>
+                <span className="text-slate-500 font-medium">Kerahasiaan data terjamin</span>
                 <button
                   type="button"
                   onClick={() => setActiveTab("cases")}
                   className="font-bold text-indigo-700 hover:text-indigo-900 cursor-pointer"
                 >
-                  Buka Lembar Kasus BK &rarr;
+                  Lembar Portofolio Kasus &rarr;
                 </button>
               </div>
             </div>
@@ -521,11 +542,12 @@ export default function StudentShow({
                 <IconHandshake className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                <h2 className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
                   Lembar Portofolio Kasus &amp; Bimbingan Konseling
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold neo-pill bg-indigo-50/80 text-indigo-800 border border-white/80">
-                    {bkCases.length} Kasus Tercatat
-                  </span>
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-xs font-bold text-indigo-800 font-mono">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 ring-2 ring-indigo-500/20" />
+                    <span>{bkCases.length} Kasus Tercatat</span>
+                  </div>
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
                   Rekam jejak resmi penanganan kasus bimbingan, mediasi, dan tindak lanjut psikososial siswa
@@ -577,19 +599,19 @@ export default function StudentShow({
                             {caseTypesList.map((t: string, ti: number) => (
                               <span
                                 key={ti}
-                                className="px-2.5 py-0.5 rounded-md text-xs font-extrabold neo-pill bg-white text-indigo-800 border border-white/80"
+                                className="px-2.5 py-1 rounded-xl text-xs font-extrabold bg-white/90 text-indigo-800 border border-slate-200/80 shadow-2xs"
                               >
                                 {t.replace(/_/g, " ")}
                               </span>
                             ))}
                             <span
                               className={cn(
-                                "px-2 py-0.5 rounded-md text-[11px] font-bold neo-pill border border-white/90",
+                                "px-2.5 py-1 rounded-xl text-xs font-bold border shadow-2xs bg-white/90",
                                 caseItem.severity === "BERAT"
-                                  ? "bg-rose-100 text-rose-800"
+                                  ? "border-rose-200 text-rose-800"
                                   : caseItem.severity === "SEDANG"
-                                  ? "bg-amber-100 text-amber-800"
-                                  : "bg-emerald-100 text-emerald-800"
+                                  ? "border-amber-200 text-amber-800"
+                                  : "border-emerald-200 text-emerald-800"
                               )}
                             >
                               Tingkat {caseItem.severity}
@@ -604,12 +626,12 @@ export default function StudentShow({
                       <div className="flex items-center gap-2">
                         <span
                           className={cn(
-                            "px-3 py-1 rounded-xl text-xs font-bold uppercase neo-pill border border-white/90",
+                            "px-3 py-1 rounded-xl text-xs font-bold uppercase border bg-white/90 shadow-2xs",
                             caseItem.status === "DIESKALASI_KE_KEPSEK"
-                              ? "bg-rose-100/90 text-rose-800"
+                              ? "border-rose-200 text-rose-800"
                               : caseItem.status === "DALAM_PROSES"
-                              ? "bg-amber-100/90 text-amber-800"
-                              : "bg-emerald-100/90 text-emerald-800"
+                              ? "border-amber-200 text-amber-800"
+                              : "border-emerald-200 text-emerald-800"
                           )}
                         >
                           Status: {caseItem.status?.replace(/_/g, " ")}
@@ -634,7 +656,7 @@ export default function StudentShow({
                           followUps.map((act: string, ai: number) => (
                             <span
                               key={ai}
-                              className="px-2 py-0.5 rounded-md neo-pill bg-white text-indigo-700 border border-white/80 font-semibold"
+                              className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-white/90 text-indigo-700 border border-slate-200/80 shadow-2xs"
                             >
                               {act}
                             </span>
@@ -675,7 +697,7 @@ export default function StudentShow({
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="px-3 py-1 rounded-xl text-xs font-bold neo-pill bg-white text-blue-800 border border-white/80">
+              <span className="px-3 py-1 rounded-xl text-xs font-bold bg-white/90 text-blue-800 border border-slate-200/80 shadow-2xs">
                 Pilar AK: {student?.ews_score?.academic_sub_status || "DATA_BELUM_LENGKAP"}
               </span>
             </div>
@@ -715,11 +737,11 @@ export default function StudentShow({
                         <td className="py-3.5 px-4 text-center font-mono text-slate-400 font-semibold">{idx + 1}</td>
                         <td className="py-3.5 px-4 font-bold text-slate-900">{rec.subject?.name || "Mata Pelajaran"}</td>
                         <td className="py-3.5 px-4 text-center">
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold neo-pill bg-white text-slate-700 border border-white/80">
+                          <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-white/90 text-slate-700 border border-slate-200/80 shadow-2xs">
                             {rec.assessment_type || "TUGAS"}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 text-slate-600 font-medium">{rec.period_name || "-"}</td>
+                        <td className="py-3.5 px-4 font-semibold text-slate-800">{rec.period || rec.period_name || "-"}</td>
                         <td className="py-3.5 px-4 text-center font-mono font-bold text-sm">
                           <span className={cn(isBelowKkm ? "text-rose-600" : "text-slate-900")}>{scoreVal}</span>
                         </td>
@@ -727,8 +749,8 @@ export default function StudentShow({
                         <td className="py-3.5 px-4 text-center">
                           <span
                             className={cn(
-                              "px-2.5 py-0.5 rounded-lg text-[10px] font-bold neo-pill border border-white/80",
-                              isBelowKkm ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"
+                              "px-2.5 py-0.5 rounded-xl text-[11px] font-bold border shadow-2xs bg-white/90",
+                              isBelowKkm ? "border-amber-200 text-amber-800" : "border-emerald-200 text-emerald-800"
                             )}
                           >
                             {isBelowKkm ? "Remedial" : "Tuntas"}
@@ -766,21 +788,26 @@ export default function StudentShow({
             </div>
 
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg neo-pill bg-emerald-50/80 text-emerald-800 border border-white/80">
-                Hadir: {hadirCount}
-              </span>
-              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg neo-pill bg-amber-50/80 text-amber-800 border border-white/80">
-                Sakit: {sakitCount}
-              </span>
-              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg neo-pill bg-blue-50/80 text-blue-800 border border-white/80">
-                Izin: {izinCount}
-              </span>
-              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg neo-pill bg-rose-50/80 text-rose-800 border border-white/80">
-                Alpa: {alpaCount}
-              </span>
-              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg neo-pill bg-orange-50/80 text-orange-800 border border-white/80">
-                Terlambat: {terlambatCount}
-              </span>
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-emerald-800 border border-slate-200/80 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20" />
+                <span>Hadir: {hadirCount}</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-amber-800 border border-slate-200/80 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 ring-2 ring-amber-500/20" />
+                <span>Sakit: {sakitCount}</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-blue-800 border border-slate-200/80 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 ring-2 ring-blue-500/20" />
+                <span>Izin: {izinCount}</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-rose-800 border border-slate-200/80 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 ring-2 ring-rose-500/20" />
+                <span>Alpa: {alpaCount}</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-orange-800 border border-slate-200/80 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500 ring-2 ring-orange-500/20" />
+                <span>Terlambat: {terlambatCount}</span>
+              </div>
             </div>
           </div>
 
@@ -815,16 +842,16 @@ export default function StudentShow({
                         <td className="py-3 px-4 text-center">
                           <span
                             className={cn(
-                              "px-2.5 py-0.5 rounded-lg text-xs font-extrabold neo-pill border border-white/90",
+                              "px-2.5 py-0.5 rounded-lg text-xs font-extrabold bg-white/90 border shadow-2xs",
                               att.status === "HADIR"
-                                ? "bg-emerald-100 text-emerald-800"
+                                ? "border-emerald-200 text-emerald-800"
                                 : att.status === "ALPA"
-                                ? "bg-rose-100 text-rose-800"
+                                ? "border-rose-200 text-rose-800"
                                 : att.status === "TERLAMBAT"
-                                ? "bg-orange-100 text-orange-800"
+                                ? "border-orange-200 text-orange-800"
                                 : att.status === "SAKIT"
-                                ? "bg-amber-100 text-amber-800"
-                                : "bg-blue-100 text-blue-800"
+                                ? "border-amber-200 text-amber-800"
+                                : "border-blue-200 text-blue-800"
                             )}
                           >
                             {att.status}
@@ -893,17 +920,17 @@ export default function StudentShow({
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/60 pb-3">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-sm text-slate-900">{obs.date}</span>
-                      <span className="px-2.5 py-0.5 rounded-md text-xs font-bold neo-pill bg-white text-slate-800 border border-white/80">
+                      <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-white/90 text-slate-800 border border-slate-200/80 shadow-2xs">
                         {obs.category?.replace(/_/g, " ")}
                       </span>
                       <span
                         className={cn(
-                          "px-2 py-0.5 rounded-md text-[11px] font-bold neo-pill border border-white/90",
+                          "px-2.5 py-0.5 rounded-lg text-[11px] font-bold border shadow-2xs bg-white/90",
                           obs.severity === "BERAT"
-                            ? "bg-rose-100 text-rose-800"
+                            ? "border-rose-200 text-rose-800"
                             : obs.severity === "SEDANG"
-                            ? "bg-amber-100 text-amber-800"
-                            : "bg-emerald-100 text-emerald-800"
+                            ? "border-amber-200 text-amber-800"
+                            : "border-emerald-200 text-emerald-800"
                         )}
                       >
                         Tingkat {obs.severity}
@@ -974,7 +1001,7 @@ export default function StudentShow({
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs font-mono font-bold text-slate-500">{log.date}</span>
                   <span className="text-xs font-bold text-slate-700">• {log.actor}</span>
-                  <span className={cn("px-2.5 py-0.5 rounded-md text-[10px] font-bold neo-pill border border-white/80", log.badgeColor)}>
+                  <span className={cn("px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-white/90 border border-slate-200/80 shadow-2xs", log.badgeColor)}>
                     {log.badge}
                   </span>
                 </div>

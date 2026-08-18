@@ -94,9 +94,9 @@ export default function Welcome() {
                 {/* Hero Section */}
                 <main className="relative z-10 max-w-6xl mx-auto px-6 pt-12 pb-16 space-y-12">
                     <div className="text-center space-y-5 max-w-3xl mx-auto">
-                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full neo-pill bg-white border border-blue-200/80 text-blue-700 text-xs font-bold shadow-sm">
-                            <IconAi className="w-4 h-4 text-blue-600" />
-                            <span>Soft Neomorphism + Clean Minimalist SaaS • AI Powered</span>
+                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 text-blue-700 text-xs font-bold shadow-2xs">
+                            <span className="w-2 h-2 rounded-full bg-blue-600 ring-3 ring-blue-500/20" />
+                            <span>E-Jurnal Observasi &amp; Early Warning System AI</span>
                         </div>
 
                         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight">
@@ -148,7 +148,7 @@ export default function Welcome() {
                                                     <div className={`p-3 rounded-2xl border ${role.bg}`}>
                                                         <Icon className={`w-6 h-6 ${role.color}`} />
                                                     </div>
-                                                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                                    <span className="px-2.5 py-1 rounded-xl text-xs font-bold bg-white/90 text-slate-700 border border-slate-200/80 shadow-2xs">
                                                         {role.badge}
                                                     </span>
                                                 </div>
@@ -177,7 +177,7 @@ export default function Welcome() {
                     {/* Quick Access to Student Profile 360 */}
                     <div className="p-6 rounded-3xl neo-card bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
                         <div className="space-y-1.5 text-center sm:text-left">
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-xs font-bold">
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/20 border border-white/30 text-xs font-bold">
                                 <IconGroup className="w-3.5 h-3.5" />
                                 <span>Contoh Lembar Kasus Interaktif</span>
                             </div>

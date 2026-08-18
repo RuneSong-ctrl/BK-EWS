@@ -281,7 +281,7 @@ export default function GuruBk({
               <span className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
                 Ruang Kerja Guru BK (Bimbingan Konseling)
               </span>
-              <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold neo-pill bg-indigo-50/80 text-indigo-800 border border-white/80">
+              <span className="px-2.5 py-1 rounded-xl text-xs font-bold bg-white/90 text-indigo-800 border border-slate-200/80 shadow-2xs">
                 Seluruh Kelas X - XII
               </span>
             </div>
@@ -322,10 +322,10 @@ export default function GuruBk({
           <div className="flex items-start justify-between gap-4 relative z-10">
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold neo-pill bg-rose-50/80 text-rose-800 border border-white/80 shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse" />
-                  Perhatian Segera
-                </span>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs">
+                  <span className="w-2 h-2 rounded-full bg-rose-600 ring-3 ring-rose-500/20 animate-pulse" />
+                  <span className="text-xs font-bold text-rose-800">Perhatian Segera</span>
+                </div>
                 <span className="text-xs font-semibold text-slate-500">Prioritas Tindak Lanjut</span>
               </div>
               <h2 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
@@ -366,9 +366,16 @@ export default function GuruBk({
                     <Link
                       key={item.id}
                       href={`/students/${item.id}`}
-                      className="inline-flex items-center gap-2 p-1.5 px-3 rounded-full neo-card-subtle bg-[#EEF2F7] hover:bg-white border border-white/90 text-xs font-bold text-slate-800 transition-all group/item"
+                      className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-white/90 hover:bg-white border border-slate-200/80 text-xs font-bold text-slate-800 transition-all shadow-2xs hover:shadow-xs group/item"
                     >
-                      <span className={cn("w-2 h-2 rounded-full shrink-0", item.status === "KRITIS" ? "bg-rose-500" : "bg-orange-500")} />
+                      <span
+                        className={cn(
+                          "w-2 h-2 rounded-full shrink-0",
+                          item.status === "KRITIS"
+                            ? "bg-rose-500 ring-3 ring-rose-500/20"
+                            : "bg-orange-500 ring-3 ring-orange-500/20"
+                        )}
+                      />
                       <span>{item.name}</span>
                       <span className="text-slate-500 font-normal">({item.class_name})</span>
                       <IconChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover/item:translate-x-0.5 transition-transform" />
@@ -381,7 +388,7 @@ export default function GuruBk({
                   )}
                 </div>
               ) : (
-                <div className="flex items-center gap-2 text-xs font-medium text-emerald-800 neo-card-subtle bg-[#EEF2F7] p-2.5 px-3.5 rounded-xl border border-white/90">
+                <div className="flex items-center gap-2 text-xs font-medium text-emerald-800 bg-white/90 p-2.5 px-3.5 rounded-xl border border-emerald-200/80 shadow-2xs">
                   <IconCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>Kondisi Kondusif: Seluruh siswa saat ini berada di zona aman tanpa anomali perilaku kritis.</span>
                 </div>
@@ -447,11 +454,11 @@ export default function GuruBk({
             </div>
           </div>
 
-          <div className="pt-2 border-t border-slate-200/80 relative z-10">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 neo-pill bg-emerald-50/80 px-3.5 py-1 rounded-full border border-white/80 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          <div className="pt-3 border-t border-slate-200/80 relative z-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-xs font-semibold text-slate-700">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 ring-4 ring-emerald-500/15" />
               <span>Progres Layanan Positif</span>
-            </span>
+            </div>
           </div>
         </div>
 
@@ -491,9 +498,10 @@ export default function GuruBk({
           </div>
 
           <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs font-semibold relative z-10">
-            <span className="text-[11px] font-bold text-amber-800 neo-pill bg-amber-50/80 px-2.5 py-1 rounded-lg border border-white/80">
-              Tahap Pemantauan
-            </span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 text-xs font-semibold text-slate-700 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-amber-500 ring-4 ring-amber-500/15" />
+              <span>Tahap Pemantauan</span>
+            </div>
             <span className="text-[11px] text-slate-500 font-medium">Bimbingan Berkelanjutan</span>
           </div>
         </div>
@@ -534,9 +542,10 @@ export default function GuruBk({
           </div>
 
           <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs font-semibold relative z-10">
-            <span className="text-[11px] font-bold text-blue-800 neo-pill bg-blue-50/80 px-2.5 py-1 rounded-lg border border-white/80">
-              Koordinasi Lanjutan
-            </span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 text-xs font-semibold text-slate-700 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-blue-500 ring-4 ring-blue-500/15" />
+              <span>Koordinasi Lanjutan</span>
+            </div>
             <span className="text-[11px] text-slate-500 font-medium">Wali Murid • Pimpinan</span>
           </div>
         </div>
@@ -553,11 +562,12 @@ export default function GuruBk({
               <IconHandshake className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+              <h2 className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
                 Form Pencatatan Layanan Bimbingan Konseling
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold neo-pill bg-indigo-50/80 text-indigo-800 border border-white/80">
-                  Guru BK • AI
-                </span>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-xs font-bold text-indigo-800">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 ring-2 ring-indigo-500/20" />
+                  <span>Guru BK • AI</span>
+                </div>
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
                 Dokumentasikan sesi konseling, dinamika masalah, dan kesepakatan tindak lanjut siswa secara terstruktur
@@ -565,19 +575,13 @@ export default function GuruBk({
             </div>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0 flex-wrap sm:flex-nowrap">
-            <div className="flex items-center gap-2">
-              <span className="text-xs sm:text-sm font-bold text-slate-600">Tanggal:</span>
-              <DatePickerInput
-                value={incidentDate}
-                onChange={setIncidentDate}
-                size="md"
-              />
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-2 rounded-2xl neo-pill bg-[#EEF2F7] border border-white/90 text-slate-700 text-xs font-semibold shrink-0">
-              <IconLock className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Rahasia</span>
-            </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-xs sm:text-sm font-bold text-slate-600">Tanggal:</span>
+            <DatePickerInput
+              value={incidentDate}
+              onChange={setIncidentDate}
+              size="md"
+            />
           </div>
         </div>
 
@@ -834,11 +838,12 @@ export default function GuruBk({
         <div className="lg:col-span-6 p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] border border-white/85 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)] space-y-4">
           <div className="flex items-center justify-between border-b border-slate-200/70 pb-3.5">
             <div>
-              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
                 Daftar Siswa Perlu Penanganan Segera
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold neo-pill bg-rose-50/80 text-rose-800 border border-white/80">
-                  {watchlist.length} Siswa
-                </span>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-xs font-bold text-rose-700 font-mono">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-600 ring-2 ring-rose-500/20" />
+                  <span>{watchlist.length} Siswa</span>
+                </div>
               </h3>
               <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
                 Siswa dengan status Kritis &amp; Waspada yang membutuhkan bimbingan konselor
@@ -861,7 +866,7 @@ export default function GuruBk({
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-sm sm:text-base text-slate-900">{item.name}</span>
-                        <span className="px-2 py-0.5 rounded-md text-xs font-bold neo-pill bg-white text-slate-700 border border-white/80">
+                        <span className="px-2 py-0.5 rounded-lg text-xs font-bold bg-white/90 text-slate-700 border border-slate-200/80 shadow-2xs">
                           {item.class_name}
                         </span>
                       </div>
@@ -925,12 +930,12 @@ export default function GuruBk({
 
                     <span
                       className={cn(
-                        "px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase neo-pill border border-white/90",
+                        "px-2.5 py-1 rounded-xl text-xs font-bold uppercase border bg-white/90 shadow-2xs",
                         caseItem.status === "DIESKALASI_KE_KEPSEK"
-                          ? "bg-rose-100/80 text-rose-800"
+                          ? "border-rose-200 text-rose-800"
                           : caseItem.status === "DALAM_PROSES"
-                            ? "bg-amber-100/80 text-amber-800"
-                            : "bg-emerald-100/80 text-emerald-800"
+                            ? "border-amber-200 text-amber-800"
+                            : "border-emerald-200 text-emerald-800"
                       )}
                     >
                       {caseItem.status.replace(/_/g, " ")}
@@ -1022,7 +1027,7 @@ export default function GuruBk({
                     </span>
                   </td>
                   <td className="py-4 px-3">
-                    <span className="px-2.5 py-0.5 rounded-md text-xs font-bold neo-pill bg-white text-slate-700 border border-white/80">
+                    <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-white/90 text-slate-700 border border-slate-200/80 shadow-2xs">
                       {student.class_name}
                     </span>
                   </td>

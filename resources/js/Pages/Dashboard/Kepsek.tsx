@@ -17,6 +17,7 @@ import {
   IconGraduationCap,
   IconSend,
   IconHandshake,
+  IconLock,
 } from "@/components/ui/storage-icon"
 import { EwsStatusBadge } from "@/components/ews/EwsStatusBadge"
 import {
@@ -239,10 +240,10 @@ export default function Kepsek({
           <div className="flex items-start justify-between gap-4 relative z-10">
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-blue-600" />
-                  EWS Real-Time Monitoring
-                </span>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs">
+                  <span className="w-2 h-2 rounded-full bg-blue-600 ring-3 ring-blue-500/20" />
+                  <span className="text-xs font-bold text-slate-800">EWS Real-Time Monitoring</span>
+                </div>
                 <span className="text-xs font-semibold text-slate-500">TP 2026/2027</span>
               </div>
               <h2 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
@@ -312,27 +313,27 @@ export default function Kepsek({
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-semibold">
-                <div className="flex items-center gap-1.5 p-1.5 px-3 rounded-full bg-white/95 border border-slate-200/80 shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                <div className="flex items-center gap-1.5 p-1.5 px-3 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20 shrink-0" />
                   <span className="text-slate-700 truncate">
                     Normal: <strong>{normalCount}</strong>
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 p-1.5 px-3 rounded-full bg-white/95 border border-slate-200/80 shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                <div className="flex items-center gap-1.5 p-1.5 px-3 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 ring-2 ring-amber-400/20 shrink-0" />
                   <span className="text-slate-700 truncate">
                     Risiko: <strong>{berisikoCount}</strong>
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 p-1.5 px-3 rounded-full bg-white/95 border border-slate-200/80 shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0" />
+                <div className="flex items-center gap-1.5 p-1.5 px-3 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs">
+                  <span className="w-2 h-2 rounded-full bg-orange-500 ring-2 ring-orange-500/20 shrink-0" />
                   <span className="text-slate-700 truncate">
                     Waspada: <strong>{waspadaCount}</strong>
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 p-1.5 px-3 rounded-full bg-white/95 border border-slate-200/80 shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
-                  <span className="text-rose-600 truncate font-bold">Kritis: {kritisCount}</span>
+                <div className="flex items-center gap-1.5 p-1.5 px-3 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 ring-2 ring-rose-500/20 shrink-0" />
+                  <span className="text-rose-700 truncate font-bold">Kritis: {kritisCount}</span>
                 </div>
               </div>
             </div>
@@ -400,11 +401,11 @@ export default function Kepsek({
             </div>
           </div>
 
-          <div className="pt-2 border-t border-slate-200/80 relative z-10">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3.5 py-1 rounded-full border border-emerald-200 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          <div className="pt-3 border-t border-slate-200/80 relative z-10">
+            <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-xs font-semibold text-slate-800">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 ring-4 ring-emerald-500/15" />
               <span>Zona Hijau Aman Terpantau</span>
-            </span>
+            </div>
           </div>
         </div>
 
@@ -449,9 +450,10 @@ export default function Kepsek({
           </div>
 
           <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between relative z-10">
-            <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 shadow-2xs">
-              Monitoring Ringan
-            </span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 text-xs font-semibold text-slate-700 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-amber-500 ring-4 ring-amber-500/15 shrink-0" />
+              <span>Monitoring Ringan</span>
+            </div>
             <span className="text-[11px] text-slate-500 font-medium">Tindak Lanjut Wali Kelas</span>
           </div>
         </div>
@@ -496,9 +498,10 @@ export default function Kepsek({
           </div>
 
           <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between relative z-10">
-            <span className="text-[11px] font-bold text-orange-800 bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-200 shadow-2xs">
-              Atensi Khusus
-            </span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 text-xs font-semibold text-slate-700 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-orange-500 ring-4 ring-orange-500/15 shrink-0" />
+              <span>Atensi Khusus</span>
+            </div>
             <span className="text-[11px] text-slate-500 font-medium">Koordinasi Wali &amp; BK</span>
           </div>
         </div>
@@ -543,9 +546,10 @@ export default function Kepsek({
           </div>
 
           <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between relative z-10">
-            <span className="text-[11px] font-bold text-rose-800 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200 shadow-2xs">
-              Intervensi Mendesak
-            </span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 text-xs font-semibold text-slate-700 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-rose-500 ring-4 ring-rose-500/15 shrink-0" />
+              <span>Intervensi Mendesak</span>
+            </div>
             <span className="text-[11px] text-slate-500 font-medium">Prioritas Kepala Sekolah</span>
           </div>
         </div>
@@ -570,10 +574,10 @@ export default function Kepsek({
               </p>
             </div>
           </div>
-
-          <span className="px-3 py-1 rounded-xl text-xs font-bold neo-pill bg-rose-50 text-rose-700 self-start sm:self-auto border border-rose-200">
-            Prioritas Manajemen
-          </span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-xs font-bold text-rose-700 self-start sm:self-auto">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-600 ring-2 ring-rose-500/20" />
+            <span>Prioritas Manajemen</span>
+          </div>
         </div>
 
         {/* Student Anomaly Grid */}
@@ -612,7 +616,7 @@ export default function Kepsek({
                     <span
                       className={cn(
                         "text-xs font-extrabold",
-                        std.attendance_rate !== null && std.attendance_rate < 80
+                        std.attendance_rate !== null && std.attendance_rate < 85
                           ? "text-rose-600"
                           : "text-slate-900"
                       )}
@@ -634,7 +638,7 @@ export default function Kepsek({
                 </div>
 
                 {/* Triggers */}
-                <div className="text-xs text-slate-700 bg-white/70 p-3 rounded-xl border border-slate-200/80 space-y-1">
+                <div className="text-xs text-slate-700 bg-white/90 p-3 rounded-xl border border-slate-200/80 shadow-2xs space-y-1">
                   <span className="text-[11px] font-bold text-rose-700 uppercase tracking-wider block">
                     Faktor Pemicu Risiko:
                   </span>
@@ -652,7 +656,7 @@ export default function Kepsek({
                   </span>
                   <Link
                     href={`/students/${std.id}`}
-                    className="text-xs font-bold text-blue-700 hover:text-blue-900 flex items-center gap-1.5 px-3 py-1.5 rounded-xl neo-btn bg-[#EEF2F7] border border-white/90 transition-all shadow-2xs"
+                    className="text-xs font-bold text-blue-700 hover:text-blue-900 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 transition-all shadow-2xs"
                   >
                     <span>Lembar Profil 360°</span>
                     <IconChevronRight className="w-3.5 h-3.5" />
@@ -662,35 +666,40 @@ export default function Kepsek({
             ))}
           </div>
         ) : (
-          <div className="p-8 rounded-2xl neo-inset bg-[#E7EDF4] text-center text-xs sm:text-sm text-slate-500 font-medium border border-slate-300/40">
-            Belum ada siswa dengan status kritis atau waspada. Seluruh iklim belajar siswa berada dalam kondisi kondusif.
+          <div className="p-8 text-center neo-inset bg-[#E7EDF4] rounded-2xl border border-slate-300/40 space-y-2">
+            <IconCheck className="w-8 h-8 text-emerald-600 mx-auto" />
+            <h4 className="font-bold text-slate-800 text-sm">Tidak Ada Siswa Anomali Kritis</h4>
+            <p className="text-xs text-slate-500 max-w-md mx-auto">
+              Seluruh siswa sekolah saat ini terpantau berada di zona aman atau risiko rendah.
+            </p>
           </div>
         )}
       </section>
 
-      {/* SECTION 2: Kasus BK Berat & Eskalasi Kepsek */}
+      {/* SECTION 2: LEMBAR DISPOSISI & KASUS ESKALASI BK */}
       <section
         id="eskalasi"
-        className="p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] border border-slate-200/80 space-y-6 relative overflow-hidden scroll-mt-20"
+        className="p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] border border-white/85 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)] space-y-6 scroll-mt-24"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-300/40 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/70 pb-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl neo-btn bg-[#EEF2F7] text-indigo-700 flex items-center justify-center shrink-0 shadow-xs border border-white/90">
+            <div className="w-12 h-12 rounded-2xl neo-btn text-indigo-700 flex items-center justify-center shrink-0 border border-white/90">
               <IconHandshake className="w-6 h-6" />
             </div>
             <div>
               <h2 className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight">
-                Daftar Kasus BK Prioritas &amp; Disposisi Eskalasi
+                Lembar Koordinasi Kasus Eskalasi Bimbingan Konseling
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Kasus bimbingan konseling dengan urgensi sedang/berat yang memerlukan keputusan dan disposisi Kepala Sekolah.
+                Kasus bimbingan konseling yang memerlukan koordinasi orang tua, psikolog, atau disposisi pimpinan sekolah.
               </p>
             </div>
           </div>
 
-          <span className="px-3 py-1 rounded-xl text-xs font-bold neo-pill bg-indigo-50 text-indigo-800 border border-indigo-200/80">
-            {escalatedCases.length} Kasus Terpantau
-          </span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-xs font-bold text-indigo-800 font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 ring-2 ring-indigo-500/20" />
+            <span>{escalatedCases.length} Kasus Terpantau</span>
+          </div>
         </div>
 
         {escalatedCases.length > 0 ? (
@@ -718,20 +727,20 @@ export default function Kepsek({
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto flex-wrap">
-                    <span className="px-2.5 py-1 rounded-xl text-xs font-bold neo-pill bg-white text-slate-800 border border-white/90">
+                    <span className="px-2.5 py-1 rounded-xl text-xs font-bold bg-white/90 text-slate-800 border border-slate-200/80 shadow-2xs">
                       {CATEGORY_MAP[c.category] || c.category}
                     </span>
                     <span
                       className={cn(
-                        "px-2.5 py-1 rounded-xl text-xs font-bold neo-pill border border-white/90",
+                        "px-2.5 py-1 rounded-xl text-xs font-bold border bg-white/90 shadow-2xs",
                         c.severity === "BERAT"
-                          ? "bg-rose-100/90 text-rose-800"
-                          : "bg-amber-100/90 text-amber-800"
+                          ? "border-rose-200 text-rose-800"
+                          : "border-amber-200 text-amber-800"
                       )}
                     >
                       Urgensi {c.severity}
                     </span>
-                    <span className="px-2.5 py-1 rounded-xl text-xs font-bold neo-pill bg-indigo-100/90 text-indigo-800 border border-white/90">
+                    <span className="px-2.5 py-1 rounded-xl text-xs font-bold bg-white/90 text-indigo-800 border border-slate-200/80 shadow-2xs">
                       {c.status.replace(/_/g, " ")}
                     </span>
                   </div>
@@ -740,77 +749,63 @@ export default function Kepsek({
                 {/* Case Summary Notes */}
                 {c.summary_notes && (
                   <div className="p-3.5 rounded-xl neo-inset bg-[#E7EDF4] border border-slate-300/40 text-slate-800 text-xs sm:text-sm font-medium leading-relaxed">
-                    "{c.summary_notes}"
+                    <span className="font-bold text-slate-700 block text-xs mb-1">Rangkuman Dinamika Masalah:</span>
+                    <p>{c.summary_notes}</p>
                   </div>
                 )}
 
-                {/* Follow Up Plans & Action */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 border-t border-slate-200/60">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-xs font-bold text-slate-600">RTL / Disposisi:</span>
-                    {c.follow_up_plan && c.follow_up_plan.length > 0 ? (
-                      c.follow_up_plan.map((act, idx) => (
-                        <span key={idx} className="text-xs font-medium px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-800">
-                          {act}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-slate-400 italic">Belum ada instruksi disposisi.</span>
-                    )}
+                {/* Action Row */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs pt-1">
+                  <div className="flex items-center gap-1 text-slate-500">
+                    <IconLock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>Penanganan internal BK tersupervisi</span>
                   </div>
-
-                  <div className="flex items-center gap-2 shrink-0 justify-end">
-                    <Link
-                      href={`/students/${c.student_id}`}
-                      className="px-3 py-1.5 rounded-xl neo-btn bg-[#EEF2F7] text-slate-700 hover:text-slate-900 border border-white/90 text-xs font-bold inline-flex items-center gap-1 transition-all"
-                    >
-                      <span>Profil Siswa</span>
-                      <IconChevronRight className="w-3.5 h-3.5" />
-                    </Link>
-
-                    <button
-                      type="button"
-                      onClick={() => handleOpenDisposition(c)}
-                      className="px-3.5 py-1.5 text-xs font-bold neo-btn-primary text-white rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
-                    >
-                      <IconSend className="w-3.5 h-3.5 text-white" />
-                      <span>Beri Disposisi</span>
-                    </button>
-                  </div>
+                  <Link
+                    href={`/students/${c.student_id}?tab=cases`}
+                    className="font-bold text-indigo-700 hover:text-indigo-900 inline-flex items-center gap-1"
+                  >
+                    <span>Buka Lembar Kasus Lengkap</span>
+                    <IconChevronRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="p-8 rounded-2xl neo-inset bg-[#E7EDF4] text-center text-xs sm:text-sm text-slate-500 font-medium border border-slate-300/40">
-            Tidak ada kasus BK dengan urgensi berat atau eskalasi aktif saat ini.
+          <div className="p-8 text-center neo-inset bg-[#E7EDF4] rounded-2xl border border-slate-300/40 space-y-2">
+            <IconCheck className="w-8 h-8 text-emerald-600 mx-auto" />
+            <h4 className="font-bold text-slate-800 text-sm">Tidak Ada Kasus Butuh Eskalasi</h4>
+            <p className="text-xs text-slate-500 max-w-md mx-auto">
+              Seluruh penanganan bimbingan konseling saat ini telah terselesaikan secara kondusif di tingkat konselor.
+            </p>
           </div>
         )}
       </section>
 
-      {/* SECTION 3: Monitoring per Rombongan Belajar (Kelas) */}
+      {/* SECTION 3: RINGKASAN ROMBONGAN BELAJAR & IKLIM KELAS */}
       <section
         id="rombel"
-        className="p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] border border-slate-200/80 space-y-6 relative overflow-hidden scroll-mt-20"
+        className="p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] border border-white/85 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)] space-y-6 scroll-mt-24"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-300/40 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/70 pb-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl neo-btn bg-[#EEF2F7] text-emerald-700 flex items-center justify-center shrink-0 shadow-xs border border-white/90">
+            <div className="w-12 h-12 rounded-2xl neo-btn text-emerald-700 flex items-center justify-center shrink-0 border border-white/90">
               <IconGroup className="w-6 h-6" />
             </div>
             <div>
               <h2 className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight">
-                Monitoring Iklim per Rombongan Belajar (Kelas)
+                Ringkasan Iklim &amp; Status Per Rombongan Belajar
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Pemantauan kesehatan 4 pilar EWS di setiap kelas yang dibina oleh masing-masing Wali Kelas.
+                Pemantauan komparatif kesehatan iklim kelas, tingkat presensi, dan beban intervensi siswa.
               </p>
             </div>
           </div>
 
-          <span className="px-3 py-1 rounded-xl text-xs font-bold neo-pill bg-emerald-50 text-emerald-800 border border-emerald-200/80">
-            {classes.length} Rombel Terdaftar
-          </span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-xs font-bold text-emerald-800 font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20" />
+            <span>{classes.length} Rombel Terdaftar</span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

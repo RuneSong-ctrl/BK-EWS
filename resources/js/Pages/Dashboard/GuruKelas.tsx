@@ -365,10 +365,11 @@ export default function GuruKelas({
           <div className="flex items-start justify-between gap-4 relative z-10">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs">
-                  Kelas {className}
-                </span>
-                <span className="text-xs font-semibold text-slate-500">TP {schoolClass?.academic_year || "2026/2027"}</span>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs">
+                  <span className="w-2 h-2 rounded-full bg-blue-600 ring-3 ring-blue-500/20" />
+                  <span className="text-xs font-bold text-slate-800">Kelas {className}</span>
+                </div>
+                <span className="text-xs font-mono font-semibold text-slate-500">TP {schoolClass?.academic_year || "2026/2027"}</span>
               </div>
               <h2 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
                 Ringkasan Kondisi &amp; Pemantauan Siswa Kelas
@@ -523,15 +524,30 @@ export default function GuruKelas({
             </div>
           </div>
 
-          <div className="pt-2 border-t border-slate-200/80 relative z-10 flex items-center justify-between gap-2">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3.5 py-1 rounded-full border border-emerald-200 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span>{lowAttendanceCount > 0 ? `${lowAttendanceCount} Siswa Presensi < 85%` : "Seluruh Siswa Tertib Hadir"}</span>
-            </span>
+          <div className="pt-3 border-t border-slate-200/80 relative z-10 flex items-center justify-between gap-2">
+            <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-xs text-slate-700">
+              <span
+                className={cn(
+                  "w-2 h-2 rounded-full shrink-0",
+                  lowAttendanceCount > 0
+                    ? "bg-rose-500 ring-4 ring-rose-500/15"
+                    : "bg-emerald-500 ring-4 ring-emerald-500/15"
+                )}
+              />
+              <span>
+                {lowAttendanceCount > 0 ? (
+                  <>
+                    <strong className="font-mono font-extrabold text-slate-900">{lowAttendanceCount}</strong> Siswa Presensi &lt; 85%
+                  </>
+                ) : (
+                  <span className="font-semibold text-slate-800">Seluruh Siswa Tertib Hadir</span>
+                )}
+              </span>
+            </div>
             <button
               type="button"
               onClick={() => setIsAttendanceModalOpen(true)}
-              className="px-3 py-1 text-xs font-bold text-emerald-700 hover:text-emerald-900 bg-white hover:bg-emerald-50 border border-emerald-200/80 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
+              className="px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-emerald-700 bg-white/90 hover:bg-white border border-slate-200/80 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
             >
               Catat Presensi
             </button>
@@ -576,45 +592,48 @@ export default function GuruKelas({
                   <Link
                     key={s.id}
                     href={`/students/${s.id}`}
-                    className="inline-flex items-center gap-1.5 p-1 px-2.5 rounded-full bg-white/95 hover:bg-white border border-slate-200/80 text-xs font-bold text-slate-800 transition-all shadow-2xs hover:shadow-xs group/item"
+                    className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-white/90 hover:bg-white border border-slate-200/80 text-xs font-bold text-slate-800 transition-all shadow-2xs hover:shadow-xs group/item"
                   >
                     <span
                       className={cn(
                         "w-2 h-2 rounded-full shrink-0",
                         s.ews_status === "KRITIS"
-                          ? "bg-rose-500"
+                          ? "bg-rose-500 ring-3 ring-rose-500/20"
                           : s.ews_status === "WASPADA"
-                            ? "bg-orange-500"
-                            : "bg-amber-400"
+                            ? "bg-orange-500 ring-3 ring-orange-500/20"
+                            : "bg-amber-400 ring-3 ring-amber-400/20"
                       )}
                     />
                     <span>{s.name}</span>
-                    <IconChevronRight className="w-3 h-3 text-slate-500 group-hover/item:translate-x-0.5 transition-transform" />
+                    <IconChevronRight className="w-3 h-3 text-slate-400 group-hover/item:text-slate-700 group-hover/item:translate-x-0.5 transition-transform" />
                   </Link>
                 ))}
                 {atensiStudents.length > 3 && (
                   <button
                     type="button"
                     onClick={() => setActiveTab("ATENSI")}
-                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800 p-1 px-2 cursor-pointer"
+                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800 px-2 py-1 cursor-pointer font-mono"
                   >
                     +{atensiStudents.length - 3} Siswa Lain &rarr;
                   </button>
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-2 text-xs font-medium text-emerald-700 bg-emerald-50 p-2 px-3 rounded-xl border border-emerald-200">
+              <div className="inline-flex items-center gap-2 text-xs font-medium text-emerald-800 bg-white/90 px-3 py-1.5 rounded-xl border border-emerald-200/80 shadow-2xs">
                 <IconCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Kondisi Baik: Seluruh siswa kelas aktif dan tidak ada kendala perilaku yang menonjol.</span>
+                <span>Kondisi Baik: Seluruh siswa kelas aktif dan tidak ada kendala perilaku menonjol.</span>
               </div>
             )}
           </div>
 
           <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs font-semibold relative z-10">
-            <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 shadow-2xs">
-              Perlu Observasi Khusus
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 text-xs font-semibold text-slate-700 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-amber-500 ring-4 ring-amber-500/15 shrink-0" />
+              <span>Perlu Observasi Khusus</span>
+            </div>
+            <span className="text-xs font-mono font-bold text-slate-500">
+              <span className="text-rose-600">{kritisCount}</span> Kritis • <span className="text-amber-600">{waspadaCount}</span> Waspada
             </span>
-            <span className="text-[11px] text-slate-500 font-medium">{kritisCount} Kritis • {waspadaCount} Waspada</span>
           </div>
         </div>
 
@@ -654,22 +673,37 @@ export default function GuruKelas({
           </div>
 
           <div className="flex items-center justify-between pt-3 border-t border-slate-200/80 text-xs font-semibold relative z-10 gap-2">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white/95 px-3 py-1 rounded-full border border-slate-200/80 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-              <span>{scoreDropCount > 0 ? `${scoreDropCount} Siswa Perlu Remedial` : "Nilai Kelas Terpantau Tuntas"}</span>
-            </span>
+            <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-xs text-slate-700">
+              <span
+                className={cn(
+                  "w-2 h-2 rounded-full shrink-0",
+                  scoreDropCount > 0
+                    ? "bg-amber-500 ring-4 ring-amber-500/15"
+                    : "bg-blue-500 ring-4 ring-blue-500/15"
+                )}
+              />
+              <span>
+                {scoreDropCount > 0 ? (
+                  <>
+                    <strong className="font-mono font-extrabold text-slate-900">{scoreDropCount}</strong> Siswa Perlu Remedial
+                  </>
+                ) : (
+                  <span className="font-semibold text-slate-800">Nilai Kelas Terpantau Tuntas</span>
+                )}
+              </span>
+            </div>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setIsAcademicModalOpen(true)}
-                className="px-3 py-1 text-xs font-bold text-blue-700 hover:text-blue-900 bg-white hover:bg-blue-50 border border-blue-200/80 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
+                className="px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-blue-700 bg-white/90 hover:bg-white border border-slate-200/80 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
               >
                 Catat Nilai
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab("NILAI_TURUN")}
-                className="text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 cursor-pointer"
+                className="text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 cursor-pointer text-xs px-2 py-1 hover:bg-white rounded-lg transition-colors"
               >
                 <span>Filter</span>
                 <IconArrowUpRight className="w-3.5 h-3.5" />
@@ -695,9 +729,10 @@ export default function GuruKelas({
                 <h2 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
                   Pencatatan Jurnal Observasi Siswa
                 </h2>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold neo-pill bg-blue-50/80 text-blue-700 border border-white/90">
-                  Asisten AI
-                </span>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-xs font-bold text-blue-700">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600 ring-2 ring-blue-500/20" />
+                  <span>Asisten AI</span>
+                </div>
               </div>
               <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
                 Catat kejadian atau perilaku siswa di kelas untuk memperbarui indikator peringatan dini (EWS)

@@ -232,21 +232,26 @@ export function QuickAttendanceModal({
 
           {/* Counters in Middle */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg neo-pill bg-white text-emerald-800 border border-white/80 shadow-2xs">
-              Hadir: <strong>{countHadir}</strong>
-            </span>
-            <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg neo-pill bg-white text-amber-800 border border-white/80 shadow-2xs">
-              Sakit: <strong>{countSakit}</strong>
-            </span>
-            <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg neo-pill bg-white text-blue-800 border border-white/80 shadow-2xs">
-              Izin: <strong>{countIzin}</strong>
-            </span>
-            <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg neo-pill bg-white text-rose-800 border border-white/80 shadow-2xs">
-              Alpa: <strong>{countAlpa}</strong>
-            </span>
-            <span className="text-[11px] font-bold px-2.5 py-1 rounded-lg neo-pill bg-white text-orange-800 border border-white/80 shadow-2xs">
-              Telat: <strong>{countTerlambat}</strong>
-            </span>
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-emerald-800 border border-slate-200/80 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20" />
+              <span>Hadir: <strong className="font-mono text-slate-900">{countHadir}</strong></span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-amber-800 border border-slate-200/80 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 ring-2 ring-amber-500/20" />
+              <span>Sakit: <strong className="font-mono text-slate-900">{countSakit}</strong></span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-blue-800 border border-slate-200/80 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 ring-2 ring-blue-500/20" />
+              <span>Izin: <strong className="font-mono text-slate-900">{countIzin}</strong></span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-rose-800 border border-slate-200/80 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 ring-2 ring-rose-500/20" />
+              <span>Alpa: <strong className="font-mono text-slate-900">{countAlpa}</strong></span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-orange-800 border border-slate-200/80 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-500 ring-2 ring-orange-500/20" />
+              <span>Telat: <strong className="font-mono text-slate-900">{countTerlambat}</strong></span>
+            </div>
           </div>
 
           {/* Quick Action on Right */}

@@ -68,8 +68,8 @@ export function BkCaseSuccessModal({
             </div>
 
             <div className="space-y-0.5">
-              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold neo-pill bg-indigo-50/80 text-indigo-800 border border-white/80">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse" />
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/90 text-indigo-800 border border-slate-200/80 shadow-2xs text-[11px] font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 ring-2 ring-indigo-500/20 animate-pulse" />
                 <span>Tersimpan &amp; Pilar BK Terkalkulasi</span>
               </div>
               <DialogTitle className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
@@ -105,22 +105,22 @@ export function BkCaseSuccessModal({
 
             {/* Badges */}
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-bold neo-pill bg-white text-slate-800 border border-white/90">
+              <span className="px-2.5 py-1 rounded-xl text-xs font-bold bg-white/90 text-slate-800 border border-slate-200/80 shadow-2xs">
                 {categoryLabel}
               </span>
               <span
                 className={cn(
-                  "px-2.5 py-0.5 rounded-lg text-[11px] font-bold neo-pill border border-white/90",
+                  "px-2.5 py-1 rounded-xl text-xs font-bold border shadow-2xs bg-white/90",
                   detail.severity === "BERAT"
-                    ? "bg-rose-100/90 text-rose-800"
+                    ? "border-rose-200 text-rose-800"
                     : detail.severity === "SEDANG"
-                    ? "bg-amber-100/90 text-amber-800"
-                    : "bg-emerald-100/90 text-emerald-800"
+                    ? "border-amber-200 text-amber-800"
+                    : "border-emerald-200 text-emerald-800"
                 )}
               >
                 Urgensi {detail.severity}
               </span>
-              <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-bold neo-pill bg-indigo-100/90 text-indigo-800 border border-white/90">
+              <span className="px-2.5 py-1 rounded-xl text-xs font-bold bg-white/90 text-indigo-800 border border-slate-200/80 shadow-2xs">
                 {detail.status.replace(/_/g, " ")}
               </span>
             </div>
@@ -137,7 +137,7 @@ export function BkCaseSuccessModal({
               <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
                 <span className="text-[11px] font-bold text-slate-600">RTL:</span>
                 {detail.follow_up.map((act, i) => (
-                  <span key={i} className="text-[11px] font-bold px-2 py-0.5 rounded-md neo-pill bg-white text-indigo-800 border border-white/80">
+                  <span key={i} className="text-xs font-bold px-2.5 py-0.5 rounded-lg bg-white/90 text-indigo-800 border border-slate-200/80 shadow-2xs">
                     {act}
                   </span>
                 ))}

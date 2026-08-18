@@ -15,6 +15,7 @@ import {
   IconCheck,
   IconBook,
   IconSave,
+  IconSpreadsheet,
 } from "@/components/ui/storage-icon"
 import { toast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
@@ -128,11 +129,15 @@ export function QuickAcademicModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    const currentPeriod = isSemesterExam
-      ? assessmentType === "UTS"
+    const currentPeriod =
+      periodName.trim() ||
+      (assessmentType === "UTS"
         ? "Penilaian Tengah Semester (PTS)"
-        : "Penilaian Akhir Semester (PAS)"
-      : periodName || "Ulangan Harian"
+        : assessmentType === "UAS"
+        ? "Penilaian Akhir Semester (PAS)"
+        : assessmentType === "UH"
+        ? "Ulangan Harian 1"
+        : "Tugas 1")
 
     const payloadScores = students.map((st) => ({
       student_id: st.id,
@@ -172,48 +177,45 @@ export function QuickAcademicModal({
     )
   }
 
-  const currentSubject = subjects.find((s) => s.id === selectedSubjectId)
-  const passingGrade = currentSubject?.passing_grade ?? 75
+  // Count remedial vs tuntas live
+  const passingGrade =
+    subjects.find((s) => s.id === selectedSubjectId)?.passing_grade ?? 75
 
-  const hasExistingScores = React.useMemo(() => {
-    return students.some((st) =>
-      st.academic_records?.some(
-        (rec) =>
-          rec.subject_id === selectedSubjectId &&
-          rec.assessment_type === assessmentType &&
-          rec.period === periodName
-      )
-    )
-  }, [students, selectedSubjectId, assessmentType, periodName])
+  const countRemedial = students.filter((st) => {
+    const val = parseFloat(scores[st.id] || "0")
+    return val < passingGrade
+  }).length
+
+  const countTuntas = students.length - countRemedial
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl p-0 gap-0 overflow-hidden bg-[#EEF2F7] border border-white/85 shadow-[6px_6px_20px_rgba(166,178,196,0.45),-6px_-6px_20px_rgba(255,255,255,0.95)] rounded-3xl max-h-[92vh] flex flex-col z-[100]">
+      <DialogContent className="max-w-3xl w-full bg-[#EEF2F7] border border-white/90 p-0 shadow-2xl rounded-3xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <DialogHeader className="p-5 sm:p-6 bg-[#EEF2F7] border-b border-slate-200/70 shrink-0 pr-14">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl neo-btn text-indigo-700 flex items-center justify-center shrink-0 shadow-xs border border-white/90">
-              <IconGraduationCap className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <DialogTitle className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight">
-                  Input Rekap Nilai Akademik Kelas {classNameTitle}
-                </DialogTitle>
-                <span
-                  className={cn(
-                    "px-2 py-0.5 rounded-md text-[10px] font-bold border",
-                    hasExistingScores
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      : "bg-blue-50 text-blue-700 border-blue-200"
-                  )}
-                >
-                  {hasExistingScores ? "Tersimpan di DB" : "Input Baru"}
-                </span>
+        <DialogHeader className="p-4 sm:p-6 bg-[#EEF2F7] border-b border-slate-200/70 shrink-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl neo-btn text-indigo-700 flex items-center justify-center shrink-0 border border-white/90 shadow-2xs">
+                <IconSpreadsheet className="w-5 h-5" />
               </div>
-              <DialogDescription className="text-xs text-slate-500 font-medium mt-0.5">
-                Catat nilai tugas, kuis, atau ulangan harian untuk mengaktifkan Pilar Akademik (AK) &amp; EWS.
-              </DialogDescription>
+              <div>
+                <DialogTitle className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
+                  Input Rekap Nilai Akademik
+                </DialogTitle>
+                <DialogDescription className="text-xs text-slate-500 font-medium">
+                  {classNameTitle || "Kelas Binaan"} • Terintegrasi deteksi dini pilar Akademik (AK)
+                </DialogDescription>
+              </div>
+            </div>
+
+            {/* Quick Status Chips */}
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <span className="text-xs font-bold px-2.5 py-1 rounded-xl bg-white/90 text-emerald-800 border border-slate-200/80 shadow-2xs">
+                Tuntas: <strong>{countTuntas}</strong>
+              </span>
+              <span className="text-xs font-bold px-2.5 py-1 rounded-xl bg-white/90 text-amber-800 border border-slate-200/80 shadow-2xs">
+                Remedial: <strong>{countRemedial}</strong>
+              </span>
             </div>
           </div>
         </DialogHeader>
@@ -221,16 +223,9 @@ export function QuickAcademicModal({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
           {/* Top Config Ribbon */}
-          <div
-            className={cn(
-              "p-4 sm:p-5 bg-[#E7EDF4]/60 border-b border-slate-200/70 grid gap-3.5 shrink-0",
-              isSemesterExam
-                ? "grid-cols-1 sm:grid-cols-12"
-                : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-12"
-            )}
-          >
+          <div className="p-4 sm:p-5 bg-[#E7EDF4]/60 border-b border-slate-200/70 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 shrink-0">
             {/* Subject Selector */}
-            <div className={cn("space-y-1", isSemesterExam ? "sm:col-span-5" : "lg:col-span-4")}>
+            <div className="space-y-1 lg:col-span-4">
               <Label className="text-xs font-bold text-slate-700">Mata Pelajaran</Label>
               <select
                 value={selectedSubjectId}
@@ -246,7 +241,7 @@ export function QuickAcademicModal({
             </div>
 
             {/* Assessment Type */}
-            <div className={cn("space-y-1", isSemesterExam ? "sm:col-span-4" : "lg:col-span-3")}>
+            <div className="space-y-1 lg:col-span-3">
               <Label className="text-xs font-bold text-slate-700">Jenis Penilaian</Label>
               <select
                 value={assessmentType}
@@ -260,23 +255,29 @@ export function QuickAcademicModal({
               </select>
             </div>
 
-            {/* Period / KD Name (Only shown for UH and TUGAS, hidden for UTS & UAS) */}
-            {!isSemesterExam && (
-              <div className="space-y-1 lg:col-span-2">
-                <Label className="text-xs font-bold text-slate-700">Nama Penilaian / KD</Label>
-                <Input
-                  type="text"
-                  value={periodName}
-                  onChange={(e) => setPeriodName(e.target.value)}
-                  placeholder="Misal: UH 1 - Aljabar"
-                  className="h-10 text-xs font-bold neo-inset bg-[#E7EDF4] border border-slate-300/40"
-                  required
-                />
-              </div>
-            )}
+            {/* Period / KD Name (Always shown for manual text input) */}
+            <div className="space-y-1 lg:col-span-3">
+              <Label className="text-xs font-bold text-slate-700">Label / Nama Penilaian</Label>
+              <Input
+                type="text"
+                value={periodName}
+                onChange={(e) => setPeriodName(e.target.value)}
+                placeholder={
+                  assessmentType === "UH"
+                    ? "Misal: UH 1 - Aljabar"
+                    : assessmentType === "TUGAS"
+                    ? "Misal: Tugas 1 - Resensi"
+                    : assessmentType === "UTS"
+                    ? "Misal: UTS Semester Ganjil"
+                    : "Misal: PAS Semester Genap"
+                }
+                className="h-10 text-xs font-bold neo-inset bg-[#E7EDF4] border border-slate-300/40"
+                required
+              />
+            </div>
 
             {/* Quick Bulk Filler */}
-            <div className={cn("space-y-1", isSemesterExam ? "sm:col-span-3" : "lg:col-span-3")}>
+            <div className="space-y-1 lg:col-span-2">
               <Label className="text-xs font-bold text-slate-700">Terapkan Serentak</Label>
               <div className="flex items-center gap-1.5">
                 <Input
@@ -285,7 +286,7 @@ export function QuickAcademicModal({
                   max="100"
                   value={quickDefaultScore}
                   onChange={(e) => setQuickDefaultScore(e.target.value)}
-                  className="h-10 w-16 text-xs font-mono font-bold text-center neo-inset bg-[#E7EDF4] border border-slate-300/40"
+                  className="h-10 w-14 text-xs font-mono font-bold text-center neo-inset bg-[#E7EDF4] border border-slate-300/40"
                 />
                 <button
                   type="button"

@@ -22,32 +22,26 @@ export function formatLocalDateToYMD(d: Date = new Date()): string {
   return `${year}-${month}-${day}`
 }
 
-function getDayAndFormattedDate(dateStr?: string): { dayName: string; formattedDate: string; isToday: boolean; isYesterday: boolean } {
+function getDayAndFormattedDate(dateStr?: string): { dayName: string; formattedDate: string; isToday: boolean } {
   if (!dateStr) {
-    return { dayName: "", formattedDate: "Pilih Tanggal...", isToday: false, isYesterday: false }
+    return { dayName: "", formattedDate: "Pilih Tanggal...", isToday: false }
   }
 
   try {
     const [year, month, day] = dateStr.split("-").map(Number)
     if (!year || !month || !day) {
-      return { dayName: "", formattedDate: dateStr, isToday: false, isYesterday: false }
+      return { dayName: "", formattedDate: dateStr, isToday: false }
     }
 
     const targetDate = new Date(year, month - 1, day, 12, 0, 0)
     const today = new Date()
-    const yesterday = new Date()
-    yesterday.setDate(today.getDate() - 1)
+    today.setHours(12, 0, 0, 0)
 
-    const isToday =
-      targetDate.getFullYear() === today.getFullYear() &&
-      targetDate.getMonth() === today.getMonth() &&
-      targetDate.getDate() === today.getDate()
+    const targetTime = new Date(year, month - 1, day, 12, 0, 0).getTime()
+    const todayTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0).getTime()
+    const diffDays = Math.round((targetTime - todayTime) / (1000 * 60 * 60 * 24))
 
-    const isYesterday =
-      targetDate.getFullYear() === yesterday.getFullYear() &&
-      targetDate.getMonth() === yesterday.getMonth() &&
-      targetDate.getDate() === yesterday.getDate()
-
+    const isToday = diffDays === 0
     const dayName = targetDate.toLocaleDateString("id-ID", { weekday: "long" })
     const formattedDate = targetDate.toLocaleDateString("id-ID", {
       day: "numeric",
@@ -55,9 +49,9 @@ function getDayAndFormattedDate(dateStr?: string): { dayName: string; formattedD
       year: "numeric",
     })
 
-    return { dayName, formattedDate, isToday, isYesterday }
+    return { dayName, formattedDate, isToday }
   } catch {
-    return { dayName: "", formattedDate: dateStr, isToday: false, isYesterday: false }
+    return { dayName: "", formattedDate: dateStr, isToday: false }
   }
 }
 
@@ -87,7 +81,7 @@ export function DatePickerInput({
   showDayName = true,
 }: DatePickerInputProps) {
   const inputRef = React.useRef<HTMLInputElement>(null)
-  const { dayName, formattedDate, isToday, isYesterday } = React.useMemo(
+  const { dayName, formattedDate, isToday } = React.useMemo(
     () => getDayAndFormattedDate(value),
     [value]
   )
@@ -108,9 +102,9 @@ export function DatePickerInput({
   }
 
   const sizeClasses = {
-    sm: "h-8 px-2.5 text-xs gap-1.5 rounded-xl",
-    md: "h-9 sm:h-10 px-3 text-xs sm:text-sm gap-2 rounded-xl",
-    lg: "h-11 sm:h-12 px-4 text-sm sm:text-base gap-3 rounded-2xl",
+    sm: "h-8 px-2.5 text-xs gap-2 rounded-xl w-[205px] sm:w-[220px]",
+    md: "h-9 sm:h-10 px-3 text-xs sm:text-sm gap-2.5 rounded-xl w-[235px] sm:w-[250px]",
+    lg: "h-11 sm:h-12 px-4 text-sm sm:text-base gap-3 rounded-2xl w-[265px] sm:w-[285px]",
   }[size]
 
   const iconSizes = {
@@ -127,8 +121,8 @@ export function DatePickerInput({
         </span>
       )}
 
-      <div className="flex items-center gap-1">
-        {/* Main Interactive Date Display */}
+      <div className="flex items-center gap-1.5 shrink-0">
+        {/* Main Interactive Date Display - Spacious, Fixed Width, Zero Truncation */}
         <div
           onClick={() => {
             if (!disabled && inputRef.current) {
@@ -140,44 +134,32 @@ export function DatePickerInput({
             }
           }}
           className={cn(
-            "relative flex items-center justify-between font-bold text-slate-800 transition-all cursor-pointer",
+            "relative flex items-center justify-between font-bold text-slate-800 transition-all cursor-pointer shrink-0 select-none",
             "neo-inset bg-[#E7EDF4] border border-slate-300/40 hover:border-blue-400/80 shadow-inner",
             "focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500",
             sizeClasses,
             disabled && "opacity-50 cursor-not-allowed pointer-events-none"
           )}
-          title="Klik untuk membuka kalender"
+          title="Klik untuk memilih tanggal dari kalender"
         >
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-5 h-5 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 border border-blue-200/60 shadow-2xs">
               <CalendarIcon className={iconSizes} />
             </div>
 
-            <div className="flex items-baseline gap-1.5 min-w-0 truncate">
+            <div className="flex items-baseline gap-1.5 min-w-0 tabular-nums whitespace-nowrap text-slate-800">
               {showDayName && dayName && (
                 <span className="text-blue-700 font-extrabold tracking-tight shrink-0">
                   {dayName},
                 </span>
               )}
-              <span className="font-bold text-slate-900 tracking-tight truncate">
+              <span className="font-bold text-slate-900 tracking-tight">
                 {formattedDate}
               </span>
             </div>
           </div>
 
-          {/* Quick Relative Badge */}
-          {isToday && (
-            <span className="ml-1.5 px-1.5 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-100/90 text-emerald-800 border border-emerald-300/60 shrink-0 shadow-2xs">
-              Hari Ini
-            </span>
-          )}
-          {isYesterday && (
-            <span className="ml-1.5 px-1.5 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-100/90 text-amber-800 border border-amber-300/60 shrink-0 shadow-2xs">
-              Kemarin
-            </span>
-          )}
-
-          <ChevronDown className={cn("text-slate-400 shrink-0 ml-1 opacity-60", iconSizes)} />
+          <ChevronDown className={cn("text-slate-400 shrink-0 opacity-60 ml-1", iconSizes)} />
 
           {/* Native Date Input Overlay */}
           <input
@@ -189,18 +171,18 @@ export function DatePickerInput({
             max={max}
             disabled={disabled}
             tabIndex={0}
-            aria-label={label || "Pilih Tanggal KBM"}
+            aria-label={label || "Pilih Tanggal"}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer -z-0 focus:outline-none"
           />
         </div>
 
-        {/* Quick Day Stepper Controls (< Kemarin, > Besok, Hari Ini) */}
+        {/* Quick Day Stepper Controls (< Prev, > Next, ↺ Hari Ini) */}
         {showQuickStepper && !disabled && (
-          <div className="flex items-center gap-0.5 shrink-0">
+          <div className="flex items-center gap-1 shrink-0">
             <button
               type="button"
               onClick={(e) => handleStepDay(-1, e)}
-              className="w-7 sm:w-8 h-7 sm:h-8 rounded-xl neo-btn bg-[#EEF2F7] hover:bg-white text-slate-700 hover:text-blue-700 border border-white/90 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+              className="w-7 sm:w-8 h-7 sm:h-8 rounded-xl neo-btn bg-[#EEF2F7] hover:bg-white text-slate-700 hover:text-blue-700 border border-white/90 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 shrink-0"
               title="Hari Sebelumnya (H-1)"
             >
               <ChevronLeft className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
@@ -209,26 +191,32 @@ export function DatePickerInput({
             <button
               type="button"
               onClick={(e) => handleStepDay(1, e)}
-              className="w-7 sm:w-8 h-7 sm:h-8 rounded-xl neo-btn bg-[#EEF2F7] hover:bg-white text-slate-700 hover:text-blue-700 border border-white/90 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+              className="w-7 sm:w-8 h-7 sm:h-8 rounded-xl neo-btn bg-[#EEF2F7] hover:bg-white text-slate-700 hover:text-blue-700 border border-white/90 flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95 shrink-0"
               title="Hari Berikutnya (H+1)"
             >
               <ChevronRight className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
             </button>
 
-            {!isToday && (
-              <button
-                type="button"
-                onClick={handleJumpToToday}
-                className="h-7 sm:h-8 px-2 rounded-xl neo-btn bg-blue-50/80 hover:bg-blue-100 text-blue-700 border border-blue-200/80 text-[11px] font-bold flex items-center gap-1 transition-all cursor-pointer shadow-2xs active:scale-95"
-                title="Kembali ke Tanggal Hari Ini"
-              >
-                <RotateCcw className="w-3 h-3" />
-                <span className="hidden sm:inline">Hari Ini</span>
-              </button>
-            )}
+            {/* Permanent "Hari Ini" Button - Always occupies its exact slot so layout never shifts */}
+            <button
+              type="button"
+              onClick={handleJumpToToday}
+              disabled={isToday}
+              className={cn(
+                "h-7 sm:h-8 px-2 sm:px-2.5 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all shrink-0 select-none",
+                isToday
+                  ? "bg-slate-100/60 text-slate-400 border border-slate-200/50 cursor-not-allowed opacity-35 shadow-none pointer-events-none"
+                  : "neo-btn bg-white/95 hover:bg-blue-50 text-blue-700 hover:text-blue-800 border border-slate-200/80 hover:border-blue-300 shadow-2xs cursor-pointer active:scale-95"
+              )}
+              title={isToday ? "Sedang di tanggal Hari Ini" : "Kembali ke Tanggal Hari Ini"}
+            >
+              <RotateCcw className={cn("w-3 h-3 shrink-0", !isToday && "text-blue-600")} />
+              <span className="shrink-0 font-bold">Hari Ini</span>
+            </button>
           </div>
         )}
       </div>
     </div>
   )
 }
+
