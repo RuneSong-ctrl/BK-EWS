@@ -71,7 +71,7 @@ export function LinearScale({
           </div>
           <div
             className={cn(
-              "px-3 py-1 rounded-xl neo-card-subtle bg-[#EEF2F7] border border-white/90 font-mono text-xs sm:text-sm font-bold shrink-0 transition-all",
+              "px-3 py-1 rounded-xl neo-card-subtle bg-[#EEF2F7] border border-white/90 font-number text-xs sm:text-sm font-extrabold shrink-0 transition-all",
               mode === "continuous"
                 ? value >= 75
                   ? "text-emerald-700 font-extrabold"
@@ -104,7 +104,7 @@ export function LinearScale({
                   aria-label={`Nilai ${s} dari ${max}`}
                   onClick={() => onChange(s)}
                   className={cn(
-                    "flex-1 h-9 sm:h-10 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center select-none",
+                    "flex-1 h-9 sm:h-10 rounded-xl text-xs sm:text-sm font-number font-extrabold transition-all cursor-pointer flex items-center justify-center select-none",
                     "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none active:scale-95",
                     isSelected
                       ? cn("scale-[1.03] font-extrabold shadow-sm ring-1 ring-white/50", getColorClass(s))

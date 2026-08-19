@@ -14,6 +14,7 @@ import {
   IconCalendarCheck,
   IconAlert,
   IconSave,
+  IconLoader,
 } from "@/components/ui/storage-icon"
 import { DatePickerInput, formatLocalDateToYMD } from "@/components/ui/date-picker-input"
 import { toast } from "@/hooks/use-toast"
@@ -188,7 +189,7 @@ export function QuickAttendanceModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[96vw] max-w-4xl p-0 gap-0 overflow-hidden bg-[#EEF2F7] border border-white/85 shadow-[6px_6px_20px_rgba(166,178,196,0.45),-6px_-6px_20px_rgba(255,255,255,0.95)] rounded-3xl max-h-[88vh] flex flex-col z-[100]">
+      <DialogContent className="w-[96vw] max-w-4xl p-0 gap-0 overflow-hidden bg-[#EEF2F7] border border-slate-300/80 shadow-2xl rounded-3xl max-h-[88vh] flex flex-col z-[100]">
         {/* 1. Header (Clean right side so close button NEVER collides) */}
         <div className="p-4 sm:p-5 bg-[#EEF2F7] border-b border-slate-200/70 shrink-0 pr-16">
           <div className="flex items-center gap-3.5">
@@ -230,27 +231,27 @@ export function QuickAttendanceModal({
             />
           </div>
 
-          {/* Counters in Middle */}
+          {/* Counters in Middle - Clean, No AI Slop */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-emerald-800 border border-slate-200/80 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20" />
-              <span>Hadir: <strong className="font-mono text-slate-900">{countHadir}</strong></span>
+            <div className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-white/90 text-slate-600 border border-slate-200/80 shadow-2xs">
+              <span>Hadir:</span>
+              <strong className="font-number font-extrabold text-emerald-700">{countHadir}</strong>
             </div>
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-amber-800 border border-slate-200/80 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 ring-2 ring-amber-500/20" />
-              <span>Sakit: <strong className="font-mono text-slate-900">{countSakit}</strong></span>
+            <div className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-white/90 text-slate-600 border border-slate-200/80 shadow-2xs">
+              <span>Sakit:</span>
+              <strong className="font-number font-extrabold text-amber-700">{countSakit}</strong>
             </div>
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-blue-800 border border-slate-200/80 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 ring-2 ring-blue-500/20" />
-              <span>Izin: <strong className="font-mono text-slate-900">{countIzin}</strong></span>
+            <div className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-white/90 text-slate-600 border border-slate-200/80 shadow-2xs">
+              <span>Izin:</span>
+              <strong className="font-number font-extrabold text-blue-700">{countIzin}</strong>
             </div>
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-rose-800 border border-slate-200/80 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 ring-2 ring-rose-500/20" />
-              <span>Alpa: <strong className="font-mono text-slate-900">{countAlpa}</strong></span>
+            <div className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-white/90 text-slate-600 border border-slate-200/80 shadow-2xs">
+              <span>Alpa:</span>
+              <strong className={cn("font-number font-extrabold", countAlpa > 0 ? "text-rose-600" : "text-slate-600")}>{countAlpa}</strong>
             </div>
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-orange-800 border border-slate-200/80 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-orange-500 ring-2 ring-orange-500/20" />
-              <span>Telat: <strong className="font-mono text-slate-900">{countTerlambat}</strong></span>
+            <div className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-white/90 text-slate-600 border border-slate-200/80 shadow-2xs">
+              <span>Telat:</span>
+              <strong className="font-number font-extrabold text-orange-700">{countTerlambat}</strong>
             </div>
           </div>
 
@@ -398,10 +399,14 @@ export function QuickAttendanceModal({
               type="button"
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="px-5 py-2.5 text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer transition-all neo-btn-primary active:scale-[0.98]"
+              className="px-5 py-2.5 text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white rounded-xl shadow-xs flex items-center gap-2 cursor-pointer transition-all neo-btn-primary active:scale-[0.98]"
             >
-              <IconSave className="w-4 h-4 text-white" />
-              <span>{isSubmitting ? "Menyimpan..." : "Simpan Rekap Presensi"}</span>
+              {isSubmitting ? (
+                <IconLoader className="w-4 h-4 text-white animate-spin" />
+              ) : (
+                <IconSave className="w-4 h-4 text-white" />
+              )}
+              <span>{isSubmitting ? "Menyimpan Rekap..." : "Simpan Rekap Presensi"}</span>
             </button>
           </div>
         </div>

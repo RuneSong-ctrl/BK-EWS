@@ -14,6 +14,7 @@ import {
   IconLock,
   IconSave,
   IconMagicWand,
+  IconLoader,
 } from "@/components/ui/storage-icon"
 import { Link, router } from "@inertiajs/react"
 import { AppLayout } from "@/Layouts/AppLayout"
@@ -116,6 +117,7 @@ export default function GuruBk({
   // Filters
   const [gradeFilter, setGradeFilter] = React.useState<string>("ALL")
   const [statusFilter, setStatusFilter] = React.useState<string>("ALL")
+  const [searchQuery, setSearchQuery] = React.useState<string>("")
 
   const handleApplyAiDraft = (draft: AiBkDraftResult) => {
     if (draft.generated_narrative) {
@@ -198,28 +200,22 @@ export default function GuruBk({
             student_id: currentStudent.id,
             student_name: currentStudent.name,
             class_name: currentStudent.class_name,
-            nisn: currentStudent.nisn || "-",
-            date: currentDate,
-            category: `${problemDomain} • ${serviceFormat}`,
+            case_title: `${problemDomain.replace(/_/g, " ")} (${serviceFormat.replace(/_/g, " ")})`,
+            incident_date: currentDate,
             severity: currentUrgency,
             status: currentStatus,
-            follow_up: currentFollowUp,
-            notes: currentNotes,
           })
           setNotes("")
           setCallParent(false)
           setScheduleNextSession(false)
           setReferExternal(false)
           setEscalateKepsek(false)
-          toast({
-            title: "Catatan Bimbingan Berhasil Disimpan",
-            description: `Rekam bimbingan untuk ${currentStudent.name} tersimpan dan EWS diperbarui.`,
-          })
+          setCaseResolutionStatus("DALAM_PROSES")
         },
-        onError: (err) => {
+        onError: () => {
           toast({
             title: "Gagal Menyimpan Kasus",
-            description: Object.values(err).join(", "),
+            description: "Pastikan seluruh data wajib terisi dengan benar.",
             variant: "destructive",
           })
         },
@@ -230,28 +226,38 @@ export default function GuruBk({
     )
   }
 
-  const studentDataList = students?.data || []
-  const holisticList: HolisticStudentItem[] = studentDataList.map((s: any) => ({
-    id: s.id,
-    name: s.name,
-    nisn: s.nisn,
-    class_name: s.classes?.[0]?.name || s.class_name || "-",
-    grade: s.classes?.[0]?.name?.startsWith("10") ? "X" : s.classes?.[0]?.name?.startsWith("11") ? "XI" : "XII",
-    pillars: {
-      ak: s.ews_score?.academic_sub_status || "DATA_BELUM_LENGKAP",
-      kh: s.ews_score?.attendance_sub_status || "DATA_BELUM_LENGKAP",
-      pr: s.ews_score?.behavior_sub_status || "NORMAL",
-      bk: s.ews_score?.bk_sub_status || "NORMAL"
-    },
-    ews_status: s.ews_score?.status || "DATA_BELUM_LENGKAP",
-    trigger_reason: s.ews_score?.triggered_by_parameters?.join(", ") || "Data pilar dikumpulkan",
-  }))
+  // Dynamic holistic list memoized
+  const holisticList = React.useMemo(() => {
+    return studentOptions.map((s) => ({
+      id: s.id,
+      name: s.name,
+      nisn: s.nisn,
+      class_name: s.class_name,
+      grade: s.grade || "X",
+      pillars: {
+        ak: s.ews_score?.academic_sub_status || "DATA_BELUM_LENGKAP",
+        kh: s.ews_score?.attendance_sub_status || "DATA_BELUM_LENGKAP",
+        pr: s.ews_score?.behavior_sub_status || "NORMAL",
+        bk: s.ews_score?.bk_sub_status || "NORMAL"
+      },
+      ews_status: s.ews_score?.status || "DATA_BELUM_LENGKAP",
+      trigger_reason: s.ews_score?.triggered_by_parameters?.join(", ") || "Data pilar dikumpulkan",
+    }))
+  }, [studentOptions])
 
-  const filteredMatrix = holisticList.filter((item) => {
-    const matchGrade = gradeFilter === "ALL" || item.grade === gradeFilter
-    const matchStatus = statusFilter === "ALL" || item.ews_status === statusFilter
-    return matchGrade && matchStatus
-  })
+  const filteredMatrix = React.useMemo(() => {
+    const q = searchQuery.toLowerCase().trim()
+    return holisticList.filter((item) => {
+      const matchGrade = gradeFilter === "ALL" || item.grade === gradeFilter
+      const matchStatus = statusFilter === "ALL" || item.ews_status === statusFilter
+      const matchSearch =
+        !q ||
+        item.name.toLowerCase().includes(q) ||
+        (item.nisn && item.nisn.toLowerCase().includes(q)) ||
+        (item.class_name && item.class_name.toLowerCase().includes(q))
+      return matchGrade && matchStatus && matchSearch
+    })
+  }, [holisticList, gradeFilter, statusFilter, searchQuery])
 
   const totalSchool = stats?.total_students || studentOptions.length
   const kritisSchool = stats?.kritis_count || 0
@@ -340,7 +346,7 @@ export default function GuruBk({
 
           <div className="space-y-4 relative z-10">
             <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
-              <span className="text-5xl sm:text-6xl font-extrabold text-rose-600 tracking-tight font-mono">
+              <span className="text-5xl sm:text-6xl font-extrabold text-rose-600 tracking-tight font-number">
                 {watchlist.length}
               </span>
               <div className="space-y-0.5">
@@ -348,7 +354,7 @@ export default function GuruBk({
                   Siswa Masuk Kategori Kritis &amp; Waspada
                 </span>
                 <span className="text-xs text-slate-500 font-medium block">
-                  {kritisSchool} Status Kritis • {waspadaSchool} Status Waspada • {activeCasesCount} Kasus Sedang Berjalan
+                  <strong className="font-number font-bold text-rose-700">{kritisSchool}</strong> Status Kritis • <strong className="font-number font-bold text-amber-700">{waspadaSchool}</strong> Status Waspada • <strong className="font-number font-bold text-slate-700">{activeCasesCount}</strong> Kasus Sedang Berjalan
                 </span>
               </div>
             </div>
@@ -357,7 +363,7 @@ export default function GuruBk({
             <div className="p-3.5 rounded-2xl neo-inset bg-[#E7EDF4] space-y-2.5 border border-slate-300/40">
               <div className="flex items-center justify-between text-xs font-bold text-slate-700">
                 <span>Rincian Siswa Butuh Penanganan Pekan Ini</span>
-                <span className="font-semibold text-slate-500">{totalSchool} Total Siswa</span>
+                <span className="font-semibold text-slate-500"><strong className="font-number font-bold">{totalSchool}</strong> Total Siswa</span>
               </div>
 
               {watchlist.length > 0 ? (
@@ -382,7 +388,7 @@ export default function GuruBk({
                     </Link>
                   ))}
                   {watchlist.length > 3 && (
-                    <a href="#matriks" className="text-xs font-bold text-blue-700 hover:text-blue-900 p-1 px-2">
+                    <a href="#matriks" className="text-xs font-bold text-blue-700 hover:text-blue-900 p-1 px-2 font-number">
                       +{watchlist.length - 3} Siswa Lainnya &rarr;
                     </a>
                   )}
@@ -421,12 +427,12 @@ export default function GuruBk({
           <div className="flex items-center justify-between gap-4 py-1 relative z-10">
             <div className="space-y-1">
               <div className="flex items-baseline gap-2.5">
-                <span className="text-4xl sm:text-5xl font-extrabold text-emerald-600 tracking-tight font-mono">
+                <span className="text-4xl sm:text-5xl font-extrabold text-emerald-600 tracking-tight font-number">
                   {resolutionRate}%
                 </span>
               </div>
               <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                {completedCount} dari {totalCases} sesi bimbingan telah selesai mencapai kesepakatan positif.
+                <strong className="font-number font-bold text-slate-800">{completedCount}</strong> dari <strong className="font-number font-bold text-slate-800">{totalCases}</strong> sesi bimbingan telah selesai mencapai kesepakatan positif.
               </p>
             </div>
 
@@ -485,7 +491,7 @@ export default function GuruBk({
 
           <div className="space-y-2 relative z-10">
             <div className="flex items-baseline gap-2.5">
-              <span className="text-4xl sm:text-5xl font-extrabold text-amber-600 tracking-tight font-mono">
+              <span className="text-4xl sm:text-5xl font-extrabold text-amber-600 tracking-tight font-number">
                 {inMediationCount}
               </span>
               <span className="text-sm sm:text-base font-semibold text-slate-700">
@@ -529,7 +535,7 @@ export default function GuruBk({
 
           <div className="space-y-2 relative z-10">
             <div className="flex items-baseline gap-2.5">
-              <span className="text-4xl sm:text-5xl font-extrabold text-blue-600 tracking-tight font-mono">
+              <span className="text-4xl sm:text-5xl font-extrabold text-blue-600 tracking-tight font-number">
                 {escalatedCount}
               </span>
               <span className="text-sm sm:text-base font-semibold text-slate-700">
@@ -821,9 +827,13 @@ export default function GuruBk({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full sm:w-auto h-11 px-6 neo-btn-primary text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs flex items-center justify-center gap-2 cursor-pointer shrink-0 transition-all"
+                  className="w-full sm:w-auto h-11 px-6 neo-btn-primary disabled:opacity-60 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs flex items-center justify-center gap-2 cursor-pointer shrink-0 transition-all active:scale-[0.98]"
                 >
-                  <IconSave className="w-4 h-4 text-white" />
+                  {isSubmitting ? (
+                    <IconLoader className="w-4 h-4 text-white animate-spin" />
+                  ) : (
+                    <IconSave className="w-4 h-4 text-white" />
+                  )}
                   <span>{isSubmitting ? "Menyimpan Data..." : "Simpan Catatan Bimbingan"}</span>
                 </button>
               </div>
@@ -965,7 +975,7 @@ export default function GuruBk({
         id="matriks"
         className="p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] border border-white/85 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)] space-y-5 scroll-mt-24"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/70 pb-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200/70 pb-4">
           <div>
             <h2 className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight">
               Daftar &amp; Status EWS Seluruh Siswa Sekolah
@@ -975,12 +985,24 @@ export default function GuruBk({
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+            {/* Quick Search */}
+            <div className="relative w-full sm:w-60">
+              <IconSearch className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari nama, NISN, atau kelas..."
+                className="w-full h-10 pl-9 pr-3 text-xs sm:text-sm rounded-xl neo-inset bg-[#EEF2F7] border border-slate-300/40 text-slate-800 placeholder:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              />
+            </div>
+
             <select
               value={gradeFilter}
               aria-label="Filter jenjang tingkat kelas"
               onChange={(e) => setGradeFilter(e.target.value)}
-              className="h-10 px-3.5 rounded-xl neo-card-subtle bg-[#EEF2F7] border border-white/90 text-xs sm:text-sm font-bold text-slate-700 cursor-pointer focus:outline-none"
+              className="h-10 px-3 rounded-xl neo-card-subtle bg-[#EEF2F7] border border-white/90 text-xs sm:text-sm font-bold text-slate-700 cursor-pointer focus:outline-none shrink-0 shadow-2xs"
             >
               <option value="ALL">Semua Jenjang</option>
               <option value="X">Kelas X</option>
@@ -992,7 +1014,7 @@ export default function GuruBk({
               value={statusFilter}
               aria-label="Filter status risiko siswa EWS"
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-10 px-3.5 rounded-xl neo-card-subtle bg-[#EEF2F7] border border-white/90 text-xs sm:text-sm font-bold text-slate-700 cursor-pointer focus:outline-none"
+              className="h-10 px-3 rounded-xl neo-card-subtle bg-[#EEF2F7] border border-white/90 text-xs sm:text-sm font-bold text-slate-700 cursor-pointer focus:outline-none shrink-0 shadow-2xs"
             >
               <option value="ALL">Semua Status EWS</option>
               <option value="NORMAL">Normal</option>
@@ -1003,60 +1025,71 @@ export default function GuruBk({
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl neo-card-subtle bg-[#EEF2F7] border border-white/90 overflow-hidden">
+        <div className="overflow-x-auto rounded-2xl neo-card-subtle bg-white border border-slate-200/80 overflow-hidden shadow-2xs">
           <table className="w-full text-xs sm:text-sm text-left">
-            <thead className="bg-[#E7EDF4] text-slate-700 font-bold uppercase tracking-wider text-xs border-b border-slate-200/60">
+            <thead className="bg-[#F0F3F8] text-slate-600 font-bold uppercase tracking-wider text-xs border-b border-slate-200">
               <tr>
-                <th className="py-3.5 px-4">Nama Siswa</th>
-                <th className="py-3.5 px-3">Kelas</th>
-                <th className="py-3.5 px-3">Pilar AK (Nilai)</th>
-                <th className="py-3.5 px-3">Pilar KH (Absensi)</th>
-                <th className="py-3.5 px-3">Pilar PR (Perilaku)</th>
-                <th className="py-3.5 px-3">Pilar BK (Kasus)</th>
-                <th className="py-3.5 px-3">Status EWS</th>
-                <th className="py-3.5 px-4 text-right">Aksi</th>
+                <th className="py-3.5 px-4 min-w-[200px]">Nama Siswa</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">Kelas</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">4 Pilar EWS</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">Status EWS</th>
+                <th className="py-3.5 px-4 min-w-[200px]">Pemicu Risiko / Catatan</th>
+                <th className="py-3.5 px-4 text-right whitespace-nowrap min-w-[130px]">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200/50">
-              {filteredMatrix.map((student) => (
-                <tr key={student.id} className="hover:bg-blue-50/30 transition-colors">
-                  <td className="py-4 px-4 font-bold text-sm sm:text-base text-slate-900">
-                    {student.name}
-                    <span className="block text-xs text-slate-500 font-normal font-mono">
-                      NISN: {student.nisn}
-                    </span>
-                  </td>
-                  <td className="py-4 px-3">
-                    <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-white/90 text-slate-700 border border-slate-200/80 shadow-2xs">
-                      {student.class_name}
-                    </span>
-                  </td>
-                  <td className="py-4 px-3">
-                    <EwsStatusBadge status={student.pillars.ak} size="sm" showDot={false} />
-                  </td>
-                  <td className="py-4 px-3">
-                    <EwsStatusBadge status={student.pillars.kh} size="sm" showDot={false} />
-                  </td>
-                  <td className="py-4 px-3">
-                    <EwsStatusBadge status={student.pillars.pr} size="sm" showDot={false} />
-                  </td>
-                  <td className="py-4 px-3">
-                    <EwsStatusBadge status={student.pillars.bk} size="sm" showDot={false} />
-                  </td>
-                  <td className="py-4 px-3">
-                    <EwsStatusBadge status={student.ews_status} size="sm" />
-                  </td>
-                  <td className="py-4 px-4 text-right">
-                    <Link
-                      href={`/students/${student.id}`}
-                      className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-indigo-700 hover:text-indigo-900 p-2 rounded-xl neo-btn bg-[#EEF2F7] border border-white/90"
-                    >
-                      <span>Lihat Profil</span>
-                      <IconChevronRight className="w-4 h-4" />
-                    </Link>
+            <tbody className="divide-y divide-slate-100">
+              {filteredMatrix.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-xs sm:text-sm text-slate-400 font-medium">
+                    Tidak ada data siswa yang cocok dengan filter pencarian.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredMatrix.map((student) => (
+                  <tr key={student.id} className="hover:bg-indigo-50/40 transition-colors group">
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-[#EEF2F7] border border-slate-200 text-indigo-700 font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                          {student.name.charAt(0)}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-xs sm:text-sm text-slate-900 truncate">
+                            {student.name}
+                          </h4>
+                          <span className="text-[11px] text-slate-500 font-medium block font-number">
+                            NISN: {student.nisn || "-"}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                      <span className="px-2.5 py-1 rounded-xl text-xs font-bold bg-[#EEF2F7] text-slate-700 border border-slate-200/80 shadow-2xs">
+                        {student.class_name}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                      <PillarIndicators pillars={student.pillars} />
+                    </td>
+                    <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                      <EwsStatusBadge status={student.ews_status} size="sm" />
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className="text-xs text-slate-600 font-medium line-clamp-1 max-w-[260px]" title={student.trigger_reason}>
+                        {student.trigger_reason}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                      <Link
+                        href={`/students/${student.id}`}
+                        className="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-900 px-3.5 py-1.5 rounded-xl neo-btn bg-[#EEF2F7] hover:bg-white border border-white/90 shadow-2xs whitespace-nowrap transition-all active:scale-[0.98] shrink-0"
+                      >
+                        <span className="whitespace-nowrap">Lembar Profil 360°</span>
+                        <IconChevronRight className="w-3.5 h-3.5 shrink-0" />
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

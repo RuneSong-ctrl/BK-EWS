@@ -13,6 +13,7 @@ import {
   IconAi,
   IconMagicWand,
   IconCalendarCheck,
+  IconLoader,
 } from "@/components/ui/storage-icon"
 import { Link, router } from "@inertiajs/react"
 import { AppLayout } from "@/Layouts/AppLayout"
@@ -251,58 +252,124 @@ export default function GuruKelas({
     )
   }
 
-  // Filter students based on search, dropdown, and active tab
-  const filteredStudents = studentList.filter((s) => {
-    const matchesSearch =
-      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.nisn.toLowerCase().includes(searchQuery.toLowerCase())
+  // Action handler to filter student roster to Atensi and smooth scroll down
+  const handleFilterAtensi = React.useCallback(() => {
+    setActiveTab("ATENSI")
+    setStatusFilter("ALL")
+    setSearchQuery("")
+    setTimeout(() => {
+      const el = document.getElementById("rekap")
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" })
+      }
+    }, 50)
+  }, [])
 
-    const matchesDropdown =
-      statusFilter === "ALL" ? true : s.ews_status === statusFilter
+  // Memoized Filter students based on search, dropdown, and active tab
+  const filteredStudents = React.useMemo(() => {
+    const query = searchQuery.trim().toLowerCase()
+    return studentList.filter((s) => {
+      const matchesSearch =
+        query === "" ||
+        s.name.toLowerCase().includes(query) ||
+        (s.nisn && s.nisn.toLowerCase().includes(query))
 
-    let matchesTab = true
-    if (activeTab === "ATENSI") {
-      matchesTab = s.ews_status === "KRITIS" || s.ews_status === "WASPADA" || s.ews_status === "BERISIKO"
-    } else if (activeTab === "PRESENSI_RENDAH") {
-      matchesTab = Number(s.attendance_rate || 100) < 85
-    } else if (activeTab === "NILAI_TURUN") {
-      matchesTab = s.score_trend === "Turun"
+      const matchesDropdown =
+        statusFilter === "ALL" ? true : s.ews_status === statusFilter
+
+      let matchesTab = true
+      if (activeTab === "ATENSI") {
+        matchesTab = s.ews_status === "KRITIS" || s.ews_status === "WASPADA" || s.ews_status === "BERISIKO"
+      } else if (activeTab === "PRESENSI_RENDAH") {
+        matchesTab = Number(s.attendance_rate || 100) < 85
+      } else if (activeTab === "NILAI_TURUN") {
+        matchesTab = s.score_trend === "Turun"
+      }
+
+      return matchesSearch && matchesDropdown && matchesTab
+    })
+  }, [studentList, searchQuery, statusFilter, activeTab])
+
+  // Memoized aggregated statistics for zero re-render lag
+  const {
+    totalCount,
+    normalCount,
+    berisikoCount,
+    waspadaCount,
+    kritisCount,
+    atensiCount,
+    normalPct,
+    berisikoPct,
+    waspadaPct,
+    kritisPct,
+    atensiStudents,
+    lowAttendanceCount,
+    avgAttDisplay,
+    avgAttNum,
+    classAvgScore,
+    scoreDropCount,
+    stableScoreCount,
+    studentsWithScore,
+  } = React.useMemo(() => {
+    const total = stats?.total_students || studentList.length || 0
+    const normal = stats?.normal_count || studentList.filter((s) => s.ews_status === "NORMAL").length || 0
+    const berisiko = stats?.berisiko_count || studentList.filter((s) => s.ews_status === "BERISIKO").length || 0
+    const waspada = stats?.waspada_count || studentList.filter((s) => s.ews_status === "WASPADA").length || 0
+    const kritis = stats?.kritis_count || studentList.filter((s) => s.ews_status === "KRITIS").length || 0
+    const atensi = kritis + waspada + berisiko
+
+    const normPct = total > 0 ? Math.round((normal / total) * 100) : 0
+    const berPct = total > 0 ? Math.round((berisiko / total) * 100) : 0
+    const wasPct = total > 0 ? Math.round((waspada / total) * 100) : 0
+    const kriPct = total > 0 ? Math.round((kritis / total) * 100) : 0
+
+    const atensiList = studentList.filter(
+      (s) => s.ews_status === "KRITIS" || s.ews_status === "WASPADA" || s.ews_status === "BERISIKO"
+    )
+
+    const studentsWithAtt = studentList.filter((s) => s.attendance_rate !== null && s.attendance_rate !== undefined)
+    const attNum =
+      studentsWithAtt.length > 0
+        ? Math.round(
+          studentsWithAtt.reduce((acc, curr) => acc + (Number(curr.attendance_rate) || 0), 0) /
+          studentsWithAtt.length
+        )
+        : 100
+    const attDisplay = `${attNum}%`
+    const lowAttCount = studentList.filter((s) => Number(s.attendance_rate || 100) < 85).length
+
+    const withScore = studentList.filter((s) => s.avg_score !== null && s.avg_score !== undefined)
+    const avgScore =
+      withScore.length > 0
+        ? (
+          withScore.reduce((acc, curr) => acc + (Number(curr.avg_score) || 0), 0) /
+          withScore.length
+        ).toFixed(1)
+        : "-"
+    const dropCount = studentList.filter((s) => s.score_trend === "Turun").length
+    const stableCount = studentList.filter((s) => s.score_trend === "Stabil" || s.score_trend === "Naik").length
+
+    return {
+      totalCount: total,
+      normalCount: normal,
+      berisikoCount: berisiko,
+      waspadaCount: waspada,
+      kritisCount: kritis,
+      atensiCount: atensi,
+      normalPct: normPct,
+      berisikoPct: berPct,
+      waspadaPct: wasPct,
+      kritisPct: kriPct,
+      atensiStudents: atensiList,
+      lowAttendanceCount: lowAttCount,
+      avgAttDisplay: attDisplay,
+      avgAttNum: attNum,
+      classAvgScore: avgScore,
+      scoreDropCount: dropCount,
+      stableScoreCount: stableCount,
+      studentsWithScore: withScore,
     }
-
-    return matchesSearch && matchesDropdown && matchesTab
-  })
-
-  const totalCount = stats?.total_students || studentList.length || 0
-  const normalCount = stats?.normal_count || studentList.filter((s) => s.ews_status === "NORMAL").length || 0
-  const berisikoCount = stats?.berisiko_count || studentList.filter((s) => s.ews_status === "BERISIKO").length || 0
-  const waspadaCount = stats?.waspada_count || studentList.filter((s) => s.ews_status === "WASPADA").length || 0
-  const kritisCount = stats?.kritis_count || studentList.filter((s) => s.ews_status === "KRITIS").length || 0
-  const atensiCount = kritisCount + waspadaCount + berisikoCount
-  const atensiStudents = studentList.filter(
-    (s) => s.ews_status === "KRITIS" || s.ews_status === "WASPADA" || s.ews_status === "BERISIKO"
-  )
-
-  const studentsWithAtt = studentList.filter((s) => s.attendance_rate !== null && s.attendance_rate !== undefined)
-  const avgAttNum =
-    studentsWithAtt.length > 0
-      ? Math.round(
-        studentsWithAtt.reduce((acc, curr) => acc + (Number(curr.attendance_rate) || 0), 0) /
-        studentsWithAtt.length
-      )
-      : 100
-  const avgAttDisplay = `${avgAttNum}%`
-  const lowAttendanceCount = studentList.filter((s) => Number(s.attendance_rate || 100) < 85).length
-
-  const studentsWithScore = studentList.filter((s) => s.avg_score !== null && s.avg_score !== undefined)
-  const classAvgScore =
-    studentsWithScore.length > 0
-      ? (
-        studentsWithScore.reduce((acc, curr) => acc + (Number(curr.avg_score) || 0), 0) /
-        studentsWithScore.length
-      ).toFixed(1)
-      : "-"
-  const scoreDropCount = studentList.filter((s) => s.score_trend === "Turun").length
-  const stableScoreCount = studentList.filter((s) => s.score_trend === "Stabil" || s.score_trend === "Naik").length
+  }, [stats, studentList])
 
   return (
     <AppLayout
@@ -372,7 +439,7 @@ export default function GuruKelas({
                 <span className="text-xs font-mono font-semibold text-slate-500">TP {schoolClass?.academic_year || "2026/2027"}</span>
               </div>
               <h2 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
-                Ringkasan Kondisi &amp; Pemantauan Siswa Kelas
+                Pusat Kendali &amp; Deteksi Dini Wali Kelas
               </h2>
             </div>
 
@@ -383,85 +450,113 @@ export default function GuruKelas({
 
           <div className="space-y-4 relative z-10">
             <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
-              <span className="text-5xl sm:text-6xl font-extrabold text-slate-900 tracking-tight">
+              <span className="text-5xl sm:text-6xl font-extrabold font-number text-slate-900 tracking-tight">
                 {totalCount}
               </span>
               <div className="space-y-0.5">
                 <span className="text-sm sm:text-base font-extrabold text-slate-800 block">
-                  Total Siswa di Kelas
+                  Siswa Terdaftar di Kelas {className}
                 </span>
                 <span className="text-xs text-slate-500 font-medium block">
-                  {atensiCount > 0 ? `${atensiCount} Siswa Perlu Perhatian Khusus` : "Seluruh Siswa Kondusif"} • {normalCount} Siswa Aman/Normal
+                  {atensiCount > 0 ? (
+                    <>
+                      <strong className="font-number font-bold text-rose-700">{atensiCount}</strong> Siswa Perlu Atensi Khusus • <strong className="font-number font-bold text-emerald-700">{normalCount}</strong> Siswa Kondisi Aman
+                    </>
+                  ) : (
+                    "Seluruh siswa saat ini berada dalam kondisi aman & kondusif"
+                  )}
                 </span>
               </div>
             </div>
 
-            {/* Inset Sub-Grid for 4 Pillars Health Status in Kelas */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-              <div className="p-3 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                  Rata Nilai (AK)
-                </span>
-                <div className="flex items-center justify-between">
-                  <span className="text-base sm:text-lg font-extrabold text-slate-900">
-                    {classAvgScore}
-                  </span>
-                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                    KKM 75
-                  </span>
+            {/* Smart Inset Panel: Watchlist Siswa Prioritas & Agenda Kelas */}
+            <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] space-y-3.5 border border-slate-300/40">
+              <div className="flex items-center justify-between text-xs font-bold text-slate-700 border-b border-slate-300/40 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-indigo-600 ring-3 ring-indigo-500/20" />
+                  <span>Siswa Perlu Perhatian &amp; Pemantauan Khusus</span>
                 </div>
+                <span className="font-semibold text-slate-500">
+                  <strong className="font-number font-bold">{atensiStudents.length}</strong> Dari {totalCount} Siswa
+                </span>
               </div>
 
-              <div className="p-3 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                  Kehadiran (KH)
-                </span>
-                <div className="flex items-center justify-between">
-                  <span className="text-base sm:text-lg font-extrabold text-slate-900">
-                    {avgAttDisplay}
-                  </span>
-                  <span className={cn(
-                    "text-[10px] font-bold px-1.5 py-0.5 rounded border",
-                    lowAttendanceCount > 0
-                      ? "text-rose-700 bg-rose-50 border-rose-200"
-                      : "text-emerald-700 bg-emerald-50 border-emerald-200"
-                  )}>
-                    {lowAttendanceCount > 0 ? `${lowAttendanceCount} Sering Alpa` : "Optimal"}
-                  </span>
-                </div>
-              </div>
+              {atensiStudents.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {atensiStudents.slice(0, 4).map((s) => (
+                    <Link
+                      key={s.id}
+                      href={`/students/${s.id}`}
+                      className="p-2.5 rounded-xl neo-card-subtle bg-white/90 hover:bg-white border border-slate-200/80 flex items-center justify-between gap-2.5 transition-all shadow-2xs hover:shadow-xs group/card"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div
+                          className={cn(
+                            "w-8 h-8 rounded-xl font-number font-extrabold flex items-center justify-center shrink-0 text-xs",
+                            s.ews_status === "KRITIS"
+                              ? "bg-rose-100 text-rose-800 border border-rose-200"
+                              : s.ews_status === "WASPADA"
+                              ? "bg-orange-100 text-orange-800 border border-orange-200"
+                              : "bg-amber-100 text-amber-800 border border-amber-200"
+                          )}
+                        >
+                          {s.name.charAt(0)}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-xs font-extrabold text-slate-900 truncate group-hover/card:text-blue-700 transition-colors">
+                            {s.name}
+                          </h4>
+                          <span className="text-[10px] text-slate-500 font-medium block truncate">
+                            NISN: <span className="font-number font-bold text-slate-700">{s.nisn || "-"}</span>
+                          </span>
+                        </div>
+                      </div>
 
-              <div className="p-3 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                  Observasi (PR)
-                </span>
-                <div className="flex items-center justify-between">
-                  <span className="text-base sm:text-lg font-extrabold text-slate-900">
-                    {atensiCount} Siswa
-                  </span>
-                  <span className={cn(
-                    "text-[10px] font-bold px-1.5 py-0.5 rounded border",
-                    atensiCount > 0
-                      ? "text-amber-700 bg-amber-50 border-amber-200"
-                      : "text-emerald-700 bg-emerald-50 border-emerald-200"
-                  )}>
-                    {atensiCount > 0 ? "Perlu Dipantau" : "Kondusif"}
-                  </span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span
+                          className={cn(
+                            "px-2 py-0.5 rounded-lg text-[10px] font-bold border",
+                            s.ews_status === "KRITIS"
+                              ? "bg-rose-50 text-rose-700 border-rose-200"
+                              : s.ews_status === "WASPADA"
+                              ? "bg-orange-50 text-orange-700 border-orange-200"
+                              : "bg-amber-50 text-amber-700 border-amber-200"
+                          )}
+                        >
+                          {s.ews_status}
+                        </span>
+                        <IconChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover/card:text-slate-700 group-hover/card:translate-x-0.5 transition-transform" />
+                      </div>
+                    </Link>
+                  ))}
                 </div>
-              </div>
+              ) : (
+                <div className="p-4 rounded-xl neo-card-subtle bg-white/90 border border-slate-200/80 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                    <IconCheck className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-slate-800">Iklim Kelas Kondusif &amp; Terjaga</h5>
+                    <p className="text-[11px] text-slate-500">Seluruh siswa berada dalam zona hijau tanpa indikasi risiko aktif.</p>
+                  </div>
+                </div>
+              )}
 
-              <div className="p-3 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                  Layanan BK
-                </span>
-                <div className="flex items-center justify-between">
-                  <span className="text-base sm:text-lg font-extrabold text-slate-900">
-                    {kritisCount} Siswa
-                  </span>
-                  <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200">
-                    {kritisCount > 0 ? "Didampingi" : "Aman"}
-                  </span>
+              {/* Action Agenda Footer */}
+              <div className="pt-2 flex items-center justify-between text-xs text-slate-500 font-medium border-t border-slate-300/30">
+                <div className="flex items-center gap-3">
+                  <span>Presensi: <strong className="text-slate-800 font-number">{avgAttDisplay}</strong></span>
+                  <span>•</span>
+                  <span>Rata Nilai: <strong className="text-slate-800 font-number">{classAvgScore}</strong></span>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleFilterAtensi}
+                  className="font-bold text-blue-700 hover:text-blue-900 inline-flex items-center gap-1 cursor-pointer transition-colors"
+                >
+                  <span>Filter Tabel Siswa</span>
+                  <IconChevronRight className="w-3 h-3" />
+                </button>
               </div>
             </div>
           </div>
@@ -491,7 +586,7 @@ export default function GuruKelas({
           <div className="flex items-center justify-between gap-4 py-1 relative z-10">
             <div className="space-y-1">
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl sm:text-5xl font-extrabold text-emerald-600 tracking-tight">
+                <span className="text-4xl sm:text-5xl font-extrabold font-number text-emerald-600 tracking-tight">
                   {avgAttDisplay}
                 </span>
               </div>
@@ -537,7 +632,7 @@ export default function GuruKelas({
               <span>
                 {lowAttendanceCount > 0 ? (
                   <>
-                    <strong className="font-mono font-extrabold text-slate-900">{lowAttendanceCount}</strong> Siswa Presensi &lt; 85%
+                    <strong className="font-number font-extrabold text-slate-900">{lowAttendanceCount}</strong> Siswa Presensi &lt; 85%
                   </>
                 ) : (
                   <span className="font-semibold text-slate-800">Seluruh Siswa Tertib Hadir</span>
@@ -577,7 +672,7 @@ export default function GuruKelas({
 
           <div className="space-y-3 relative z-10">
             <div className="flex items-baseline gap-2.5">
-              <span className="text-4xl sm:text-5xl font-extrabold text-amber-600 tracking-tight">
+              <span className="text-4xl sm:text-5xl font-extrabold font-number text-amber-600 tracking-tight">
                 {atensiCount}
               </span>
               <span className="text-sm sm:text-base font-semibold text-slate-700">
@@ -611,8 +706,8 @@ export default function GuruKelas({
                 {atensiStudents.length > 3 && (
                   <button
                     type="button"
-                    onClick={() => setActiveTab("ATENSI")}
-                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800 px-2 py-1 cursor-pointer font-mono"
+                    onClick={handleFilterAtensi}
+                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800 px-2 py-1 cursor-pointer font-number"
                   >
                     +{atensiStudents.length - 3} Siswa Lain &rarr;
                   </button>
@@ -631,8 +726,8 @@ export default function GuruKelas({
               <span className="w-2 h-2 rounded-full bg-amber-500 ring-4 ring-amber-500/15 shrink-0" />
               <span>Perlu Observasi Khusus</span>
             </div>
-            <span className="text-xs font-mono font-bold text-slate-500">
-              <span className="text-rose-600">{kritisCount}</span> Kritis • <span className="text-amber-600">{waspadaCount}</span> Waspada
+            <span className="text-xs font-semibold text-slate-500">
+              <span className="text-rose-600 font-bold font-number">{kritisCount}</span> Kritis • <span className="text-amber-600 font-bold font-number">{waspadaCount}</span> Waspada
             </span>
           </div>
         </div>
@@ -660,7 +755,7 @@ export default function GuruKelas({
 
           <div className="space-y-2 relative z-10">
             <div className="flex items-baseline gap-2.5">
-              <span className="text-4xl sm:text-5xl font-extrabold text-blue-600 tracking-tight">
+              <span className="text-4xl sm:text-5xl font-extrabold font-number text-blue-600 tracking-tight">
                 {classAvgScore}
               </span>
               <span className="text-sm sm:text-base font-semibold text-slate-700">
@@ -685,7 +780,7 @@ export default function GuruKelas({
               <span>
                 {scoreDropCount > 0 ? (
                   <>
-                    <strong className="font-mono font-extrabold text-slate-900">{scoreDropCount}</strong> Siswa Perlu Remedial
+                    <strong className="font-number font-extrabold text-slate-900">{scoreDropCount}</strong> Siswa Perlu Remedial
                   </>
                 ) : (
                   <span className="font-semibold text-slate-800">Nilai Kelas Terpantau Tuntas</span>
@@ -862,10 +957,14 @@ export default function GuruKelas({
                 type="button"
                 onClick={handleManualSave}
                 disabled={isSubmitting}
-                className="w-full sm:w-auto h-10 px-5 neo-btn-primary disabled:opacity-60 text-white font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-xs"
+                className="w-full sm:w-auto h-10 px-5 neo-btn-primary disabled:opacity-60 text-white font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-xs transition-all active:scale-[0.98]"
               >
-                <IconSave className="w-4 h-4 text-white" />
-                <span>{isSubmitting ? "Menyimpan..." : "Simpan Catatan Observasi"}</span>
+                {isSubmitting ? (
+                  <IconLoader className="w-4 h-4 text-white animate-spin" />
+                ) : (
+                  <IconSave className="w-4 h-4 text-white" />
+                )}
+                <span>{isSubmitting ? "Menyimpan Catatan..." : "Simpan Catatan Observasi"}</span>
               </Button>
             </div>
           </div>
@@ -997,19 +1096,19 @@ export default function GuruKelas({
                       </div>
                     </td>
 
-                    <td className="py-4 px-3 font-mono text-xs sm:text-sm text-slate-600">
+                    <td className="py-4 px-3 font-mono font-semibold text-xs sm:text-sm text-slate-600">
                       {student.nisn}
                     </td>
 
                     <td className="py-4 px-3">
                       <div className="flex items-center gap-1.5">
-                        <span className="font-bold font-mono text-xs sm:text-sm text-slate-800">
+                        <span className="font-extrabold font-number text-xs sm:text-sm text-slate-900">
                           {student.avg_score !== null && student.avg_score !== undefined ? student.avg_score : "-"}
                         </span>
                         {student.score_trend !== "-" && (
                           <span
                             className={cn(
-                              "text-xs font-semibold px-1.5 py-0.5 rounded",
+                              "text-xs font-bold px-1.5 py-0.5 rounded",
                               student.score_trend === "Naik" || student.score_trend === "Stabil"
                                 ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                 : student.score_trend === "Turun"
@@ -1025,11 +1124,11 @@ export default function GuruKelas({
 
                     <td className="py-4 px-3">
                       <div>
-                        <span className="font-bold font-mono text-xs sm:text-sm text-slate-800">
+                        <span className="font-extrabold font-number text-xs sm:text-sm text-slate-900">
                           {student.attendance_rate !== null && student.attendance_rate !== undefined ? `${student.attendance_rate}%` : "-"}
                         </span>
                         {student.alpa_count > 0 && (
-                          <span className="block text-xs text-rose-600 font-semibold">
+                          <span className="block text-xs text-rose-600 font-bold font-number">
                             {student.alpa_count}x Alpa
                           </span>
                         )}

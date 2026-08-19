@@ -56,7 +56,7 @@ export function BkCaseSuccessModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[94vw] max-w-xl p-0 gap-0 overflow-hidden bg-[#EEF2F7] border border-white/85 shadow-[6px_6px_16px_rgba(166,178,196,0.45),-6px_-6px_16px_rgba(255,255,255,0.95)] rounded-3xl max-h-[88vh] flex flex-col z-[100]">
+      <DialogContent className="w-[94vw] max-w-xl p-0 gap-0 overflow-hidden bg-[#EEF2F7] border border-slate-300/80 shadow-2xl rounded-3xl max-h-[88vh] flex flex-col z-[100]">
         {/* Top Celebration Glow Banner */}
         <div className="relative p-4 sm:p-5 bg-[#EEF2F7] border-b border-slate-200/70 shrink-0 pr-12">
           <div className="absolute -top-10 -right-10 w-28 h-28 rounded-full bg-indigo-500/10 blur-xl pointer-events-none" />

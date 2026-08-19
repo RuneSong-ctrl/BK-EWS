@@ -59,7 +59,7 @@ export function ObservationSuccessModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[94vw] max-w-xl p-0 gap-0 overflow-hidden bg-[#EEF2F7] border border-white/85 shadow-[6px_6px_16px_rgba(166,178,196,0.45),-6px_-6px_16px_rgba(255,255,255,0.95)] rounded-3xl max-h-[88vh] flex flex-col z-[100]">
+      <DialogContent className="w-[94vw] max-w-xl p-0 gap-0 overflow-hidden bg-[#EEF2F7] border border-slate-300/80 shadow-2xl rounded-3xl max-h-[88vh] flex flex-col z-[100]">
         {/* Compact Celebration Header Banner */}
         <div className="relative p-4 sm:p-5 bg-[#EEF2F7] border-b border-slate-200/70 shrink-0 pr-12">
           {/* Ambient Glows */}
@@ -136,18 +136,18 @@ export function ObservationSuccessModal({
             )}
 
             {/* Mini Score Scales (3 Scales) */}
-            <div className="grid grid-cols-3 gap-2 pt-0.5 text-center font-mono">
+            <div className="grid grid-cols-3 gap-2 pt-0.5 text-center font-number">
               <div className="p-2 rounded-xl neo-card-subtle bg-[#EEF2F7] border border-white/90">
-                <span className="text-[10px] text-slate-500 block font-sans">Keaktifan</span>
-                <span className="font-extrabold text-slate-900 text-xs">{detail.scores.participation}/5</span>
+                <span className="text-[10px] text-slate-500 block font-sans font-bold uppercase tracking-wider">Keaktifan</span>
+                <span className="font-extrabold text-slate-900 text-xs sm:text-sm">{detail.scores.participation}/5</span>
               </div>
               <div className="p-2 rounded-xl neo-card-subtle bg-[#EEF2F7] border border-white/90">
-                <span className="text-[10px] text-slate-500 block font-sans">Ketertiban</span>
-                <span className="font-extrabold text-slate-900 text-xs">{detail.scores.homework}/5</span>
+                <span className="text-[10px] text-slate-500 block font-sans font-bold uppercase tracking-wider">Ketertiban</span>
+                <span className="font-extrabold text-slate-900 text-xs sm:text-sm">{detail.scores.homework}/5</span>
               </div>
               <div className="p-2 rounded-xl neo-card-subtle bg-[#EEF2F7] border border-white/90">
-                <span className="text-[10px] text-slate-500 block font-sans">Konsentrasi</span>
-                <span className="font-extrabold text-slate-900 text-xs">
+                <span className="text-[10px] text-slate-500 block font-sans font-bold uppercase tracking-wider">Konsentrasi</span>
+                <span className="font-extrabold text-slate-900 text-xs sm:text-sm">
                   {detail.scores.quiz > 5 ? Math.round(detail.scores.quiz / 20) : detail.scores.quiz}/5
                 </span>
               </div>

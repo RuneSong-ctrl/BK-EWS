@@ -26,9 +26,9 @@ class AcademicController extends Controller
             'assessment_type' => ['required', 'in:TUGAS,UH,UTS,UAS'],
             'period' => ['required', 'string', 'max:50'],
             'academic_year' => ['required', 'string', 'max:20'],
-            'score' => ['required', 'numeric', 'min:0', 'max:100'],
+            'score' => ['required', 'integer', 'min:0', 'max:100'],
             'is_remedial' => ['boolean'],
-            'previous_score' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'previous_score' => ['nullable', 'integer', 'min:0', 'max:100'],
         ]);
 
         $student = Student::findOrFail($validated['student_id']);
@@ -39,9 +39,9 @@ class AcademicController extends Controller
             'assessment_type' => $validated['assessment_type'],
             'period' => $validated['period'],
             'academic_year' => $validated['academic_year'],
-            'score' => $validated['score'],
+            'score' => intval($validated['score']),
             'is_remedial' => $validated['is_remedial'] ?? false,
-            'previous_score' => $validated['previous_score'] ?? null,
+            'previous_score' => isset($validated['previous_score']) ? intval($validated['previous_score']) : null,
             'created_by' => $request->user()->id,
         ]);
 
@@ -63,13 +63,13 @@ class AcademicController extends Controller
             'academic_year' => ['required', 'string', 'max:20'],
             'scores' => ['required', 'array'],
             'scores.*.student_id' => ['required', 'exists:students,id'],
-            'scores.*.score' => ['required', 'numeric', 'min:0', 'max:100'],
+            'scores.*.score' => ['required', 'integer', 'min:0', 'max:100'],
         ]);
 
         $userId = $request->user()->id;
 
         foreach ($validated['scores'] as $item) {
-            $scoreVal = floatval($item['score']);
+            $scoreVal = intval($item['score']);
             AcademicRecord::create([
                 'student_id' => $item['student_id'],
                 'subject_id' => $validated['subject_id'],

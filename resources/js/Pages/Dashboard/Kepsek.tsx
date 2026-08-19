@@ -258,7 +258,7 @@ export default function Kepsek({
 
           <div className="space-y-4 relative z-10">
             <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
-              <span className="text-5xl sm:text-6xl font-extrabold text-slate-900 tracking-tight">
+              <span className="text-5xl sm:text-6xl font-extrabold text-slate-900 tracking-tight font-number">
                 {total}
               </span>
               <div className="space-y-0.5">
@@ -266,7 +266,7 @@ export default function Kepsek({
                   Siswa Terdaftar Aktif
                 </span>
                 <span className="text-xs text-slate-500 font-medium block">
-                  Tersebar di {classes?.length || 1} Rombongan Belajar
+                  Tersebar di <strong className="font-number font-bold text-slate-700">{classes?.length || 1}</strong> Rombongan Belajar
                 </span>
               </div>
             </div>
@@ -275,7 +275,7 @@ export default function Kepsek({
             <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] space-y-3 border border-slate-300/40">
               <div className="flex items-center justify-between text-xs font-bold text-slate-700">
                 <span>Distribusi Kesehatan 4 Pilar EWS</span>
-                <span className="font-semibold text-slate-500">{total} Total Siswa</span>
+                <span className="font-semibold text-slate-500"><strong className="font-number font-bold">{total}</strong> Total Siswa</span>
               </div>
 
               <div className="h-3 w-full rounded-full bg-slate-200/80 overflow-hidden flex p-0.5 shadow-inner">
@@ -316,24 +316,24 @@ export default function Kepsek({
                 <div className="flex items-center gap-1.5 p-1.5 px-3 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20 shrink-0" />
                   <span className="text-slate-700 truncate">
-                    Normal: <strong>{normalCount}</strong>
+                    Normal: <strong className="font-number font-bold">{normalCount}</strong>
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 p-1.5 px-3 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs">
                   <span className="w-2 h-2 rounded-full bg-amber-400 ring-2 ring-amber-400/20 shrink-0" />
                   <span className="text-slate-700 truncate">
-                    Risiko: <strong>{berisikoCount}</strong>
+                    Risiko: <strong className="font-number font-bold">{berisikoCount}</strong>
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 p-1.5 px-3 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs">
                   <span className="w-2 h-2 rounded-full bg-orange-500 ring-2 ring-orange-500/20 shrink-0" />
                   <span className="text-slate-700 truncate">
-                    Waspada: <strong>{waspadaCount}</strong>
+                    Waspada: <strong className="font-number font-bold">{waspadaCount}</strong>
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 p-1.5 px-3 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs">
                   <span className="w-2 h-2 rounded-full bg-rose-500 ring-2 ring-rose-500/20 shrink-0" />
-                  <span className="text-rose-700 truncate font-bold">Kritis: {kritisCount}</span>
+                  <span className="text-rose-700 truncate font-bold">Kritis: <strong className="font-number font-bold">{kritisCount}</strong></span>
                 </div>
               </div>
             </div>
@@ -365,11 +365,11 @@ export default function Kepsek({
           <div className="flex items-center justify-between gap-4 py-1 relative z-10">
             <div className="space-y-1">
               <div className="flex items-baseline gap-2.5">
-                <span className="text-4xl sm:text-5xl font-extrabold text-emerald-600 tracking-tight">
+                <span className="text-4xl sm:text-5xl font-extrabold text-emerald-600 tracking-tight font-number">
                   {normalPct}%
                 </span>
                 <span className="text-sm sm:text-base font-semibold text-slate-600">
-                  ({normalCount} Siswa)
+                  (<strong className="font-number font-bold text-slate-800">{normalCount}</strong> Siswa)
                 </span>
               </div>
               <p className="text-xs text-slate-500 leading-relaxed font-medium">
@@ -437,11 +437,11 @@ export default function Kepsek({
 
           <div className="space-y-1.5 relative z-10">
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl sm:text-4xl font-extrabold text-amber-600 tracking-tight">
+              <span className="text-3xl sm:text-4xl font-extrabold text-amber-600 tracking-tight font-number">
                 {berisikoPct}%
               </span>
               <span className="text-xs sm:text-sm font-semibold text-slate-600">
-                ({berisikoCount} Siswa)
+                (<strong className="font-number font-bold text-slate-800">{berisikoCount}</strong> Siswa)
               </span>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed font-medium">
@@ -485,11 +485,11 @@ export default function Kepsek({
 
           <div className="space-y-1.5 relative z-10">
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl sm:text-4xl font-extrabold text-orange-600 tracking-tight">
+              <span className="text-3xl sm:text-4xl font-extrabold text-orange-600 tracking-tight font-number">
                 {waspadaPct}%
               </span>
               <span className="text-xs sm:text-sm font-semibold text-slate-600">
-                ({waspadaCount} Siswa)
+                (<strong className="font-number font-bold text-slate-800">{waspadaCount}</strong> Siswa)
               </span>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed font-medium">
@@ -533,11 +533,11 @@ export default function Kepsek({
 
           <div className="space-y-1.5 relative z-10">
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl sm:text-4xl font-extrabold text-rose-600 tracking-tight">
+              <span className="text-3xl sm:text-4xl font-extrabold text-rose-600 tracking-tight font-number">
                 {kritisCount}
               </span>
               <span className="text-xs sm:text-sm font-semibold text-rose-700">
-                ({kritisPct}% Butuh Aksi)
+                (<span className="font-number font-bold">{kritisPct}%</span> Butuh Aksi)
               </span>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed font-medium">
@@ -548,9 +548,9 @@ export default function Kepsek({
           <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between relative z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 text-xs font-semibold text-slate-700 shadow-2xs">
               <span className="w-2 h-2 rounded-full bg-rose-500 ring-4 ring-rose-500/15 shrink-0" />
-              <span>Intervensi Mendesak</span>
+              <span>Prioritas Intervensi</span>
             </div>
-            <span className="text-[11px] text-slate-500 font-medium">Prioritas Kepala Sekolah</span>
+            <span className="text-[11px] text-rose-700 font-bold">Disposisi Pimpinan</span>
           </div>
         </div>
       </div>
@@ -595,8 +595,8 @@ export default function Kepsek({
                     </div>
                     <div>
                       <h4 className="font-extrabold text-slate-900 text-sm sm:text-base">{std.name}</h4>
-                      <p className="text-xs font-mono text-slate-500">
-                        NISN: {std.nisn || "-"} • Kelas {std.class_name}
+                      <p className="text-xs font-medium text-slate-500">
+                        NISN: <span className="font-number font-bold text-slate-700">{std.nisn || "-"}</span> • Kelas {std.class_name}
                       </p>
                     </div>
                   </div>
@@ -604,18 +604,18 @@ export default function Kepsek({
                 </div>
 
                 {/* Metrics Summary Strip */}
-                <div className="grid grid-cols-3 gap-2 text-center font-mono">
-                  <div className="p-2 rounded-xl neo-inset bg-[#E7EDF4] border border-slate-300/30">
-                    <span className="text-[10px] font-sans text-slate-500 block">Rata Nilai</span>
-                    <span className="text-xs font-extrabold text-slate-900">
+                <div className="grid grid-cols-3 gap-2 text-center font-number">
+                  <div className="p-2.5 rounded-xl neo-inset bg-[#E7EDF4] border border-slate-300/30">
+                    <span className="text-[10px] font-bold text-slate-500 block uppercase tracking-wider">Rata Nilai</span>
+                    <span className="text-xs sm:text-sm font-extrabold text-slate-900">
                       {std.avg_score !== null ? std.avg_score : "-"}
                     </span>
                   </div>
-                  <div className="p-2 rounded-xl neo-inset bg-[#E7EDF4] border border-slate-300/30">
-                    <span className="text-[10px] font-sans text-slate-500 block">% Hadir</span>
+                  <div className="p-2.5 rounded-xl neo-inset bg-[#E7EDF4] border border-slate-300/30">
+                    <span className="text-[10px] font-bold text-slate-500 block uppercase tracking-wider">% Hadir</span>
                     <span
                       className={cn(
-                        "text-xs font-extrabold",
+                        "text-xs sm:text-sm font-extrabold",
                         std.attendance_rate !== null && std.attendance_rate < 85
                           ? "text-rose-600"
                           : "text-slate-900"
@@ -624,11 +624,11 @@ export default function Kepsek({
                       {std.attendance_rate !== null ? `${std.attendance_rate}%` : "-"}
                     </span>
                   </div>
-                  <div className="p-2 rounded-xl neo-inset bg-[#E7EDF4] border border-slate-300/30">
-                    <span className="text-[10px] font-sans text-slate-500 block">Total Alpa</span>
+                  <div className="p-2.5 rounded-xl neo-inset bg-[#E7EDF4] border border-slate-300/30">
+                    <span className="text-[10px] font-bold text-slate-500 block uppercase tracking-wider">Total Alpa</span>
                     <span
                       className={cn(
-                        "text-xs font-extrabold",
+                        "text-xs sm:text-sm font-extrabold",
                         std.alpa_count > 0 ? "text-rose-600" : "text-slate-900"
                       )}
                     >
@@ -651,8 +651,8 @@ export default function Kepsek({
 
                 {/* Action Footer */}
                 <div className="pt-2 flex items-center justify-between border-t border-slate-200/80">
-                  <span className="text-[11px] text-slate-400 font-mono">
-                    Update: {std.calculated_at || "Real-time"}
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    Update: <span className="font-number">{std.calculated_at || "Real-time"}</span>
                   </span>
                   <Link
                     href={`/students/${std.id}`}
@@ -817,7 +817,7 @@ export default function Kepsek({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h3 className="text-base font-extrabold text-slate-900">Kelas {cls.name}</h3>
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700">
+                  <span className="text-xs font-number font-extrabold px-2.5 py-0.5 rounded-xl bg-white border border-slate-200 text-slate-700 shadow-2xs">
                     {cls.total_students} Siswa
                   </span>
                 </div>
@@ -830,13 +830,13 @@ export default function Kepsek({
               <div className="p-3 rounded-xl neo-inset bg-[#E7EDF4] border border-slate-300/30 space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold">
                   <span className="text-slate-600">Rata-rata Nilai:</span>
-                  <span className="font-mono text-slate-900">{cls.avg_score !== null ? cls.avg_score : "-"}</span>
+                  <span className="font-number font-extrabold text-slate-900">{cls.avg_score !== null ? cls.avg_score : "-"}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs font-bold">
                   <span className="text-slate-600">% Presensi 30 Hari:</span>
                   <span
                     className={cn(
-                      "font-mono",
+                      "font-number font-extrabold",
                       cls.attendance_rate < 80 ? "text-rose-600" : "text-emerald-700"
                     )}
                   >
@@ -846,22 +846,22 @@ export default function Kepsek({
               </div>
 
               {/* Status breakdown pills */}
-              <div className="grid grid-cols-4 gap-1 text-center font-mono text-xs">
+              <div className="grid grid-cols-4 gap-1 text-center font-number text-xs">
                 <div className="p-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
                   <span className="text-[9px] block font-sans font-bold">Normal</span>
-                  <span className="font-bold">{cls.normal_count}</span>
+                  <span className="font-extrabold">{cls.normal_count}</span>
                 </div>
                 <div className="p-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200">
                   <span className="text-[9px] block font-sans font-bold">Risiko</span>
-                  <span className="font-bold">{cls.berisiko_count}</span>
+                  <span className="font-extrabold">{cls.berisiko_count}</span>
                 </div>
                 <div className="p-1 rounded-lg bg-orange-50 text-orange-800 border border-orange-200">
                   <span className="text-[9px] block font-sans font-bold">Waspada</span>
-                  <span className="font-bold">{cls.waspada_count}</span>
+                  <span className="font-extrabold">{cls.waspada_count}</span>
                 </div>
                 <div className="p-1 rounded-lg bg-rose-50 text-rose-800 border border-rose-200">
                   <span className="text-[9px] block font-sans font-bold">Kritis</span>
-                  <span className="font-bold">{cls.kritis_count}</span>
+                  <span className="font-extrabold">{cls.kritis_count}</span>
                 </div>
               </div>
             </div>
@@ -1034,7 +1034,7 @@ export default function Kepsek({
           open={!!selectedCaseForDisposition}
           onOpenChange={(open) => !open && setSelectedCaseForDisposition(null)}
         >
-          <DialogContent className="w-[94vw] max-w-xl p-0 gap-0 overflow-hidden bg-[#EEF2F7] border border-white/85 shadow-[6px_6px_20px_rgba(166,178,196,0.45),-6px_-6px_20px_rgba(255,255,255,0.95)] rounded-3xl max-h-[88vh] flex flex-col z-[100]">
+          <DialogContent className="w-[94vw] max-w-xl p-0 gap-0 overflow-hidden bg-[#EEF2F7] border border-slate-300/80 shadow-2xl rounded-3xl max-h-[88vh] flex flex-col z-[100]">
             <DialogHeader className="p-5 bg-[#EEF2F7] border-b border-slate-200/70 shrink-0 pr-14">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-2xl neo-btn text-indigo-700 flex items-center justify-center shrink-0 border border-white/90 shadow-2xs">
