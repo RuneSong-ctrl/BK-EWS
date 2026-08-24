@@ -266,7 +266,7 @@ export function AiBkStructuringModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-6 sm:p-7 rounded-3xl bg-[#EEF2F7] border border-white/80 shadow-[6px_6px_16px_rgba(166,178,196,0.45),-6px_-6px_16px_rgba(255,255,255,0.95)] z-[100]">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-6 sm:p-7 rounded-3xl bg-[#EEF2F7] border border-slate-300/80 shadow-2xl z-[100]">
         {/* Header */}
         <DialogHeader className="border-b border-slate-200/70 pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

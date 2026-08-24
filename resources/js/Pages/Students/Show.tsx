@@ -321,7 +321,7 @@ export default function StudentShow({
               <div className="grid grid-cols-2 gap-3.5 text-xs sm:text-sm">
                 <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1 border border-slate-300/40">
                   <span className="text-xs text-slate-500 font-medium block">Rata-rata Nilai:</span>
-                  <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block font-mono">
+                  <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block font-number">
                     {academicAvg}
                   </span>
                   <span className="text-xs text-blue-700 font-bold block">
@@ -374,7 +374,7 @@ export default function StudentShow({
               <div className="grid grid-cols-2 gap-3.5 text-xs sm:text-sm">
                 <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1 border border-slate-300/40">
                   <span className="text-xs text-slate-500 font-medium block">Tingkat Kehadiran:</span>
-                  <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block font-mono">
+                  <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block font-number">
                     {attendanceRate}%
                   </span>
                   <span className="text-xs text-slate-500 font-medium block">
@@ -385,16 +385,16 @@ export default function StudentShow({
                 <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1 border border-slate-300/40">
                   <span className="text-xs text-slate-500 font-medium block">Rincian Absensi:</span>
                   <div className="flex flex-wrap gap-1 text-[11px] font-semibold pt-0.5">
-                    <span className="px-2 py-0.5 rounded-md bg-white/90 text-emerald-800 border border-slate-200/80 shadow-2xs">
+                    <span className="px-2 py-0.5 rounded-md bg-white/90 text-emerald-800 border border-slate-200/80 shadow-2xs font-number font-bold">
                       H: {hadirCount}
                     </span>
-                    <span className="px-2 py-0.5 rounded-md bg-white/90 text-amber-800 border border-slate-200/80 shadow-2xs">
+                    <span className="px-2 py-0.5 rounded-md bg-white/90 text-amber-800 border border-slate-200/80 shadow-2xs font-number font-bold">
                       S: {sakitCount}
                     </span>
-                    <span className="px-2 py-0.5 rounded-md bg-white/90 text-blue-800 border border-slate-200/80 shadow-2xs">
+                    <span className="px-2 py-0.5 rounded-md bg-white/90 text-blue-800 border border-slate-200/80 shadow-2xs font-number font-bold">
                       I: {izinCount}
                     </span>
-                    <span className="px-2 py-0.5 rounded-md bg-white/90 text-rose-800 border border-slate-200/80 shadow-2xs">
+                    <span className="px-2 py-0.5 rounded-md bg-white/90 text-rose-800 border border-slate-200/80 shadow-2xs font-number font-bold">
                       A: {alpaCount}
                     </span>
                   </div>
@@ -435,21 +435,21 @@ export default function StudentShow({
               <div className="grid grid-cols-3 gap-2.5 text-xs sm:text-sm">
                 <div className="p-3.5 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1 text-center border border-slate-300/40">
                   <span className="text-[11px] text-slate-500 font-medium block">Keaktifan</span>
-                  <span className="text-xl sm:text-2xl font-extrabold text-slate-900 font-mono block">
+                  <span className="text-xl sm:text-2xl font-extrabold text-slate-900 font-number block">
                     {participationAvg}/5
                   </span>
                 </div>
 
                 <div className="p-3.5 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1 text-center border border-slate-300/40">
                   <span className="text-[11px] text-slate-500 font-medium block">Ketertiban</span>
-                  <span className="text-xl sm:text-2xl font-extrabold text-slate-900 font-mono block">
+                  <span className="text-xl sm:text-2xl font-extrabold text-slate-900 font-number block">
                     {homeworkAvg}/5
                   </span>
                 </div>
 
                 <div className="p-3.5 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1 text-center border border-slate-300/40">
                   <span className="text-[11px] text-slate-500 font-medium block">Fokus</span>
-                  <span className="text-xl sm:text-2xl font-extrabold text-slate-900 font-mono block">
+                  <span className="text-xl sm:text-2xl font-extrabold text-slate-900 font-number block">
                     {quizAvg}/5
                   </span>
                 </div>
@@ -489,11 +489,11 @@ export default function StudentShow({
               <div className="grid grid-cols-2 gap-3.5 text-xs sm:text-sm">
                 <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] space-y-1 border border-slate-300/40">
                   <span className="text-xs text-slate-500 font-medium block">Total Kasus Aktif:</span>
-                  <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block font-mono">
+                  <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 block font-number">
                     {activeBkCasesCount}
                   </span>
                   <span className="text-xs text-slate-500 font-medium block">
-                    {resolvedBkCasesCount} Kasus Telah Selesai
+                    <strong className="font-number font-bold">{resolvedBkCasesCount}</strong> Kasus Telah Selesai
                   </span>
                 </div>
 
@@ -556,13 +556,20 @@ export default function StudentShow({
             </div>
 
             <div className="flex items-center gap-2">
-              <Link
-                href="/dashboard/guru-bk#kasus"
-                className="px-4 py-2 rounded-xl neo-btn-primary text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-xs transition-all"
-              >
-                <IconHandshake className="w-3.5 h-3.5" />
-                <span>Input Sesi Bimbingan Baru</span>
-              </Link>
+              {userRole === "guru_bk" ? (
+                <Link
+                  href="/dashboard/guru-bk#form-bk"
+                  className="px-4 py-2 rounded-xl neo-btn-primary text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
+                >
+                  <IconHandshake className="w-3.5 h-3.5" />
+                  <span>Input Sesi Bimbingan Baru</span>
+                </Link>
+              ) : (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 text-xs font-medium text-slate-500 shadow-2xs">
+                  <IconLock className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Akses Khusus Guru BK (Mode Lihat)</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -742,14 +749,14 @@ export default function StudentShow({
                           </span>
                         </td>
                         <td className="py-3.5 px-4 font-semibold text-slate-800">{rec.period || rec.period_name || "-"}</td>
-                        <td className="py-3.5 px-4 text-center font-mono font-bold text-sm">
+                        <td className="py-3.5 px-4 text-center font-number font-extrabold text-sm">
                           <span className={cn(isBelowKkm ? "text-rose-600" : "text-slate-900")}>{scoreVal}</span>
                         </td>
-                        <td className="py-3.5 px-4 text-center font-mono text-slate-500">{passingGrade}</td>
+                        <td className="py-3.5 px-4 text-center font-number font-semibold text-slate-500">{passingGrade}</td>
                         <td className="py-3.5 px-4 text-center">
                           <span
                             className={cn(
-                              "px-2.5 py-0.5 rounded-xl text-[11px] font-bold border shadow-2xs bg-white/90",
+                              "px-2.5 py-0.5 rounded-xl text-[11px] font-bold border shadow-2xs bg-white/90 font-number",
                               isBelowKkm ? "border-amber-200 text-amber-800" : "border-emerald-200 text-emerald-800"
                             )}
                           >
@@ -782,29 +789,29 @@ export default function StudentShow({
                   Log Presensi &amp; Kehadiran Siswa (30 Hari Terakhir)
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                  Tingkat Kehadiran: <strong className="text-slate-800 font-mono">{attendanceRate}%</strong> • Total {attendanceRecords.length} data harian
+                  Tingkat Kehadiran: <strong className="text-slate-800 font-number font-extrabold">{attendanceRate}%</strong> • Total <strong className="font-number font-bold text-slate-700">{attendanceRecords.length}</strong> data harian
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-1.5 flex-wrap">
-              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-emerald-800 border border-slate-200/80 shadow-2xs">
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-emerald-800 border border-slate-200/80 shadow-2xs font-number">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20" />
                 <span>Hadir: {hadirCount}</span>
               </div>
-              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-amber-800 border border-slate-200/80 shadow-2xs">
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-amber-800 border border-slate-200/80 shadow-2xs font-number">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 ring-2 ring-amber-500/20" />
                 <span>Sakit: {sakitCount}</span>
               </div>
-              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-blue-800 border border-slate-200/80 shadow-2xs">
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-blue-800 border border-slate-200/80 shadow-2xs font-number">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-500 ring-2 ring-blue-500/20" />
                 <span>Izin: {izinCount}</span>
               </div>
-              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-rose-800 border border-slate-200/80 shadow-2xs">
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-rose-800 border border-slate-200/80 shadow-2xs font-number">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-500 ring-2 ring-rose-500/20" />
                 <span>Alpa: {alpaCount}</span>
               </div>
-              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-orange-800 border border-slate-200/80 shadow-2xs">
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-white/90 text-orange-800 border border-slate-200/80 shadow-2xs font-number">
                 <span className="w-1.5 h-1.5 rounded-full bg-orange-500 ring-2 ring-orange-500/20" />
                 <span>Terlambat: {terlambatCount}</span>
               </div>
@@ -892,13 +899,20 @@ export default function StudentShow({
             </div>
 
             <div className="flex items-center gap-2">
-              <Link
-                href="/dashboard/guru-kelas#observasi"
-                className="px-4 py-2 rounded-xl neo-btn-primary text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-xs transition-all"
-              >
-                <IconBook className="w-3.5 h-3.5" />
-                <span>Tambah Jurnal Observasi</span>
-              </Link>
+              {userRole === "guru_kelas" ? (
+                <Link
+                  href="/dashboard/guru-kelas#observasi"
+                  className="px-4 py-2 rounded-xl neo-btn-primary text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
+                >
+                  <IconBook className="w-3.5 h-3.5" />
+                  <span>Tambah Jurnal Observasi</span>
+                </Link>
+              ) : (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 text-xs font-medium text-slate-500 shadow-2xs">
+                  <IconLock className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Akses Input Guru Kelas (Mode Lihat)</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -949,18 +963,18 @@ export default function StudentShow({
 
                   {/* 3 Scales */}
                   {(obs.participation_score || obs.homework_score || obs.quiz_score) && (
-                    <div className="grid grid-cols-3 gap-2 text-center text-xs font-mono pt-1">
+                    <div className="grid grid-cols-3 gap-2 text-center text-xs font-number pt-1">
                       <div className="p-2 rounded-xl neo-card-subtle bg-[#EEF2F7] border border-white/90">
-                        <span className="text-[10px] text-slate-500 font-sans block">Keaktifan</span>
-                        <span className="font-bold text-slate-800">{obs.participation_score || 3}/5</span>
+                        <span className="text-[10px] text-slate-500 font-sans font-bold block uppercase tracking-wider">Keaktifan</span>
+                        <span className="font-extrabold text-slate-900">{obs.participation_score || 3}/5</span>
                       </div>
                       <div className="p-2 rounded-xl neo-card-subtle bg-[#EEF2F7] border border-white/90">
-                        <span className="text-[10px] text-slate-500 font-sans block">Ketertiban</span>
-                        <span className="font-bold text-slate-800">{obs.homework_score || 3}/5</span>
+                        <span className="text-[10px] text-slate-500 font-sans font-bold block uppercase tracking-wider">Ketertiban</span>
+                        <span className="font-extrabold text-slate-900">{obs.homework_score || 3}/5</span>
                       </div>
                       <div className="p-2 rounded-xl neo-card-subtle bg-[#EEF2F7] border border-white/90">
-                        <span className="text-[10px] text-slate-500 font-sans block">Konsentrasi</span>
-                        <span className="font-bold text-slate-800">
+                        <span className="text-[10px] text-slate-500 font-sans font-bold block uppercase tracking-wider">Konsentrasi</span>
+                        <span className="font-extrabold text-slate-900">
                           {obs.quiz_score > 5 ? Math.round(obs.quiz_score / 20) : obs.quiz_score || 3}/5
                         </span>
                       </div>

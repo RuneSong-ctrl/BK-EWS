@@ -36,13 +36,14 @@ class AcademicController extends Controller
             'assessment_type' => ['required', 'in:TUGAS,UH,UTS,UAS'],
             'period' => ['required', 'string', 'max:50'],
             'academic_year' => ['required', 'string', 'max:20'],
-            'score' => ['required', 'numeric', 'min:0', 'max:100'],
+            'score' => ['required', 'integer', 'min:0', 'max:100'],
             'is_remedial' => ['boolean'],
-            'previous_score' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'previous_score' => ['nullable', 'integer', 'min:0', 'max:100'],
         ]);
 
         $student = Student::findOrFail($validated['student_id']);
 
+<<<<<<< HEAD
         DB::transaction(function () use ($validated, $student, $request) {
             AcademicRecord::create([
                 'student_id' => $student->id,
@@ -55,6 +56,19 @@ class AcademicController extends Controller
                 'previous_score' => $validated['previous_score'] ?? null,
                 'created_by' => $request->user()->id,
             ]);
+=======
+        AcademicRecord::create([
+            'student_id' => $student->id,
+            'subject_id' => $validated['subject_id'],
+            'assessment_type' => $validated['assessment_type'],
+            'period' => $validated['period'],
+            'academic_year' => $validated['academic_year'],
+            'score' => intval($validated['score']),
+            'is_remedial' => $validated['is_remedial'] ?? false,
+            'previous_score' => isset($validated['previous_score']) ? intval($validated['previous_score']) : null,
+            'created_by' => $request->user()->id,
+        ]);
+>>>>>>> 16fd4252cd1853c2c814c90ab246ca6155a61f66
 
             // Recalculate EWS
             $this->scoringService->evaluate($student);
@@ -79,12 +93,13 @@ class AcademicController extends Controller
             'academic_year' => ['required', 'string', 'max:20'],
             'scores' => ['required', 'array', 'min:1'],
             'scores.*.student_id' => ['required', 'exists:students,id'],
-            'scores.*.score' => ['required', 'numeric', 'min:0', 'max:100'],
+            'scores.*.score' => ['required', 'integer', 'min:0', 'max:100'],
         ]);
 
         $userId = $request->user()->id;
         $studentIds = collect($validated['scores'])->pluck('student_id')->unique()->all();
 
+<<<<<<< HEAD
         DB::transaction(function () use ($validated, $userId, $studentIds) {
             foreach ($validated['scores'] as $item) {
                 $scoreVal = floatval($item['score']);
@@ -98,6 +113,25 @@ class AcademicController extends Controller
                     'is_remedial' => $scoreVal < 75,
                     'created_by' => $userId,
                 ]);
+=======
+        foreach ($validated['scores'] as $item) {
+            $scoreVal = intval($item['score']);
+            AcademicRecord::create([
+                'student_id' => $item['student_id'],
+                'subject_id' => $validated['subject_id'],
+                'assessment_type' => $validated['assessment_type'],
+                'period' => $validated['period'],
+                'academic_year' => $validated['academic_year'],
+                'score' => $scoreVal,
+                'is_remedial' => $scoreVal < 75,
+                'created_by' => $userId,
+            ]);
+
+            // Re-evaluate EWS
+            $student = Student::find($item['student_id']);
+            if ($student) {
+                $this->scoringService->evaluate($student);
+>>>>>>> 16fd4252cd1853c2c814c90ab246ca6155a61f66
             }
 
             // Batch re-evaluasi EWS pilar akademik untuk seluruh siswa terkait

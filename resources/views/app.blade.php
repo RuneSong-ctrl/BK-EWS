@@ -6,10 +6,10 @@
         <title inertia>{{ config('app.name', 'E-Jurnal STIKMAS') }}</title>
         <link rel="icon" type="image/png" href="/storage/stikmas.png">
 
-        <!-- Modern SaaS & Dashboard Fonts: Plus Jakarta Sans & Outfit -->
+        <!-- Clean Institutional Dashboard Fonts: Plus Jakarta Sans, Inter -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
         <!-- Scripts & Styles -->
         @viteReactRefresh
