@@ -91,7 +91,6 @@ export function LinearScale({
             )}
             {description && <p className="text-xs text-slate-500 mt-0.5 leading-snug">{description}</p>}
           </div>
-<<<<<<< HEAD
           <div className="flex flex-col items-end">
             <div
               className={cn(
@@ -109,22 +108,11 @@ export function LinearScale({
             </div>
             {mode === "discrete" && currentHint && (
               <span className="text-[10px] text-slate-500 font-medium mt-0.5 select-none">{currentHint}</span>
-=======
-          <div
-            className={cn(
-              "px-3 py-1 rounded-xl neo-card-subtle bg-[#EEF2F7] border border-white/90 font-number text-xs sm:text-sm font-extrabold shrink-0 transition-all",
-              mode === "continuous"
-                ? value >= 75
-                  ? "text-emerald-700 font-extrabold"
-                  : value >= 60
-                  ? "text-blue-700 font-extrabold"
-                  : "text-amber-700 font-extrabold"
-                : "text-slate-900"
->>>>>>> 16fd4252cd1853c2c814c90ab246ca6155a61f66
             )}
           </div>
         </div>
       )}
+
 
       {mode === "discrete" ? (
         <div className="space-y-1.5 pt-0.5">

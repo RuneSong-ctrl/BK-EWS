@@ -43,7 +43,6 @@ class AcademicController extends Controller
 
         $student = Student::findOrFail($validated['student_id']);
 
-<<<<<<< HEAD
         DB::transaction(function () use ($validated, $student, $request) {
             AcademicRecord::create([
                 'student_id' => $student->id,
@@ -56,19 +55,6 @@ class AcademicController extends Controller
                 'previous_score' => $validated['previous_score'] ?? null,
                 'created_by' => $request->user()->id,
             ]);
-=======
-        AcademicRecord::create([
-            'student_id' => $student->id,
-            'subject_id' => $validated['subject_id'],
-            'assessment_type' => $validated['assessment_type'],
-            'period' => $validated['period'],
-            'academic_year' => $validated['academic_year'],
-            'score' => intval($validated['score']),
-            'is_remedial' => $validated['is_remedial'] ?? false,
-            'previous_score' => isset($validated['previous_score']) ? intval($validated['previous_score']) : null,
-            'created_by' => $request->user()->id,
-        ]);
->>>>>>> 16fd4252cd1853c2c814c90ab246ca6155a61f66
 
             // Recalculate EWS
             $this->scoringService->evaluate($student);
@@ -99,7 +85,6 @@ class AcademicController extends Controller
         $userId = $request->user()->id;
         $studentIds = collect($validated['scores'])->pluck('student_id')->unique()->all();
 
-<<<<<<< HEAD
         DB::transaction(function () use ($validated, $userId, $studentIds) {
             foreach ($validated['scores'] as $item) {
                 $scoreVal = floatval($item['score']);
@@ -113,25 +98,6 @@ class AcademicController extends Controller
                     'is_remedial' => $scoreVal < 75,
                     'created_by' => $userId,
                 ]);
-=======
-        foreach ($validated['scores'] as $item) {
-            $scoreVal = intval($item['score']);
-            AcademicRecord::create([
-                'student_id' => $item['student_id'],
-                'subject_id' => $validated['subject_id'],
-                'assessment_type' => $validated['assessment_type'],
-                'period' => $validated['period'],
-                'academic_year' => $validated['academic_year'],
-                'score' => $scoreVal,
-                'is_remedial' => $scoreVal < 75,
-                'created_by' => $userId,
-            ]);
-
-            // Re-evaluate EWS
-            $student = Student::find($item['student_id']);
-            if ($student) {
-                $this->scoringService->evaluate($student);
->>>>>>> 16fd4252cd1853c2c814c90ab246ca6155a61f66
             }
 
             // Batch re-evaluasi EWS pilar akademik untuk seluruh siswa terkait
@@ -142,4 +108,5 @@ class AcademicController extends Controller
         return back()->with('success', 'Rekap nilai akademik berhasil dicatat dan pilar Akademik (AK) EWS telah diperbarui.');
     }
 }
+
 

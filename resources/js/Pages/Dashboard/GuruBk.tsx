@@ -200,13 +200,17 @@ export default function GuruBk({
             student_id: currentStudent.id,
             student_name: currentStudent.name,
             class_name: currentStudent.class_name,
-            case_title: `${problemDomain.replace(/_/g, " ")} (${serviceFormat.replace(/_/g, " ")})`,
-            incident_date: currentDate,
+            nisn: currentStudent.nisn || "-",
+            date: currentDate,
+            category: `${problemDomain.replace(/_/g, " ")} • ${serviceFormat.replace(/_/g, " ")}`,
             severity: currentUrgency,
             status: currentStatus,
+            follow_up: currentFollowUp,
+            notes: currentNotes,
           })
           setNotes("")
           setCallParent(false)
+
           setScheduleNextSession(false)
           setReferExternal(false)
           setEscalateKepsek(false)
@@ -226,44 +230,25 @@ export default function GuruBk({
     )
   }
 
-<<<<<<< HEAD
   const studentDataList = students?.data || []
-  const holisticList: HolisticStudentItem[] = studentDataList.map((s: any) => ({
-    id: s.id,
-    name: s.name,
-    nisn: s.nisn,
-    class_name: s.classes?.[0]?.name || s.class_name || "-",
-    grade: s.classes?.[0]?.name?.startsWith("10") ? "X" : s.classes?.[0]?.name?.startsWith("11") ? "XI" : "XII",
-    pillars: {
-      ak: s.ews_score?.academic_sub_status || "DATA_BELUM_LENGKAP",
-      kh: s.ews_score?.attendance_sub_status || "DATA_BELUM_LENGKAP",
-      pr: s.ews_score?.behavior_sub_status || "DATA_BELUM_LENGKAP",
-      bk: s.ews_score?.bk_sub_status || "DATA_BELUM_LENGKAP",
-    },
-
-    ews_status: s.ews_score?.status || "DATA_BELUM_LENGKAP",
-    trigger_reason: s.ews_score?.triggered_by_parameters?.join(", ") || "Data pilar dikumpulkan",
-  }))
-=======
-  // Dynamic holistic list memoized
-  const holisticList = React.useMemo(() => {
-    return studentOptions.map((s) => ({
+  const holisticList: HolisticStudentItem[] = React.useMemo(() => {
+    return studentDataList.map((s: any) => ({
       id: s.id,
       name: s.name,
       nisn: s.nisn,
-      class_name: s.class_name,
-      grade: s.grade || "X",
+      class_name: s.classes?.[0]?.name || s.class_name || "-",
+      grade: s.classes?.[0]?.name?.startsWith("10") ? "X" : s.classes?.[0]?.name?.startsWith("11") ? "XI" : "XII",
       pillars: {
         ak: s.ews_score?.academic_sub_status || "DATA_BELUM_LENGKAP",
         kh: s.ews_score?.attendance_sub_status || "DATA_BELUM_LENGKAP",
-        pr: s.ews_score?.behavior_sub_status || "NORMAL",
-        bk: s.ews_score?.bk_sub_status || "NORMAL"
+        pr: s.ews_score?.behavior_sub_status || "DATA_BELUM_LENGKAP",
+        bk: s.ews_score?.bk_sub_status || "DATA_BELUM_LENGKAP",
       },
       ews_status: s.ews_score?.status || "DATA_BELUM_LENGKAP",
       trigger_reason: s.ews_score?.triggered_by_parameters?.join(", ") || "Data pilar dikumpulkan",
     }))
-  }, [studentOptions])
->>>>>>> 16fd4252cd1853c2c814c90ab246ca6155a61f66
+  }, [studentDataList])
+
 
   const filteredMatrix = React.useMemo(() => {
     const q = searchQuery.toLowerCase().trim()
@@ -1049,55 +1034,6 @@ export default function GuruBk({
           <table className="w-full text-xs sm:text-sm text-left">
             <thead className="bg-[#F0F3F8] text-slate-600 font-bold uppercase tracking-wider text-xs border-b border-slate-200">
               <tr>
-<<<<<<< HEAD
-                <th className="py-3.5 px-4 sticky left-0 bg-[#E7EDF4] z-10 shadow-[1px_0_0_0_#cbd5e1]">Nama Siswa</th>
-                <th className="py-3.5 px-3">Kelas</th>
-                <th className="py-3.5 px-3">Pilar AK (Nilai)</th>
-                <th className="py-3.5 px-3">Pilar KH (Absensi)</th>
-                <th className="py-3.5 px-3">Pilar PR (Perilaku)</th>
-                <th className="py-3.5 px-3">Pilar BK (Kasus)</th>
-                <th className="py-3.5 px-3">Status EWS</th>
-                <th className="py-3.5 px-4 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200/50">
-              {filteredMatrix.map((student) => (
-                <tr key={student.id} className="hover:bg-blue-50/30 transition-colors group">
-                  <td className="py-4 px-4 sticky left-0 bg-[#EEF2F7] group-hover:bg-[#E4ECF4] z-10 shadow-[1px_0_0_0_#cbd5e1] font-bold text-sm sm:text-base text-slate-900 transition-colors whitespace-nowrap">
-                    {student.name}
-                    <span className="block text-xs text-slate-500 font-normal font-mono">
-                      NISN: {student.nisn}
-                    </span>
-                  </td>
-                  <td className="py-4 px-3 whitespace-nowrap">
-                    <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-white/90 text-slate-700 border border-slate-200/80 shadow-2xs">
-                      {student.class_name}
-                    </span>
-                  </td>
-                  <td className="py-4 px-3 whitespace-nowrap">
-                    <EwsStatusBadge status={student.pillars.ak} size="sm" showDot={false} />
-                  </td>
-                  <td className="py-4 px-3 whitespace-nowrap">
-                    <EwsStatusBadge status={student.pillars.kh} size="sm" showDot={false} />
-                  </td>
-                  <td className="py-4 px-3 whitespace-nowrap">
-                    <EwsStatusBadge status={student.pillars.pr} size="sm" showDot={false} />
-                  </td>
-                  <td className="py-4 px-3 whitespace-nowrap">
-                    <EwsStatusBadge status={student.pillars.bk} size="sm" showDot={false} />
-                  </td>
-                  <td className="py-4 px-3 whitespace-nowrap">
-                    <EwsStatusBadge status={student.ews_status} size="sm" />
-                  </td>
-                  <td className="py-4 px-4 text-right whitespace-nowrap">
-                    <Link
-                      href={`/students/${student.id}`}
-                      className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-indigo-700 hover:text-indigo-900 p-2 rounded-xl neo-btn bg-[#EEF2F7] border border-white/90"
-                    >
-                      <span>Lihat Profil</span>
-                      <IconChevronRight className="w-4 h-4" />
-                    </Link>
-=======
                 <th className="py-3.5 px-4 min-w-[200px]">Nama Siswa</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">Kelas</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">4 Pilar EWS</th>
@@ -1111,12 +1047,12 @@ export default function GuruBk({
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-xs sm:text-sm text-slate-400 font-medium">
                     Tidak ada data siswa yang cocok dengan filter pencarian.
->>>>>>> 16fd4252cd1853c2c814c90ab246ca6155a61f66
                   </td>
                 </tr>
               ) : (
                 filteredMatrix.map((student) => (
                   <tr key={student.id} className="hover:bg-indigo-50/40 transition-colors group">
+
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-xl bg-[#EEF2F7] border border-slate-200 text-indigo-700 font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">

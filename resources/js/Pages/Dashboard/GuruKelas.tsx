@@ -305,6 +305,7 @@ export default function GuruKelas({
     kritisPct,
     atensiStudents,
     lowAttendanceCount,
+    hasAttendanceData,
     avgAttDisplay,
     avgAttNum,
     classAvgScore,
@@ -329,15 +330,15 @@ export default function GuruKelas({
     )
 
     const studentsWithAtt = studentList.filter((s) => s.attendance_rate !== null && s.attendance_rate !== undefined)
-    const attNum =
-      studentsWithAtt.length > 0
-        ? Math.round(
-          studentsWithAtt.reduce((acc, curr) => acc + (Number(curr.attendance_rate) || 0), 0) /
-          studentsWithAtt.length
-        )
-        : 100
-    const attDisplay = `${attNum}%`
-    const lowAttCount = studentList.filter((s) => Number(s.attendance_rate || 100) < 85).length
+    const hasAtt = studentsWithAtt.length > 0
+    const attNum = hasAtt
+      ? Math.round(
+        studentsWithAtt.reduce((acc, curr) => acc + (Number(curr.attendance_rate) || 0), 0) /
+        studentsWithAtt.length
+      )
+      : null
+    const attDisplay = hasAtt ? `${attNum}%` : "-"
+    const lowAttCount = studentList.filter((s) => s.attendance_rate !== null && Number(s.attendance_rate) < 85).length
 
     const withScore = studentList.filter((s) => s.avg_score !== null && s.avg_score !== undefined)
     const avgScore =
@@ -363,6 +364,7 @@ export default function GuruKelas({
       kritisPct: kriPct,
       atensiStudents: atensiList,
       lowAttendanceCount: lowAttCount,
+      hasAttendanceData: hasAtt,
       avgAttDisplay: attDisplay,
       avgAttNum: attNum,
       classAvgScore: avgScore,
@@ -370,46 +372,8 @@ export default function GuruKelas({
       stableScoreCount: stableCount,
       studentsWithScore: withScore,
     }
-<<<<<<< HEAD
-
-    return matchesSearch && matchesDropdown && matchesTab
-  })
-
-  const totalCount = stats?.total_students || studentList.length || 0
-  const normalCount = stats?.normal_count || studentList.filter((s) => s.ews_status === "NORMAL").length || 0
-  const berisikoCount = stats?.berisiko_count || studentList.filter((s) => s.ews_status === "BERISIKO").length || 0
-  const waspadaCount = stats?.waspada_count || studentList.filter((s) => s.ews_status === "WASPADA").length || 0
-  const kritisCount = stats?.kritis_count || studentList.filter((s) => s.ews_status === "KRITIS").length || 0
-  const atensiCount = kritisCount + waspadaCount + berisikoCount
-  const atensiStudents = studentList.filter(
-    (s) => s.ews_status === "KRITIS" || s.ews_status === "WASPADA" || s.ews_status === "BERISIKO"
-  )
-
-  const studentsWithAtt = studentList.filter((s) => s.attendance_rate !== null && s.attendance_rate !== undefined)
-  const hasAttendanceData = studentsWithAtt.length > 0
-  const avgAttNum = hasAttendanceData
-    ? Math.round(
-      studentsWithAtt.reduce((acc, curr) => acc + (Number(curr.attendance_rate) || 0), 0) /
-      studentsWithAtt.length
-    )
-    : null
-  const avgAttDisplay = hasAttendanceData ? `${avgAttNum}%` : "-"
-  const lowAttendanceCount = studentList.filter((s) => s.attendance_rate !== null && Number(s.attendance_rate) < 85).length
-
-
-  const studentsWithScore = studentList.filter((s) => s.avg_score !== null && s.avg_score !== undefined)
-  const classAvgScore =
-    studentsWithScore.length > 0
-      ? (
-        studentsWithScore.reduce((acc, curr) => acc + (Number(curr.avg_score) || 0), 0) /
-        studentsWithScore.length
-      ).toFixed(1)
-      : "-"
-  const scoreDropCount = studentList.filter((s) => s.score_trend === "Turun").length
-  const stableScoreCount = studentList.filter((s) => s.score_trend === "Stabil" || s.score_trend === "Naik").length
-=======
   }, [stats, studentList])
->>>>>>> 16fd4252cd1853c2c814c90ab246ca6155a61f66
+
 
   return (
     <AppLayout
@@ -626,16 +590,13 @@ export default function GuruKelas({
           <div className="flex items-center justify-between gap-4 py-1 relative z-10">
             <div className="space-y-1">
               <div className="flex items-baseline gap-2">
-<<<<<<< HEAD
                 <span className={cn(
                   "text-4xl sm:text-5xl font-extrabold tracking-tight",
                   hasAttendanceData ? "text-emerald-600" : "text-slate-400 font-mono"
                 )}>
-=======
-                <span className="text-4xl sm:text-5xl font-extrabold font-number text-emerald-600 tracking-tight">
->>>>>>> 16fd4252cd1853c2c814c90ab246ca6155a61f66
                   {avgAttDisplay}
                 </span>
+
               </div>
               <p className="text-xs text-slate-500 leading-relaxed font-medium">
                 {hasAttendanceData
@@ -1156,13 +1117,10 @@ export default function GuruKelas({
                       </div>
                     </td>
 
-<<<<<<< HEAD
                     <td className="py-4 px-3 font-mono text-xs sm:text-sm text-slate-600 whitespace-nowrap">
-=======
-                    <td className="py-4 px-3 font-mono font-semibold text-xs sm:text-sm text-slate-600">
->>>>>>> 16fd4252cd1853c2c814c90ab246ca6155a61f66
                       {student.nisn}
                     </td>
+
 
                     <td className="py-4 px-3 whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
