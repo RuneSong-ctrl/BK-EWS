@@ -31,7 +31,9 @@ export function StudentAutocomplete({
 }: StudentAutocompleteProps) {
   const [query, setQuery] = React.useState("")
   const [isOpen, setIsOpen] = React.useState(false)
+  const [activeIndex, setActiveIndex] = React.useState<number>(-1)
   const wrapperRef = React.useRef<HTMLDivElement>(null)
+  const listboxRef = React.useRef<HTMLDivElement>(null)
 
   const filteredStudents = React.useMemo(() => {
     if (!query.trim()) return students.slice(0, 6)
@@ -44,6 +46,11 @@ export function StudentAutocomplete({
     )
   }, [students, query])
 
+  // Reset active index when list changes
+  React.useEffect(() => {
+    setActiveIndex(-1)
+  }, [filteredStudents])
+
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
@@ -53,6 +60,52 @@ export function StudentAutocomplete({
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!isOpen) {
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault()
+        setIsOpen(true)
+      }
+      return
+    }
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault()
+      setActiveIndex((prev) => {
+        const next = prev < filteredStudents.length - 1 ? prev + 1 : 0
+        scrollItemIntoView(next)
+        return next
+      })
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault()
+      setActiveIndex((prev) => {
+        const next = prev > 0 ? prev - 1 : filteredStudents.length - 1
+        scrollItemIntoView(next)
+        return next
+      })
+    } else if (e.key === "Enter") {
+      if (activeIndex >= 0 && activeIndex < filteredStudents.length) {
+        e.preventDefault()
+        const target = filteredStudents[activeIndex]
+        onSelect(target)
+        setIsOpen(false)
+        setQuery("")
+      }
+    } else if (e.key === "Escape") {
+      e.preventDefault()
+      setIsOpen(false)
+    }
+  }
+
+  const scrollItemIntoView = (index: number) => {
+    if (listboxRef.current) {
+      const items = listboxRef.current.querySelectorAll<HTMLButtonElement>('[role="option"]')
+      if (items[index]) {
+        items[index].scrollIntoView({ block: "nearest" })
+      }
+    }
+  }
 
   return (
     <div ref={wrapperRef} className={cn("relative space-y-1.5", className)}>
@@ -89,7 +142,7 @@ export function StudentAutocomplete({
           </div>
         </div>
       ) : (
-        <div className="relative" role="combobox" aria-expanded={isOpen} aria-haspopup="listbox">
+        <div className="relative" role="combobox" aria-expanded={isOpen} aria-haspopup="listbox" aria-controls="student-autocomplete-listbox">
           <div className="relative flex items-center">
             <IconSearch className="w-4 h-4 absolute left-3.5 text-slate-400 pointer-events-none" />
             <input
@@ -100,43 +153,60 @@ export function StudentAutocomplete({
                 setIsOpen(true)
               }}
               onFocus={() => setIsOpen(true)}
+              onKeyDown={handleKeyDown}
               placeholder={placeholder}
               aria-label={label || placeholder}
+              aria-autocomplete="list"
+              aria-activedescendant={activeIndex >= 0 ? `student-option-${activeIndex}` : undefined}
               className="w-full h-11 pl-10 pr-4 rounded-2xl neo-inset bg-[#E7EDF4] text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30 transition-all"
             />
           </div>
 
           {isOpen && (
             <div
+              id="student-autocomplete-listbox"
               role="listbox"
+              ref={listboxRef}
               className="absolute top-full left-0 right-0 mt-1.5 z-50 rounded-2xl neo-card bg-[#EEF2F7] border border-white/90 shadow-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150"
             >
-              <div className="px-3.5 py-2.5 bg-[#E7EDF4] border-b border-slate-200/60 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                {filteredStudents.length > 0 ? "Pilih Siswa Binaan" : "Siswa Tidak Ditemukan"}
+              <div className="px-3.5 py-2.5 bg-[#E7EDF4] border-b border-slate-200/60 text-[11px] font-bold uppercase tracking-wider text-slate-500 flex justify-between items-center">
+                <span>{filteredStudents.length > 0 ? "Pilih Siswa Binaan" : "Siswa Tidak Ditemukan"}</span>
+                <span className="text-[10px] text-slate-400 font-normal">Gunakan ↑↓ dan Enter</span>
               </div>
 
               <div className="max-h-60 overflow-y-auto divide-y divide-slate-200/60">
                 {filteredStudents.length > 0 ? (
-                  filteredStudents.map((student) => (
+                  filteredStudents.map((student, idx) => (
                     <button
                       key={student.id}
+                      id={`student-option-${idx}`}
                       type="button"
                       role="option"
-                      aria-selected={false}
+                      aria-selected={activeIndex === idx}
+                      onMouseEnter={() => setActiveIndex(idx)}
                       onClick={() => {
                         onSelect(student)
                         setIsOpen(false)
                         setQuery("")
                       }}
-                      className="w-full flex items-center justify-between p-3 px-3.5 text-left hover:bg-white transition-colors group cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                      className={cn(
+                        "w-full flex items-center justify-between p-3 px-3.5 text-left transition-colors group cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none",
+                        activeIndex === idx ? "bg-blue-50/80" : "hover:bg-white"
+                      )}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl neo-btn text-blue-700 bg-[#EEF2F7] group-hover:bg-blue-50 flex items-center justify-center text-xs font-bold transition-colors border border-white/90">
+                        <div className={cn(
+                          "w-8 h-8 rounded-xl neo-btn text-blue-700 flex items-center justify-center text-xs font-bold transition-colors border border-white/90",
+                          activeIndex === idx ? "bg-blue-600 text-white" : "bg-[#EEF2F7] group-hover:bg-blue-50"
+                        )}>
                           {student.name.charAt(0)}
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-slate-800 group-hover:text-blue-700">
+                            <span className={cn(
+                              "text-sm font-bold transition-colors",
+                              activeIndex === idx ? "text-blue-700" : "text-slate-800 group-hover:text-blue-700"
+                            )}>
                               {student.name}
                             </span>
                             <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-white text-slate-700 border border-slate-200">

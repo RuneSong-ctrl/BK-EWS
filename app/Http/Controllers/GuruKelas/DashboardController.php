@@ -10,11 +10,25 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Controller: DashboardController (Modul Guru Kelas / Wali Kelas)
+ * 
+ * Ruang Kerja Digital Wali Kelas E-Jurnal STIKMAS.
+ * Menyediakan pemantauan 4 pilar siswa kelas bimbingan, shortcut input jurnal observasi cepat,
+ * modal input presensi harian massal, dan modal input nilai akademik massal.
+ */
 class DashboardController extends Controller
 {
+    /**
+     * Tampilkan antarmuka dashboard utama wali kelas
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function index(Request $request): Response
     {
         $user = $request->user();
+
 
         // Cari kelas yang diampu oleh wali kelas ini, atau fallback ke kelas pertama jika demo / guest
         $myClass = null;
@@ -73,14 +87,15 @@ class DashboardController extends Controller
                 // Pillars mapping
                 $akStatus = $std->ewsScore ? $std->ewsScore->academic_sub_status : 'DATA_BELUM_LENGKAP';
                 $khStatus = $std->ewsScore ? $std->ewsScore->attendance_sub_status : 'DATA_BELUM_LENGKAP';
-                $prStatus = $std->ewsScore ? $std->ewsScore->behavior_sub_status : 'PENDING';
-                $bkStatus = $std->ewsScore ? $std->ewsScore->bk_sub_status : 'NORMAL';
+                $prStatus = $std->ewsScore ? $std->ewsScore->behavior_sub_status : 'DATA_BELUM_LENGKAP';
+                $bkStatus = $std->ewsScore ? $std->ewsScore->bk_sub_status : 'DATA_BELUM_LENGKAP';
                 
-                // fallback if PENDING or not set
-                if ($prStatus === 'PENDING') $prStatus = 'NORMAL';
+                // Normalisasi PENDING ke DATA_BELUM_LENGKAP jika belum ada data
+                if ($prStatus === 'PENDING') $prStatus = 'DATA_BELUM_LENGKAP';
                 if ($akStatus === 'PENDING') $akStatus = 'DATA_BELUM_LENGKAP';
                 if ($khStatus === 'PENDING') $khStatus = 'DATA_BELUM_LENGKAP';
-                if ($bkStatus === 'PENDING') $bkStatus = 'NORMAL';
+                if ($bkStatus === 'PENDING') $bkStatus = 'DATA_BELUM_LENGKAP';
+
 
                 $students[] = [
                     'id' => $std->id,

@@ -6,8 +6,21 @@ use App\Models\EwsScore;
 use App\Models\EwsScoreHistory;
 use App\Models\Student;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Service: EwsScoringService
+ * 
+ * Core Engine Sistem Peringatan Dini (Early Warning System - EWS) E-Jurnal STIKMAS.
+ * Mengimplementasikan algoritma deterministik multi-pilar dengan paradigma Max-Severity (Worst-Case).
+ * 
+ * 4 Pilar Pemantauan:
+ * 1. Pilar Akademik (AK): Rata-rata nilai rekam tugas/ujian & tren penurunan nilai.
+ * 2. Pilar Kehadiran (KH): Tingkat presensi 30 hari terakhir & alpa berturut-turut.
+ * 3. Pilar Perilaku (PR): Catatan observasi guru kelas dalam 6 bulan terakhir.
+ * 4. Pilar Bimbingan Konseling (BK): Kasus aktif, tingkat keparahan, dan eskalasi pimpinan.
+ */
 class EwsScoringService
 {
     public const STATUS_DATA_BELUM_LENGKAP = 'DATA_BELUM_LENGKAP';
@@ -16,6 +29,9 @@ class EwsScoringService
     public const STATUS_WASPADA = 'WASPADA';
     public const STATUS_KRITIS = 'KRITIS';
 
+    /**
+     * Bobot hierarki tingkat keparahan (Severity Weight)
+     */
     private array $severityRank = [
         'PENDING' => 0,
         'NORMAL' => 1,
@@ -24,6 +40,12 @@ class EwsScoringService
         'KRITIS' => 4,
     ];
 
+    /**
+     * Evaluasi skor EWS individu siswa secara deterministik
+     *
+     * @param Student $student Model Siswa yang akan dievaluasi
+     * @return EwsScore Model skor EWS terbaru yang tersimpan
+     */
     public function evaluate(Student $student): EwsScore
     {
         $triggers = [];
@@ -52,13 +74,7 @@ class EwsScoringService
             $triggers[] = $bkResult['trigger'];
         }
 
-        // 5. Emergency Override: Jika ada kasus BK Berat / Alpa > 5 / Nilai < 50 / Perilaku Berat -> Langsung KRITIS
-        $isEmergencyCritical = ($bkResult['sub_status'] === self::STATUS_KRITIS)
-            || ($attendanceResult['sub_status'] === self::STATUS_KRITIS)
-            || ($academicResult['sub_status'] === self::STATUS_KRITIS)
-            || ($behaviorResult['sub_status'] === self::STATUS_KRITIS);
-
-        // Algoritma Max-Severity (Worst-Case Paradigm)
+        // 5. Algoritma Max-Severity (Worst-Case Paradigm)
         $statuses = [
             $academicResult['sub_status'],
             $attendanceResult['sub_status'],
@@ -97,6 +113,29 @@ class EwsScoringService
         ]);
     }
 
+    /**
+     * Batch recalculation untuk banyak siswa sekaligus (Skalabilitas tinggi untuk operasi massal)
+     *
+     * @param iterable<Student>|Collection<int, Student> $students Kumpulan model siswa
+     * @return void
+     */
+    public function evaluateMany(iterable $students): void
+    {
+        DB::transaction(function () use ($students) {
+            foreach ($students as $student) {
+                if ($student instanceof Student) {
+                    $this->evaluate($student);
+                }
+            }
+        });
+    }
+
+    /**
+     * Evaluasi sub-status pilar akademik
+     *
+     * @param Student $student
+     * @return array{sub_status: string, trigger: ?string}
+     */
     public function evaluateAcademic(Student $student): array
     {
         $records = $student->academicRecords()
@@ -140,6 +179,12 @@ class EwsScoringService
         return ['sub_status' => self::STATUS_NORMAL, 'trigger' => null];
     }
 
+    /**
+     * Evaluasi sub-status pilar kehadiran (30 hari terakhir)
+     *
+     * @param Student $student
+     * @return array{sub_status: string, trigger: ?string}
+     */
     public function evaluateAttendance(Student $student): array
     {
         $thirtyDaysAgo = Carbon::today()->subDays(30);
@@ -188,6 +233,12 @@ class EwsScoringService
         return ['sub_status' => self::STATUS_NORMAL, 'trigger' => null];
     }
 
+    /**
+     * Evaluasi sub-status pilar observasi perilaku (6 bulan terakhir)
+     *
+     * @param Student $student
+     * @return array{sub_status: string, trigger: ?string}
+     */
     public function evaluateBehavior(Student $student): array
     {
         $sixMonthsAgo = Carbon::today()->subMonths(6);
@@ -219,6 +270,12 @@ class EwsScoringService
         return ['sub_status' => self::STATUS_NORMAL, 'trigger' => null];
     }
 
+    /**
+     * Evaluasi sub-status pilar bimbingan konseling (BK)
+     *
+     * @param Student $student
+     * @return array{sub_status: string, trigger: ?string}
+     */
     public function evaluateBkCases(Student $student): array
     {
         $activeCases = $student->bkCases()
@@ -240,6 +297,14 @@ class EwsScoringService
         return ['sub_status' => self::STATUS_NORMAL, 'trigger' => null];
     }
 
+    /**
+     * Simpan status kalkulasi EWS dan catat riwayat transisi jika terjadi perubahan
+     *
+     * @param Student $student
+     * @param string $finalStatus
+     * @param array $detail
+     * @return EwsScore
+     */
     private function persistScore(Student $student, string $finalStatus, array $detail): EwsScore
     {
         return DB::transaction(function () use ($student, $finalStatus, $detail) {
@@ -259,6 +324,7 @@ class EwsScoringService
                 ]
             );
 
+            // Catat audit trail transisi skor hanya jika status berubah
             if ($oldStatus !== $finalStatus) {
                 EwsScoreHistory::create([
                     'student_id' => $student->id,
@@ -273,3 +339,4 @@ class EwsScoringService
         });
     }
 }
+

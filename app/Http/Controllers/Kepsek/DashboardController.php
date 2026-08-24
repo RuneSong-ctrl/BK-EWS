@@ -16,8 +16,21 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Controller: DashboardController (Modul Kepala Sekolah)
+ * 
+ * Pusat Komando Eksekutif & Manajemen Risiko Sekolah E-Jurnal STIKMAS.
+ * Menyajikan statistik makro sekolah, daftar siswa anomali prioritas (Kritis & Waspada),
+ * lembar disposisi instruksi tindak lanjut BK, dan matriks kesehatan kelas.
+ */
 class DashboardController extends Controller
 {
+    /**
+     * Tampilkan dashboard eksekutif kepala sekolah
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function index(Request $request): Response
     {
         $allStudents = Student::with([
@@ -28,6 +41,7 @@ class DashboardController extends Controller
             'behaviorObservations' => fn ($q) => $q->where('date', '>=', Carbon::today()->subDays(30)),
             'bkCases',
         ])->get();
+
 
         $stats = [
             'total_students' => $allStudents->count(),
@@ -90,11 +104,12 @@ class DashboardController extends Controller
                     'attendance_rate' => $attRate,
                     'alpa_count' => $alpaCount,
                     'pillars' => [
-                        'ak' => $s->ewsScore?->academic_sub_status ?? 'PENDING',
-                        'kh' => $s->ewsScore?->attendance_sub_status ?? 'PENDING',
-                        'pr' => $s->ewsScore?->behavior_sub_status ?? 'PENDING',
-                        'bk' => $s->ewsScore?->bk_sub_status ?? 'NORMAL',
+                        'ak' => $s->ewsScore?->academic_sub_status ?? 'DATA_BELUM_LENGKAP',
+                        'kh' => $s->ewsScore?->attendance_sub_status ?? 'DATA_BELUM_LENGKAP',
+                        'pr' => $s->ewsScore?->behavior_sub_status ?? 'DATA_BELUM_LENGKAP',
+                        'bk' => $s->ewsScore?->bk_sub_status ?? 'DATA_BELUM_LENGKAP',
                     ],
+
                 ];
             });
 

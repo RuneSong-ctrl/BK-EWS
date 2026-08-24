@@ -28,6 +28,15 @@ interface AppLayoutProps {
   subtitle?: string
 }
 
+interface NotificationItem {
+  id: string
+  title: string
+  message: string
+  time: string
+  level: "kritis" | "info" | "success" | string
+  read: boolean
+}
+
 export function AppLayout({
   children,
   currentRole,
@@ -35,7 +44,10 @@ export function AppLayout({
   title,
   subtitle,
 }: AppLayoutProps) {
-  const { auth } = usePage<{ auth?: { user?: AuthUser } }>().props
+  const { auth, notifications: serverNotifications = [] } = usePage<{
+    auth?: { user?: AuthUser }
+    notifications?: NotificationItem[]
+  }>().props
   const authUser = auth?.user
 
   // Resolve role from props or authUser
@@ -82,15 +94,70 @@ export function AppLayout({
   }
 
   const roleMeta = getRoleMetadata(effectiveRole)
-  const displayName = authUser?.name || "Budi Santoso, S.Pd."
+  const displayName = authUser?.name || roleMeta.roleLabel
   const displayNip = authUser?.nip ? `NIP. ${authUser.nip}` : authUser?.email || "Pendidik Terdaftar"
 
   const handleLogout = () => {
     router.post("/logout")
   }
 
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = React.useState(false)
+  const [isNotificationOpen, setIsNotificationOpen] = React.useState(false)
+  const notificationRef = React.useRef<HTMLDivElement>(null)
+
+  const [notifications, setNotifications] = React.useState<NotificationItem[]>(serverNotifications)
+
+  React.useEffect(() => {
+    if (serverNotifications) {
+      setNotifications(serverNotifications)
+    }
+  }, [serverNotifications])
+
+  const unreadCount = notifications.filter((n) => !n.read).length
+
+  const markNotificationAsRead = (id: string) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+    )
+  }
+
+  const markAllNotificationsAsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+  }
+
+
+  // Handle click outside to close notification popover
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target as Node)
+      ) {
+        setIsNotificationOpen(false)
+      }
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsNotificationOpen(false)
+        setIsMobileSearchOpen(false)
+      }
+    }
+
+    if (isNotificationOpen) {
+      document.addEventListener("mousedown", handleClickOutside)
+      document.addEventListener("keydown", handleKeyDown)
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+      document.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [isNotificationOpen])
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans antialiased">
+
       {/* Top Header Bar - Single Page / Embedded Sub-Feature Layout */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4 shadow-xs">
         <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto flex items-center justify-between gap-4">
@@ -114,7 +181,7 @@ export function AppLayout({
             </Link>
           </div>
 
-          {/* Center: Search Bar */}
+          {/* Center: Desktop Search Bar */}
           <div className="relative flex-1 max-w-md hidden md:block">
             <IconSearch className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
@@ -126,11 +193,22 @@ export function AppLayout({
           </div>
 
           {/* Right: User Profile & Actions */}
-          <div className="flex items-center gap-2.5 sm:gap-3.5">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Mobile Search Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+              className="md:hidden w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-slate-300 flex items-center justify-center cursor-pointer shrink-0 shadow-2xs hover:shadow-xs transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+              title="Buka Pencarian Siswa"
+              aria-label="Buka Pencarian Siswa"
+            >
+              <IconSearch className="w-4 h-4" />
+            </button>
+
             {/* Role Badge */}
             <div
               className={cn(
-                "px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold border flex items-center gap-2 shrink-0 shadow-2xs",
+                "px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold border flex items-center gap-1.5 sm:gap-2 shrink-0 shadow-2xs",
                 roleMeta.badgeColor
               )}
             >
@@ -138,16 +216,102 @@ export function AppLayout({
               <span className="hidden sm:inline">{roleMeta.roleLabel}</span>
             </div>
 
-            {/* Notification Button */}
-            <button
-              type="button"
-              className="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-slate-300 flex items-center justify-center relative cursor-pointer shrink-0 shadow-2xs hover:shadow-xs transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
-              title="Notifikasi EWS"
-              aria-label="Notifikasi peringatan dini EWS"
-            >
-              <IconBell className="w-4 h-4" />
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
-            </button>
+            {/* Notification Button & Interactive Popover */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                className={cn(
+                  "w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-slate-300 flex items-center justify-center relative cursor-pointer shrink-0 shadow-2xs hover:shadow-xs transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none",
+                  isNotificationOpen && "ring-2 ring-blue-500/30 border-blue-400 text-blue-600"
+                )}
+                title="Notifikasi EWS & Sistem"
+                aria-label="Buka notifikasi peringatan dini EWS"
+                aria-expanded={isNotificationOpen}
+              >
+                <IconBell className="w-4 h-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-2 right-2 flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-600 ring-2 ring-white" />
+                  </span>
+                )}
+              </button>
+
+              {/* Notification Popover Dropdown */}
+              {isNotificationOpen && (
+                <div
+                  ref={notificationRef}
+                  className="absolute right-0 top-12 w-[340px] sm:w-[380px] rounded-2xl bg-white border border-slate-200/90 shadow-xl z-50 p-4 space-y-3 animate-in fade-in-0 zoom-in-95 duration-150"
+                  role="dialog"
+                  aria-label="Daftar Notifikasi"
+                >
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-extrabold text-sm text-slate-900">Notifikasi Sistem & EWS</h4>
+                      {unreadCount > 0 && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                          {unreadCount} Baru
+                        </span>
+                      )}
+                    </div>
+                    {unreadCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={markAllNotificationsAsRead}
+                        className="text-[11px] font-bold text-blue-600 hover:text-blue-800 cursor-pointer"
+                      >
+                        Tandai semua dibaca
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="max-h-[320px] overflow-y-auto space-y-2.5 pr-1 divide-y divide-slate-50">
+                    {notifications.map((notif) => (
+                      <div
+                        key={notif.id}
+                        onClick={() => markNotificationAsRead(notif.id)}
+                        className={cn(
+                          "pt-2.5 first:pt-0 p-2 rounded-xl transition-all cursor-pointer flex gap-3 items-start",
+                          !notif.read ? "bg-blue-50/40 hover:bg-blue-50/70" : "hover:bg-slate-50 opacity-80"
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "w-2 h-2 rounded-full mt-1.5 shrink-0",
+                            !notif.read
+                              ? notif.level === "kritis"
+                                ? "bg-rose-500 ring-2 ring-rose-300"
+                                : "bg-blue-600 ring-2 ring-blue-300"
+                              : "bg-transparent"
+                          )}
+                        />
+                        <div className="flex-1 min-w-0 space-y-0.5">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="font-bold text-xs text-slate-900 truncate">
+                              {notif.title}
+                            </span>
+                            <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                              {notif.time}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-600 leading-snug">
+                            {notif.message}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 text-center">
+                    <span className="text-[11px] font-semibold text-slate-400">
+                      Sistem Otomatis EWS E-Jurnal STIKMAS
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
 
             {/* User Profile Info Card */}
             <div className="hidden lg:flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
@@ -176,6 +340,22 @@ export function AppLayout({
             </button>
           </div>
         </div>
+
+        {/* Mobile Search Bar Drawer */}
+        {isMobileSearchOpen && (
+          <div className="md:hidden pt-3 border-t border-slate-100 mt-3 animate-in fade-in-0 slide-in-from-top-2 duration-150">
+            <div className="relative flex items-center">
+              <IconSearch className="w-4 h-4 absolute left-3.5 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                autoFocus
+                placeholder="Cari nama siswa, NISN, atau kelas..."
+                aria-label="Pencarian cepat siswa di perangkat seluler"
+                className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/20 focus:outline-none font-medium transition-all"
+              />
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Content Area - Full Width Container with Generous Top Margin & Spacing */}

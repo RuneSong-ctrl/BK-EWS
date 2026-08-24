@@ -5,6 +5,18 @@ namespace App\Services\Ai;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Service: AiTextStructuringService
+ * 
+ * Asisten AI Penulisan & Ekstraksi Jurnal Observasi Guru Kelas dan Guru BK.
+ * Mengonversi input mentah, gejala perilaku, atau kata kunci singkat guru menjadi
+ * catatan pedagogis formal 3-bagian (Fakta Teramati, Dampak Dinamika, Respon Pendidik).
+ * 
+ * Fitur Utama:
+ * 1. Categorization & Severity Grading (Ringan, Sedang, Berat).
+ * 2. 3-Part Pedagogical Narrative Formulation.
+ * 3. Smart Local Heuristic Fallback (Siap pakai offline tanpa dependensi API).
+ */
 class AiTextStructuringService
 {
     public const ALLOWED_CATEGORIES = [
@@ -23,9 +35,14 @@ class AiTextStructuringService
     ];
 
     /**
-     * Parse, auto-complete, and structure teacher raw observation text or quick selections
+     * Parse, auto-complete, dan strukturkan catatan observasi guru kelas
+     *
+     * @param string $rawText Input teks catatan mentah guru
+     * @param array $options Opsi tambahan (kategori, keparahan, nama siswa)
+     * @return array{category: string, severity: string, generated_narrative: string, ai_structured_summary: string}
      */
-     public function structureObservation(string $rawText = '', array $options = []): array
+    public function structureObservation(string $rawText = '', array $options = []): array
+
      {
          $apiKey = config('services.ai.api_key') ?? config('services.gemini.api_key') ?? env('AI_API_KEY') ?? env('GEMINI_API_KEY');
          $endpoint = config('services.ai.endpoint') ?? config('services.gemini.endpoint') ?? env('AI_ENDPOINT') ?? env('GEMINI_ENDPOINT');

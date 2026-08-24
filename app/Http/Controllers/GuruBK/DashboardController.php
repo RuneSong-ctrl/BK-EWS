@@ -9,11 +9,26 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Controller: DashboardController (Modul Guru BK / Konselor)
+ * 
+ * Pusat Bimbingan & Konseling Sekolah E-Jurnal STIKMAS.
+ * Menyediakan matriks pemantauan holistik seluruh populasi siswa sekolah,
+ * daftar pantau prioritas (Watchlist Kritis/Waspada), log kasus bimbingan terkini,
+ * dan formulir pencatatan kasus konseling dengan asisten AI.
+ */
 class DashboardController extends Controller
 {
+    /**
+     * Tampilkan dashboard pemantauan konseling & matriks siswa sekolah
+     *
+     * @param Request $request
+     * @return Response
+     */
     public function index(Request $request): Response
     {
         $statusFilter = $request->query('status');
+
         $classFilter = $request->query('class_id');
         $search = $request->query('search');
 

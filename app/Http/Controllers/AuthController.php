@@ -7,12 +7,22 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Controller: AuthController
+ * 
+ * Menangani alur otentikasi multi-peran (Guru Kelas, Guru BK, Kepala Sekolah).
+ * Mendukung login menggunakan NIP atau Alamat Email resmi.
+ */
 class AuthController extends Controller
 {
+    /**
+     * Tampilkan halaman formulir login
+     *
+     * @return Response|RedirectResponse
+     */
     public function showLogin(): Response|RedirectResponse
     {
         if (Auth::check()) {
@@ -22,6 +32,12 @@ class AuthController extends Controller
         return Inertia::render('Auth/Login');
     }
 
+    /**
+     * Proses otentikasi login pengguna
+     *
+     * @param Request $request
+     * @return RedirectResponse
+     */
     public function login(Request $request): RedirectResponse
     {
         $input = $request->validate([
@@ -49,6 +65,11 @@ class AuthController extends Controller
         ])->onlyInput('identifier');
     }
 
+    /**
+     * Tampilkan halaman pendaftaran pendidik
+     *
+     * @return Response|RedirectResponse
+     */
     public function showRegister(): Response|RedirectResponse
     {
         if (Auth::check()) {
@@ -58,6 +79,12 @@ class AuthController extends Controller
         return Inertia::render('Auth/Register');
     }
 
+    /**
+     * Daftarkan akun pendidik baru
+     *
+     * @param Request $request
+     * @return RedirectResponse
+     */
     public function register(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -82,6 +109,12 @@ class AuthController extends Controller
         return redirect()->route('dashboard')->with('success', 'Akun pendidik berhasil didaftarkan.');
     }
 
+    /**
+     * Logout dan invalidasi sesi pengguna
+     *
+     * @param Request $request
+     * @return RedirectResponse
+     */
     public function logout(Request $request): RedirectResponse
     {
         Auth::logout();
@@ -92,4 +125,5 @@ class AuthController extends Controller
         return redirect()->route('login');
     }
 }
+
 

@@ -46,10 +46,14 @@ class HandleInertiaRequests extends Middleware
                     'role' => $request->user()->role,
                 ] : null,
             ],
+            'notifications' => fn () => $request->user()
+                ? app(\App\Services\Notification\NotificationService::class)->getNotificationsForUser($request->user())
+                : [],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
         ];
+
     }
 }

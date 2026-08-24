@@ -13,6 +13,13 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Controller: StudentController
+ * 
+ * Menangani Lembar Profil Komprehensif Siswa 360 & Peringatan Dini (EWS).
+ * Menyajikan riwayat akademik, log presensi 30 hari, catatan observasi perilaku,
+ * catatan bimbingan konseling berizin, dan trigger on-demand AI Advisor.
+ */
 class StudentController extends Controller
 {
     public function __construct(
@@ -21,7 +28,11 @@ class StudentController extends Controller
     ) {}
 
     /**
-     * Tampilkan profil komprehensif Siswa 360 & EWS
+     * Tampilkan lembar profil komprehensif Siswa 360 & EWS
+     *
+     * @param Request $request
+     * @param int|string $studentId ID Siswa
+     * @return Response
      */
     public function show(Request $request, $studentId): Response
     {
@@ -33,7 +44,7 @@ class StudentController extends Controller
         }
 
         if ($student) {
-            // PDP Compliance Audit Log
+            // Catat log audit kepatuhan UU PDP
             if ($user) {
                 AuditLogger::log(
                     user: $user,
@@ -53,7 +64,7 @@ class StudentController extends Controller
                 'aiLogs' => fn ($q) => $q->orderBy('generated_at', 'desc')->take(5),
             ]);
 
-            // Muat kasus BK dengan filter hak akses peran (UU PDP / Confidentiality)
+            // Muat kasus BK dengan filter hak akses peran (UU PDP / Kerahasiaan BK)
             $bkCasesQuery = BkCase::where('student_id', $student->id)->with('handler');
             if ($user) {
                 $bkCasesQuery->accessibleBy($user);
@@ -74,6 +85,10 @@ class StudentController extends Controller
 
     /**
      * Trigger kalkulasi ulang AI Advisor secara on-demand
+     *
+     * @param Request $request
+     * @param int|string $studentId ID Siswa
+     * @return RedirectResponse
      */
     public function generateAiAdvice(Request $request, $studentId): RedirectResponse
     {
@@ -87,3 +102,4 @@ class StudentController extends Controller
         return back()->with('success', 'Analisis dan rekomendasi AI EWS berhasil diperbarui.');
     }
 }
+

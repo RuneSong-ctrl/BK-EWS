@@ -5,8 +5,20 @@ namespace App\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Controller: DashboardController
+ * 
+ * Central Role Dispatcher.
+ * Mengarahkan pengguna ke sub-dashboard masing-masing sesuai hak akses peran (Role).
+ */
 class DashboardController extends Controller
 {
+    /**
+     * Redirect user ke dashboard peran yang sesuai
+     *
+     * @param Request $request
+     * @return RedirectResponse
+     */
     public function index(Request $request): RedirectResponse
     {
         $user = $request->user();
@@ -26,3 +38,4 @@ class DashboardController extends Controller
         return redirect()->route('login');
     }
 }
+

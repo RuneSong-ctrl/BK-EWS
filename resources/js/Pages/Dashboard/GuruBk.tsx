@@ -240,9 +240,10 @@ export default function GuruBk({
     pillars: {
       ak: s.ews_score?.academic_sub_status || "DATA_BELUM_LENGKAP",
       kh: s.ews_score?.attendance_sub_status || "DATA_BELUM_LENGKAP",
-      pr: s.ews_score?.behavior_sub_status || "NORMAL",
-      bk: s.ews_score?.bk_sub_status || "NORMAL"
+      pr: s.ews_score?.behavior_sub_status || "DATA_BELUM_LENGKAP",
+      bk: s.ews_score?.bk_sub_status || "DATA_BELUM_LENGKAP",
     },
+
     ews_status: s.ews_score?.status || "DATA_BELUM_LENGKAP",
     trigger_reason: s.ews_score?.triggered_by_parameters?.join(", ") || "Data pilar dikumpulkan",
   }))
@@ -1007,7 +1008,7 @@ export default function GuruBk({
           <table className="w-full text-xs sm:text-sm text-left">
             <thead className="bg-[#E7EDF4] text-slate-700 font-bold uppercase tracking-wider text-xs border-b border-slate-200/60">
               <tr>
-                <th className="py-3.5 px-4">Nama Siswa</th>
+                <th className="py-3.5 px-4 sticky left-0 bg-[#E7EDF4] z-10 shadow-[1px_0_0_0_#cbd5e1]">Nama Siswa</th>
                 <th className="py-3.5 px-3">Kelas</th>
                 <th className="py-3.5 px-3">Pilar AK (Nilai)</th>
                 <th className="py-3.5 px-3">Pilar KH (Absensi)</th>
@@ -1019,34 +1020,34 @@ export default function GuruBk({
             </thead>
             <tbody className="divide-y divide-slate-200/50">
               {filteredMatrix.map((student) => (
-                <tr key={student.id} className="hover:bg-blue-50/30 transition-colors">
-                  <td className="py-4 px-4 font-bold text-sm sm:text-base text-slate-900">
+                <tr key={student.id} className="hover:bg-blue-50/30 transition-colors group">
+                  <td className="py-4 px-4 sticky left-0 bg-[#EEF2F7] group-hover:bg-[#E4ECF4] z-10 shadow-[1px_0_0_0_#cbd5e1] font-bold text-sm sm:text-base text-slate-900 transition-colors whitespace-nowrap">
                     {student.name}
                     <span className="block text-xs text-slate-500 font-normal font-mono">
                       NISN: {student.nisn}
                     </span>
                   </td>
-                  <td className="py-4 px-3">
+                  <td className="py-4 px-3 whitespace-nowrap">
                     <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-white/90 text-slate-700 border border-slate-200/80 shadow-2xs">
                       {student.class_name}
                     </span>
                   </td>
-                  <td className="py-4 px-3">
+                  <td className="py-4 px-3 whitespace-nowrap">
                     <EwsStatusBadge status={student.pillars.ak} size="sm" showDot={false} />
                   </td>
-                  <td className="py-4 px-3">
+                  <td className="py-4 px-3 whitespace-nowrap">
                     <EwsStatusBadge status={student.pillars.kh} size="sm" showDot={false} />
                   </td>
-                  <td className="py-4 px-3">
+                  <td className="py-4 px-3 whitespace-nowrap">
                     <EwsStatusBadge status={student.pillars.pr} size="sm" showDot={false} />
                   </td>
-                  <td className="py-4 px-3">
+                  <td className="py-4 px-3 whitespace-nowrap">
                     <EwsStatusBadge status={student.pillars.bk} size="sm" showDot={false} />
                   </td>
-                  <td className="py-4 px-3">
+                  <td className="py-4 px-3 whitespace-nowrap">
                     <EwsStatusBadge status={student.ews_status} size="sm" />
                   </td>
-                  <td className="py-4 px-4 text-right">
+                  <td className="py-4 px-4 text-right whitespace-nowrap">
                     <Link
                       href={`/students/${student.id}`}
                       className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-indigo-700 hover:text-indigo-900 p-2 rounded-xl neo-btn bg-[#EEF2F7] border border-white/90"

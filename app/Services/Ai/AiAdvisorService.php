@@ -8,12 +8,29 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Service: AiAdvisorService
+ * 
+ * Mesin Konsultasi AI EWS Multi-Pemangku Kepentingan (Wali Kelas, Guru BK, Kepala Sekolah).
+ * Menghasilkan analisis akar masalah holistik dan rekomendasi tindakan terkoordinasi
+ * berdasarkan data agregat 4 pilar siswa (Akademik, Kehadiran, Perilaku, Kasus BK).
+ * 
+ * Standar Keamanan:
+ * - Data nama & NISN disanitasi menjadi ID Pseudonim (Kepatuhan UU PDP No. 27/2022).
+ * - Fallback deterministik lokal otomatis saat API eksternal offline atau tanpa kuota.
+ */
 class AiAdvisorService
 {
     public function __construct(
         protected DataPseudonymizationService $pseudonymizationService
     ) {}
 
+    /**
+     * Hasilkan analisis komprehensif dan rekomendasi tindakan terkoordinasi
+     *
+     * @param Student $student Model Siswa yang akan dianalisis
+     * @return AiAnalysisLog|null Log riwayat analisis AI yang tersimpan
+     */
     public function generateAnalysis(Student $student): ?AiAnalysisLog
     {
         $ewsScore = $student->ewsScore;
@@ -53,6 +70,7 @@ class AiAdvisorService
             'generated_at' => Carbon::now(),
         ]);
     }
+
 
     private function buildContextPayload(Student $student, array $sanitized): array
     {

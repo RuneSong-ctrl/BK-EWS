@@ -89,7 +89,8 @@ export default function GuruKelas({
   subjects = [],
 }: GuruKelasProps) {
   const studentList = initialStudents
-  const className = schoolClass?.name || "10-MIPA-1"
+  const className = schoolClass?.name || "Kelas Binaan"
+
 
   const [selectedStudent, setSelectedStudent] = React.useState<StudentOption | null>(
     studentList.length > 0
@@ -283,15 +284,16 @@ export default function GuruKelas({
   )
 
   const studentsWithAtt = studentList.filter((s) => s.attendance_rate !== null && s.attendance_rate !== undefined)
-  const avgAttNum =
-    studentsWithAtt.length > 0
-      ? Math.round(
-        studentsWithAtt.reduce((acc, curr) => acc + (Number(curr.attendance_rate) || 0), 0) /
-        studentsWithAtt.length
-      )
-      : 100
-  const avgAttDisplay = `${avgAttNum}%`
-  const lowAttendanceCount = studentList.filter((s) => Number(s.attendance_rate || 100) < 85).length
+  const hasAttendanceData = studentsWithAtt.length > 0
+  const avgAttNum = hasAttendanceData
+    ? Math.round(
+      studentsWithAtt.reduce((acc, curr) => acc + (Number(curr.attendance_rate) || 0), 0) /
+      studentsWithAtt.length
+    )
+    : null
+  const avgAttDisplay = hasAttendanceData ? `${avgAttNum}%` : "-"
+  const lowAttendanceCount = studentList.filter((s) => s.attendance_rate !== null && Number(s.attendance_rate) < 85).length
+
 
   const studentsWithScore = studentList.filter((s) => s.avg_score !== null && s.avg_score !== undefined)
   const classAvgScore =
@@ -491,12 +493,17 @@ export default function GuruKelas({
           <div className="flex items-center justify-between gap-4 py-1 relative z-10">
             <div className="space-y-1">
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl sm:text-5xl font-extrabold text-emerald-600 tracking-tight">
+                <span className={cn(
+                  "text-4xl sm:text-5xl font-extrabold tracking-tight",
+                  hasAttendanceData ? "text-emerald-600" : "text-slate-400 font-mono"
+                )}>
                   {avgAttDisplay}
                 </span>
               </div>
               <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                Persentase kehadiran seluruh siswa kelas dalam 30 hari terakhir.
+                {hasAttendanceData
+                  ? "Persentase kehadiran seluruh siswa kelas dalam 30 hari terakhir."
+                  : "Belum ada catatan presensi 30 hari terakhir. Silakan catat presensi."}
               </p>
             </div>
 
@@ -510,17 +517,23 @@ export default function GuruKelas({
                   fill="none"
                   d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 />
-                <path
-                  className="text-emerald-600"
-                  strokeDasharray={`${avgAttNum}, 100`}
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                  stroke="currentColor"
-                  fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
+                {hasAttendanceData && (
+                  <path
+                    className="text-emerald-600"
+                    strokeDasharray={`${avgAttNum || 0}, 100`}
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                )}
               </svg>
-              <IconCheck className="w-5 h-5 text-emerald-600 absolute" />
+              {hasAttendanceData ? (
+                <IconCheck className="w-5 h-5 text-emerald-600 absolute" />
+              ) : (
+                <IconCalendarCheck className="w-5 h-5 text-slate-400 absolute" />
+              )}
             </div>
           </div>
 
@@ -529,13 +542,17 @@ export default function GuruKelas({
               <span
                 className={cn(
                   "w-2 h-2 rounded-full shrink-0",
-                  lowAttendanceCount > 0
+                  !hasAttendanceData
+                    ? "bg-slate-400 ring-4 ring-slate-400/15"
+                    : lowAttendanceCount > 0
                     ? "bg-rose-500 ring-4 ring-rose-500/15"
                     : "bg-emerald-500 ring-4 ring-emerald-500/15"
                 )}
               />
               <span>
-                {lowAttendanceCount > 0 ? (
+                {!hasAttendanceData ? (
+                  <span className="font-semibold text-slate-500">Belum Ada Rekap Presensi</span>
+                ) : lowAttendanceCount > 0 ? (
                   <>
                     <strong className="font-mono font-extrabold text-slate-900">{lowAttendanceCount}</strong> Siswa Presensi &lt; 85%
                   </>
@@ -552,6 +569,7 @@ export default function GuruKelas({
               Catat Presensi
             </button>
           </div>
+
         </div>
 
         {/* ROW 2 - LEFT: Siswa Perlu Perhatian (6 Cols) */}
@@ -965,7 +983,7 @@ export default function GuruKelas({
           <table className="w-full text-xs sm:text-sm text-left">
             <thead className="bg-[#F0F3F8] text-slate-600 font-bold uppercase tracking-wider text-xs border-b border-slate-200">
               <tr>
-                <th className="py-3.5 px-4">Nama Siswa</th>
+                <th className="py-3.5 px-4 sticky left-0 bg-[#F0F3F8] z-10 shadow-[1px_0_0_0_#e2e8f0]">Nama Siswa</th>
                 <th className="py-3.5 px-3">NISN</th>
                 <th className="py-3.5 px-3">Rata Nilai</th>
                 <th className="py-3.5 px-3">% Kehadiran</th>
@@ -981,13 +999,13 @@ export default function GuruKelas({
                     key={student.id}
                     className="hover:bg-blue-50/40 transition-colors group"
                   >
-                    <td className="py-4 px-4">
+                    <td className="py-4 px-4 sticky left-0 bg-white group-hover:bg-[#F3F7FC] z-10 shadow-[1px_0_0_0_#e2e8f0] transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center group-hover:border-blue-300">
+                        <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center group-hover:border-blue-300 shrink-0">
                           {student.name.charAt(0)}
                         </div>
                         <div>
-                          <span className="font-bold text-sm sm:text-base text-slate-900 block group-hover:text-blue-700">
+                          <span className="font-bold text-sm sm:text-base text-slate-900 block group-hover:text-blue-700 whitespace-nowrap">
                             {student.name}
                           </span>
                           <span className="text-xs text-slate-500 font-mono">
@@ -997,11 +1015,11 @@ export default function GuruKelas({
                       </div>
                     </td>
 
-                    <td className="py-4 px-3 font-mono text-xs sm:text-sm text-slate-600">
+                    <td className="py-4 px-3 font-mono text-xs sm:text-sm text-slate-600 whitespace-nowrap">
                       {student.nisn}
                     </td>
 
-                    <td className="py-4 px-3">
+                    <td className="py-4 px-3 whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
                         <span className="font-bold font-mono text-xs sm:text-sm text-slate-800">
                           {student.avg_score !== null && student.avg_score !== undefined ? student.avg_score : "-"}
@@ -1023,7 +1041,7 @@ export default function GuruKelas({
                       </div>
                     </td>
 
-                    <td className="py-4 px-3">
+                    <td className="py-4 px-3 whitespace-nowrap">
                       <div>
                         <span className="font-bold font-mono text-xs sm:text-sm text-slate-800">
                           {student.attendance_rate !== null && student.attendance_rate !== undefined ? `${student.attendance_rate}%` : "-"}
@@ -1036,15 +1054,15 @@ export default function GuruKelas({
                       </div>
                     </td>
 
-                    <td className="py-4 px-3">
+                    <td className="py-4 px-3 whitespace-nowrap">
                       <PillarIndicators pillars={student.pillars} />
                     </td>
 
-                    <td className="py-4 px-3">
+                    <td className="py-4 px-3 whitespace-nowrap">
                       <EwsStatusBadge status={student.ews_status} size="sm" />
                     </td>
 
-                    <td className="py-4 px-4 text-right">
+                    <td className="py-4 px-4 text-right whitespace-nowrap">
                       <Link
                         href={`/students/${student.id}`}
                         className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-800 p-2 rounded-xl hover:bg-blue-50 transition-colors"
@@ -1058,12 +1076,21 @@ export default function GuruKelas({
               ) : (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-xs sm:text-sm text-slate-400">
-                    Tidak ada data siswa yang cocok dengan filter pencarian.
+                    Tidak ada siswa yang sesuai dengan kriteria filter.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Legend for 4 Pillars */}
+        <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-2 border-t border-slate-200/60 select-none">
+          <span className="font-bold text-slate-700">Keterangan Pilar EWS:</span>
+          <span><strong className="font-mono text-slate-700">AK</strong> = Akademik</span>
+          <span><strong className="font-mono text-slate-700">KH</strong> = Kehadiran</span>
+          <span><strong className="font-mono text-slate-700">PR</strong> = Observasi Perilaku</span>
+          <span><strong className="font-mono text-slate-700">BK</strong> = Bimbingan Konseling</span>
         </div>
       </section>
 

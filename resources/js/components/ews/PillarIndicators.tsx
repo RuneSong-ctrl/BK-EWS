@@ -1,3 +1,4 @@
+import * as React from "react"
 import { cn } from "@/lib/utils"
 import type { EwsStatus } from "./EwsStatusBadge"
 
@@ -19,6 +20,8 @@ export function PillarIndicators({
   className,
   showLabels = false,
 }: PillarIndicatorsProps) {
+  const [activePillar, setActivePillar] = React.useState<string | null>(null)
+
   const getPillarClass = (status: EwsStatus | string) => {
     switch (status) {
       case "NORMAL":
@@ -45,20 +48,39 @@ export function PillarIndicators({
   ]
 
   return (
-    <div className={cn("inline-flex items-center gap-1.5", className)}>
+    <div className={cn("relative inline-flex items-center gap-1.5", className)}>
       {items.map((item) => (
-        <span
+        <button
           key={item.key}
+          type="button"
+          aria-label={`Pilar ${item.name}: Status ${item.status}`}
           title={`${item.name}: ${item.status}`}
+          onClick={(e) => {
+            e.stopPropagation()
+            setActivePillar(activePillar === item.key ? null : item.key)
+          }}
           className={cn(
-            "inline-flex items-center justify-center px-1.5 py-0.5 rounded-md border text-[11px] font-mono font-semibold transition-all select-none",
-            getPillarClass(item.status)
+            "inline-flex items-center justify-center px-1.5 py-0.5 rounded-md border text-[11px] font-mono font-semibold transition-all select-none cursor-pointer",
+            "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none active:scale-95",
+            getPillarClass(item.status),
+            activePillar === item.key && "ring-2 ring-blue-500/40 font-extrabold shadow-2xs"
           )}
         >
           {item.code}
           {showLabels && <span className="ml-1 text-[10px] opacity-80">({item.status})</span>}
-        </span>
+        </button>
       ))}
+
+      {/* Floating touch hint when clicked */}
+      {activePillar && (
+        <div
+          role="tooltip"
+          className="absolute -top-8 left-0 z-30 px-2 py-1 bg-slate-900 text-white text-[10px] font-medium rounded-md shadow-md whitespace-nowrap animate-in fade-in zoom-in-95 duration-100"
+        >
+          {items.find((i) => i.key === activePillar)?.name}:{" "}
+          <span className="font-bold">{items.find((i) => i.key === activePillar)?.status}</span>
+        </div>
+      )}
     </div>
   )
 }

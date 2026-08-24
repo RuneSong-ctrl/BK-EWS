@@ -40,6 +40,16 @@ export function LinearScale({
     return list
   }, [min, max, step])
 
+  const DEFAULT_STEP_HINTS: Record<number, string> = {
+    1: "Sangat Rendah / Pasif",
+    2: "Kurang / Jarang",
+    3: "Cukup / Standar",
+    4: "Baik / Konsisten",
+    5: "Sangat Baik / Unggul",
+  }
+
+  const currentHint = DEFAULT_STEP_HINTS[value] || ""
+
   const getColorClass = (val: number) => {
     if (!colorGradient) return "bg-blue-600 text-white shadow-xs border-blue-600"
     const ratio = (val - min) / (max - min)
@@ -57,6 +67,18 @@ export function LinearScale({
     return "#059669"
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+      e.preventDefault()
+      const next = Math.min(max, value + step)
+      onChange(next)
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+      e.preventDefault()
+      const prev = Math.max(min, value - step)
+      onChange(prev)
+    }
+  }
+
   return (
     <div className={cn("space-y-2", className)}>
       {(label || description) && (
@@ -69,19 +91,24 @@ export function LinearScale({
             )}
             {description && <p className="text-xs text-slate-500 mt-0.5 leading-snug">{description}</p>}
           </div>
-          <div
-            className={cn(
-              "px-3 py-1 rounded-xl neo-card-subtle bg-[#EEF2F7] border border-white/90 font-mono text-xs sm:text-sm font-bold shrink-0 transition-all",
-              mode === "continuous"
-                ? value >= 75
-                  ? "text-emerald-700 font-extrabold"
-                  : value >= 60
-                  ? "text-blue-700 font-extrabold"
-                  : "text-amber-700 font-extrabold"
-                : "text-slate-900"
+          <div className="flex flex-col items-end">
+            <div
+              className={cn(
+                "px-3 py-1 rounded-xl neo-card-subtle bg-[#EEF2F7] border border-white/90 font-mono text-xs sm:text-sm font-bold shrink-0 transition-all",
+                mode === "continuous"
+                  ? value >= 75
+                    ? "text-emerald-700 font-extrabold"
+                    : value >= 60
+                    ? "text-blue-700 font-extrabold"
+                    : "text-amber-700 font-extrabold"
+                  : "text-slate-900"
+              )}
+            >
+              {value} {mode === "continuous" ? "%" : `/ ${max}`}
+            </div>
+            {mode === "discrete" && currentHint && (
+              <span className="text-[10px] text-slate-500 font-medium mt-0.5 select-none">{currentHint}</span>
             )}
-          >
-            {value} {mode === "continuous" ? "%" : `/ ${max}`}
           </div>
         </div>
       )}
@@ -90,8 +117,10 @@ export function LinearScale({
         <div className="space-y-1.5 pt-0.5">
           <div
             role="radiogroup"
+            tabIndex={0}
+            onKeyDown={handleKeyDown}
             aria-label={label || "Skala Penilaian"}
-            className="flex items-center gap-1.5 p-1.5 rounded-2xl neo-inset bg-[#E7EDF4] max-w-md"
+            className="flex items-center gap-1.5 p-1.5 rounded-2xl neo-inset bg-[#E7EDF4] max-w-md focus-visible:ring-2 focus-visible:ring-blue-500/30 focus-visible:outline-none"
           >
             {steps.map((s) => {
               const isSelected = value === s
@@ -101,7 +130,7 @@ export function LinearScale({
                   type="button"
                   role="radio"
                   aria-checked={isSelected}
-                  aria-label={`Nilai ${s} dari ${max}`}
+                  aria-label={`Nilai ${s} dari ${max} (${DEFAULT_STEP_HINTS[s] || s})`}
                   onClick={() => onChange(s)}
                   className={cn(
                     "flex-1 h-9 sm:h-10 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center select-none",

@@ -5,13 +5,19 @@ namespace App\Http\Controllers\GuruKelas;
 use App\Http\Controllers\Controller;
 use App\Models\BehaviorObservation;
 use App\Models\Student;
-use App\Models\User;
 use App\Services\Ai\AiTextStructuringService;
 use App\Services\Ews\EwsScoringService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
+/**
+ * Controller: ObservationController (Modul Guru Kelas)
+ * 
+ * Bertanggung jawab menangani pencatatan observasi perilaku harian siswa di kelas,
+ * bantuan ekstraksi teks pedagogis AI, dan pembaruan instan Pilar Perilaku (PR) EWS.
+ */
 class ObservationController extends Controller
 {
     public function __construct(
@@ -20,17 +26,20 @@ class ObservationController extends Controller
     ) {}
 
     /**
-     * API: Autocomplete & draft AI text structuring for observation input
+     * API: Autocomplete & draft AI text structuring untuk catatan observasi guru
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
     public function structureWithAi(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'raw_text' => ['nullable', 'string'],
-            'category' => ['nullable', 'string'],
-            'severity' => ['nullable', 'string'],
-            'preset_topic' => ['nullable', 'string'],
-            'keywords' => ['nullable', 'string'],
-            'student_name' => ['nullable', 'string'],
+            'raw_text' => ['nullable', 'string', 'max:2000'],
+            'category' => ['nullable', 'string', 'max:100'],
+            'severity' => ['nullable', 'string', 'max:50'],
+            'preset_topic' => ['nullable', 'string', 'max:255'],
+            'keywords' => ['nullable', 'string', 'max:500'],
+            'student_name' => ['nullable', 'string', 'max:255'],
         ]);
 
         $rawText = $validated['raw_text'] ?? '';
@@ -51,11 +60,15 @@ class ObservationController extends Controller
     }
 
     /**
-     * Simpan observasi perilaku terkonfirmasi oleh guru kelas
+     * Simpan observasi perilaku terkonfirmasi oleh guru kelas.
+     * Dibungkus dalam DB::transaction untuk konsistensi re-evaluasi EWS.
+     *
+     * @param Request $request
+     * @return RedirectResponse
      */
     public function store(Request $request): RedirectResponse
     {
-        // Normalisasi alias kategori jika dikirim dari variasi dropdown
+        // Normalisasi alias kategori jika dikirim dari variasi dropdown/UI
         $categoryMap = [
             'BULLYING_TERDUGA' => 'AGRESIF_FISIK',
             'DISRUPSI_KELAS' => 'TIDAK_FOKUS',
@@ -70,7 +83,7 @@ class ObservationController extends Controller
         }
 
         $rawText = $request->input('raw_text') ?? $request->input('narrative') ?? $request->input('notes') ?? 'Observasi perilaku kelas';
-        $request->merge(['raw_text' => $rawText]);
+        $request->merge(['raw_text' => strip_tags(trim($rawText))]);
 
         if (!$request->has('category') || empty($request->input('category'))) {
             $request->merge(['category' => 'TIDAK_FOKUS']);
@@ -81,7 +94,7 @@ class ObservationController extends Controller
         }
 
         if (!$request->has('ai_structured_summary') || empty($request->input('ai_structured_summary'))) {
-            $request->merge(['ai_structured_summary' => mb_substr($rawText, 0, 200)]);
+            $request->merge(['ai_structured_summary' => mb_substr(strip_tags($rawText), 0, 200)]);
         }
 
         $validated = $request->validate([
@@ -89,28 +102,30 @@ class ObservationController extends Controller
             'date' => ['required', 'date'],
             'category' => ['required', 'string', 'in:MENARIK_DIRI,AGRESIF_FISIK,AGRESIF_VERBAL,TIDAK_FOKUS,PELANGGARAN_ATURAN,PERILAKU_POSITIF,BULLYING_TERDUGA,DISRUPSI_KELAS,KEDISIPLINAN,AGRESI_VERBAL,PROSOSIAL'],
             'severity' => ['required', 'string', 'in:RINGAN,SEDANG,BERAT'],
-            'raw_text' => ['required', 'string'],
+            'raw_text' => ['required', 'string', 'max:5000'],
             'ai_structured_summary' => ['required', 'string', 'max:255'],
         ]);
 
         $category = $categoryMap[$validated['category']] ?? $validated['category'];
         $student = Student::findOrFail($validated['student_id']);
-
         $confirmedBy = $request->user()->id;
 
-        BehaviorObservation::create([
-            'student_id' => $student->id,
-            'date' => $validated['date'],
-            'category' => $category,
-            'severity' => $validated['severity'],
-            'raw_text' => $validated['raw_text'],
-            'ai_structured_summary' => $validated['ai_structured_summary'],
-            'confirmed_by' => $confirmedBy,
-        ]);
+        DB::transaction(function () use ($student, $validated, $category, $confirmedBy) {
+            BehaviorObservation::create([
+                'student_id' => $student->id,
+                'date' => $validated['date'],
+                'category' => $category,
+                'severity' => $validated['severity'],
+                'raw_text' => $validated['raw_text'],
+                'ai_structured_summary' => $validated['ai_structured_summary'],
+                'confirmed_by' => $confirmedBy,
+            ]);
 
-        // Recalculate EWS score
-        $this->scoringService->evaluate($student);
+            // Recalculate EWS score
+            $this->scoringService->evaluate($student);
+        });
 
         return back()->with('success', 'Observasi perilaku berhasil dicatat dan skor EWS telah diperbarui.');
     }
 }
+
