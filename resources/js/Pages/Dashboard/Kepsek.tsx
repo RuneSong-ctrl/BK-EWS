@@ -12,6 +12,7 @@ import {
   IconTrendUp,
   IconPieChart,
   IconSpreadsheet,
+  IconFile,
   IconAi,
   IconCalendarCheck,
   IconGraduationCap,
@@ -80,7 +81,7 @@ interface ClassSummary {
   waspada_count: number
   kritis_count: number
   avg_score: number | null
-  attendance_rate: number
+  attendance_rate: number | null
 }
 
 interface KepsekProps {
@@ -91,8 +92,8 @@ interface KepsekProps {
     waspada_count: number
     kritis_count: number
     data_belum_lengkap_count: number
-    overall_avg_score: number
-    overall_attendance_rate: number
+    overall_avg_score: number | null
+    overall_attendance_rate: number | null
     total_observations_count: number
     active_bk_cases_count: number
   }
@@ -133,8 +134,8 @@ export default function Kepsek({
   const waspadaPct = total > 0 ? Math.round((waspadaCount / total) * 100) : 0
   const kritisPct = total > 0 ? Math.round((kritisCount / total) * 100) : 0
 
-  const schoolAttendanceRate = stats?.overall_attendance_rate ?? 100
-  const schoolAvgScore = stats?.overall_avg_score ?? 0
+  const schoolAttendanceRate = stats?.overall_attendance_rate ?? null
+  const schoolAvgScore = stats?.overall_avg_score ?? null
 
   const handleOpenDisposition = (c: EscalatedCase) => {
     setSelectedCaseForDisposition(c)
@@ -184,48 +185,59 @@ export default function Kepsek({
       currentRole="kepsek"
       activeMenu="dashboard_kepsek"
       title="Ringkasan Eksekutif & Pemantauan EWS"
-      subtitle="Navigasi peringatan dini berbasis anomali 4 pilar, iklim belajar sekolah, dan disposisi kasus"
+      subtitle="Navigasi peringatan dini berbasis anomali 4 pilar, status performa sekolah, dan disposisi kasus"
     >
-      {/* Top Quick Navigation Bar */}
-      <div className="p-3.5 sm:p-4 rounded-2xl neo-card bg-[#EEF2F7] border border-blue-200/60 shadow-2xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl neo-btn text-indigo-700 flex items-center justify-center shrink-0 border border-white/90">
-            <IconShield className="w-5 h-5 text-indigo-700" />
+      {/* On-Screen Interactive Dashboard UI (Hidden during Print) */}
+      <div className="space-y-8 print:hidden">
+        {/* Top Quick Navigation Bar */}
+        <div className="p-3.5 sm:p-4 rounded-2xl neo-card bg-[#EEF2F7] border border-blue-200/60 shadow-2xs flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl neo-btn text-indigo-700 flex items-center justify-center shrink-0 border border-white/90">
+              <IconShield className="w-5 h-5 text-indigo-700" />
+            </div>
+            <div>
+              <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 tracking-tight">
+                Sistem Manajemen Eksekutif Berbasis Anomali (Management by Exception)
+              </h3>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Data terintegrasi real-time dari Guru Kelas &amp; Guru Bimbingan Konseling.
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 tracking-tight">
-              Sistem Manajemen Eksekutif Berbasis Anomali (Management by Exception)
-            </h3>
-            <p className="text-[11px] text-slate-500 font-medium">
-              Data terintegrasi real-time dari Guru Kelas &amp; Guru Bimbingan Konseling.
-            </p>
-          </div>
-        </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <a
-            href="#prioritas"
-            className="px-3.5 py-1.5 rounded-xl text-xs font-bold neo-btn bg-[#EEF2F7] text-rose-700 hover:text-rose-900 hover:bg-white border border-white/90 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none"
-          >
-            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-            <span>Siswa Prioritas ({priorityStudents.length})</span>
-          </a>
-          <a
-            href="#eskalasi"
-            className="px-3.5 py-1.5 rounded-xl text-xs font-bold neo-btn bg-[#EEF2F7] text-indigo-700 hover:text-indigo-900 hover:bg-white border border-white/90 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
-          >
-            <IconHandshake className="w-3.5 h-3.5" />
-            <span>Kasus BK Berat ({escalatedCases.length})</span>
-          </a>
-          <a
-            href="#rombel"
-            className="px-3.5 py-1.5 rounded-xl text-xs font-bold neo-btn bg-[#EEF2F7] text-slate-700 hover:text-slate-900 hover:bg-white border border-white/90 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
-          >
-            <IconGroup className="w-3.5 h-3.5" />
-            <span>Rombel Kelas ({classes.length})</span>
-          </a>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold neo-btn bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/80 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+              title="Cetak atau simpan laporan eksekutif EWS dalam format PDF"
+            >
+              <IconFile className="w-3.5 h-3.5 text-blue-600" />
+              <span>Cetak / Unduh PDF</span>
+            </button>
+            <a
+              href="#prioritas"
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold neo-btn bg-[#EEF2F7] text-rose-700 hover:text-rose-900 hover:bg-white border border-white/90 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none"
+            >
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+              <span>Siswa Prioritas ({priorityStudents.length})</span>
+            </a>
+            <a
+              href="#eskalasi"
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold neo-btn bg-[#EEF2F7] text-indigo-700 hover:text-indigo-900 hover:bg-white border border-white/90 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+            >
+              <IconHandshake className="w-3.5 h-3.5" />
+              <span>Kasus BK Berat ({escalatedCases.length})</span>
+            </a>
+            <a
+              href="#rombel"
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold neo-btn bg-[#EEF2F7] text-slate-700 hover:text-slate-900 hover:bg-white border border-white/90 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+            >
+              <IconGroup className="w-3.5 h-3.5" />
+              <span>Rombel Kelas ({classes.length})</span>
+            </a>
+          </div>
         </div>
-      </div>
 
       {/* 2-Row Bento Grid Metrics (Varied Direction Ambient Silhouette Glow) */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-5 sm:gap-6 items-stretch">
@@ -247,7 +259,7 @@ export default function Kepsek({
                 <span className="text-xs font-semibold text-slate-500">TP 2026/2027</span>
               </div>
               <h2 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
-                Konsolidasi Iklim &amp; Populasi Sekolah
+                Konsolidasi Status &amp; Populasi Siswa
               </h2>
             </div>
 
@@ -596,7 +608,7 @@ export default function Kepsek({
                     <div>
                       <h4 className="font-extrabold text-slate-900 text-sm sm:text-base">{std.name}</h4>
                       <p className="text-xs font-medium text-slate-500">
-                        NISN: <span className="font-number font-bold text-slate-700">{std.nisn || "-"}</span> • Kelas {std.class_name}
+                        NISN: <span className="font-number font-bold text-slate-700">{std.nisn || "—"}</span> • Kelas {std.class_name}
                       </p>
                     </div>
                   </div>
@@ -608,7 +620,7 @@ export default function Kepsek({
                   <div className="p-2.5 rounded-xl neo-inset bg-[#E7EDF4] border border-slate-300/30">
                     <span className="text-[10px] font-bold text-slate-500 block uppercase tracking-wider">Rata Nilai</span>
                     <span className="text-xs sm:text-sm font-extrabold text-slate-900">
-                      {std.avg_score !== null ? std.avg_score : "-"}
+                      {std.avg_score !== null ? std.avg_score : "—"}
                     </span>
                   </div>
                   <div className="p-2.5 rounded-xl neo-inset bg-[#E7EDF4] border border-slate-300/30">
@@ -621,7 +633,7 @@ export default function Kepsek({
                           : "text-slate-900"
                       )}
                     >
-                      {std.attendance_rate !== null ? `${std.attendance_rate}%` : "-"}
+                      {std.attendance_rate !== null ? `${std.attendance_rate}%` : "—"}
                     </span>
                   </div>
                   <div className="p-2.5 rounded-xl neo-inset bg-[#E7EDF4] border border-slate-300/30">
@@ -794,10 +806,10 @@ export default function Kepsek({
             </div>
             <div>
               <h2 className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight">
-                Ringkasan Iklim &amp; Status Per Rombongan Belajar
+                Ringkasan Kondisi &amp; Status Per Rombongan Belajar
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Pemantauan komparatif kesehatan iklim kelas, tingkat presensi, dan beban intervensi siswa.
+                Pemantauan komparatif performa kelas, tingkat presensi, dan beban intervensi siswa.
               </p>
             </div>
           </div>
@@ -830,17 +842,21 @@ export default function Kepsek({
               <div className="p-3 rounded-xl neo-inset bg-[#E7EDF4] border border-slate-300/30 space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold">
                   <span className="text-slate-600">Rata-rata Nilai:</span>
-                  <span className="font-number font-extrabold text-slate-900">{cls.avg_score !== null ? cls.avg_score : "-"}</span>
+                  <span className="font-number font-extrabold text-slate-900">{cls.avg_score !== null ? cls.avg_score : "—"}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs font-bold">
                   <span className="text-slate-600">% Presensi 30 Hari:</span>
                   <span
                     className={cn(
                       "font-number font-extrabold",
-                      cls.attendance_rate < 80 ? "text-rose-600" : "text-emerald-700"
+                      cls.attendance_rate === null
+                        ? "text-slate-500 font-medium"
+                        : cls.attendance_rate < 80
+                          ? "text-rose-600"
+                          : "text-emerald-700"
                     )}
                   >
-                    {cls.attendance_rate}%
+                    {cls.attendance_rate !== null ? `${cls.attendance_rate}%` : "—"}
                   </span>
                 </div>
               </div>
@@ -876,61 +892,75 @@ export default function Kepsek({
           <div className="flex items-center justify-between border-b border-slate-300/40 pb-3.5">
             <div>
               <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                Tren Iklim Kehadiran &amp; Akademik Sekolah
+                Tren Kehadiran &amp; Capaian Akademik Sekolah
                 <span className="px-2.5 py-0.5 rounded text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                   Real-Time EWS
                 </span>
               </h3>
               <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                Kondisi riil agregasi presensi ({schoolAttendanceRate}%) &amp; rerata akademik ({schoolAvgScore}) vs Garis KKM (75.0)
+                Kondisi riil agregasi presensi ({schoolAttendanceRate !== null ? `${schoolAttendanceRate}%` : "—"}) &amp; rerata akademik ({schoolAvgScore !== null ? schoolAvgScore : "—"}) vs Garis KKM (75.0)
               </p>
             </div>
             <IconTrendUp className="w-5 h-5 text-emerald-600" />
           </div>
 
           <div className="p-5 rounded-2xl neo-inset bg-[#E7EDF4] space-y-3 border border-slate-300/40">
-            <div className="h-44 w-full relative">
-              <svg viewBox="0 0 500 160" className="w-full h-full overflow-visible">
-                <line x1="0" y1="40" x2="500" y2="40" stroke="#CBD5E1" strokeDasharray="4" />
-                <line x1="0" y1="80" x2="500" y2="80" stroke="#CBD5E1" strokeDasharray="4" />
-                <line x1="0" y1="120" x2="500" y2="120" stroke="#CBD5E1" strokeDasharray="4" />
+            {schoolAttendanceRate === null && schoolAvgScore === null ? (
+              <div className="h-44 w-full flex flex-col items-center justify-center text-center p-4">
+                <div className="w-10 h-10 rounded-2xl neo-btn bg-white text-slate-400 flex items-center justify-center mb-2 shadow-2xs border border-white/90">
+                  <IconTrendUp className="w-5 h-5" />
+                </div>
+                <p className="text-xs sm:text-sm font-bold text-slate-700">
+                  Menunggu Input Data Presensi &amp; Nilai
+                </p>
+                <p className="text-[11px] text-slate-500 mt-1 max-w-sm leading-relaxed">
+                  Grafik tren kondisi sekolah akan aktif secara otomatis setelah Guru Kelas mulai mencatat presensi harian atau penilaian belajar.
+                </p>
+              </div>
+            ) : (
+              <div className="h-44 w-full relative">
+                <svg viewBox="0 0 500 160" className="w-full h-full overflow-visible">
+                  <line x1="0" y1="40" x2="500" y2="40" stroke="#CBD5E1" strokeDasharray="4" />
+                  <line x1="0" y1="80" x2="500" y2="80" stroke="#CBD5E1" strokeDasharray="4" />
+                  <line x1="0" y1="120" x2="500" y2="120" stroke="#CBD5E1" strokeDasharray="4" />
 
-                {/* KKM Line */}
-                <line x1="0" y1="75" x2="500" y2="75" stroke="#f43f5e" strokeWidth="1.5" strokeDasharray="6" opacity="0.7" />
-                <text x="440" y="70" fill="#f43f5e" fontSize="10" fontWeight="bold" fontFamily="monospace">
-                  KKM (75)
-                </text>
+                  {/* KKM Line */}
+                  <line x1="0" y1="75" x2="500" y2="75" stroke="#f43f5e" strokeWidth="1.5" strokeDasharray="6" opacity="0.7" />
+                  <text x="440" y="70" fill="#f43f5e" fontSize="10" fontWeight="bold" fontFamily="monospace">
+                    KKM (75)
+                  </text>
 
-                {/* Dynamic Curves based on actual metrics */}
-                <path
-                  d="M 10 35 Q 120 25, 240 28 T 370 24 T 490 20"
-                  fill="none"
-                  stroke="#059669"
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 10 85 Q 120 68, 240 62 T 370 55 T 490 45"
-                  fill="none"
-                  stroke="#2563EB"
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                />
+                  {/* Dynamic Curves based on actual metrics */}
+                  <path
+                    d="M 10 35 Q 120 25, 240 28 T 370 24 T 490 20"
+                    fill="none"
+                    stroke="#059669"
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M 10 85 Q 120 68, 240 62 T 370 55 T 490 45"
+                    fill="none"
+                    stroke="#2563EB"
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                  />
 
-                <circle cx="490" cy="20" r="5" fill="#059669" stroke="#FFFFFF" strokeWidth="2" />
-                <circle cx="490" cy="45" r="5" fill="#2563EB" stroke="#FFFFFF" strokeWidth="2" />
-              </svg>
-            </div>
+                  <circle cx="490" cy="20" r="5" fill="#059669" stroke="#FFFFFF" strokeWidth="2" />
+                  <circle cx="490" cy="45" r="5" fill="#2563EB" stroke="#FFFFFF" strokeWidth="2" />
+                </svg>
+              </div>
+            )}
 
             <div className="flex items-center justify-between text-xs sm:text-sm pt-2.5 border-t border-slate-300/60 font-medium">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-emerald-600" />
-                  <span className="text-slate-800 font-semibold">Presensi: <strong>{schoolAttendanceRate}%</strong></span>
+                  <span className="text-slate-800 font-semibold">Presensi: <strong>{schoolAttendanceRate !== null ? `${schoolAttendanceRate}%` : "—"}</strong></span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-blue-600" />
-                  <span className="text-slate-800 font-semibold">Rerata Nilai: <strong>{schoolAvgScore}</strong></span>
+                  <span className="text-slate-800 font-semibold">Rerata Nilai: <strong>{schoolAvgScore !== null ? schoolAvgScore : "—"}</strong></span>
                 </div>
               </div>
 
@@ -947,7 +977,7 @@ export default function Kepsek({
                 Distribusi Status EWS Sekolah
               </h3>
               <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                Proporsi kesehatan iklim {total} siswa terdaftar
+                Proporsi status risiko {total} siswa terdaftar
               </p>
             </div>
             <IconPieChart className="w-5 h-5 text-slate-400" />
@@ -1013,17 +1043,169 @@ export default function Kepsek({
           <div className="pt-2">
             <button
               type="button"
-              onClick={() => {
-                toast({
-                  title: "Laporan Eksekutif Diunduh",
-                  description: "Format rekap eksekutif EWS siap dicetak.",
-                })
-              }}
-              className="w-full h-11 neo-btn text-slate-800 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 rounded-xl transition-all shadow-xs cursor-pointer border border-white/90"
+              onClick={() => window.print()}
+              className="w-full h-11 neo-btn text-slate-800 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 rounded-xl transition-all shadow-xs cursor-pointer border border-white/90 hover:bg-white active:scale-98"
             >
-              <IconSpreadsheet className="w-4 h-4 text-slate-600" />
-              <span>Unduh Rekap Eksekutif (PDF)</span>
+              <IconFile className="w-4 h-4 text-blue-600" />
+              <span>Cetak / Unduh PDF Laporan</span>
             </button>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* OFFICIAL PRINTABLE PDF REPORT (Visible ONLY when Printing / Exporting to PDF) */}
+      {/* ========================================================================= */}
+      <div className="hidden print:block text-slate-900 bg-white p-2 font-sans text-xs">
+        {/* Official Letterhead (Kop Laporan Resmi) */}
+        <div className="flex items-center gap-4 border-b-2 border-slate-900 pb-3 mb-4">
+          <img
+            src="/storage/stikmas.png"
+            alt="Logo E-Jurnal STIKMAS"
+            className="w-16 h-16 object-contain shrink-0"
+            onError={(e) => {
+              (e.target as HTMLElement).style.display = "none"
+            }}
+          />
+          <div className="flex-1 text-center pr-10">
+            <h1 className="text-xs font-bold uppercase tracking-widest text-slate-600">
+              SISTEM INFORMASI OBSERVASI &amp; EARLY WARNING SYSTEM (EWS)
+            </h1>
+            <h2 className="text-base font-extrabold uppercase tracking-tight text-slate-950 mt-0.5">
+              LAPORAN EKSEKUTIF PEMANTAUAN RISIKO &amp; KONDISI BELAJAR SEKOLAH
+            </h2>
+            <p className="text-[11px] text-slate-600 mt-0.5">
+              Tahun Pelajaran 2026/2027 • Dicetak pada: {new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+            </p>
+          </div>
+        </div>
+
+        {/* 1. Ringkasan Eksekutif Makro */}
+        <div className="mb-5 space-y-2">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-300 pb-1">
+            I. Ringkasan Statistik Makro Sekolah
+          </h3>
+          <table className="w-full text-xs border border-slate-300 text-left">
+            <thead className="bg-slate-100 font-bold border-b border-slate-300 text-[11px]">
+              <tr>
+                <th className="p-2 border-r border-slate-300">Total Populasi Siswa</th>
+                <th className="p-2 border-r border-slate-300">Status Normal</th>
+                <th className="p-2 border-r border-slate-300">Status Berisiko</th>
+                <th className="p-2 border-r border-slate-300">Status Waspada</th>
+                <th className="p-2 border-r border-slate-300">Status Kritis</th>
+                <th className="p-2 border-r border-slate-300">Rerata Nilai</th>
+                <th className="p-2">Presensi 30 Hari</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="p-2 border-r border-slate-300 font-bold">{total} Siswa</td>
+                <td className="p-2 border-r border-slate-300 text-emerald-800 font-bold">{normalCount} ({normalPct}%)</td>
+                <td className="p-2 border-r border-slate-300 text-amber-800 font-bold">{berisikoCount} ({berisikoPct}%)</td>
+                <td className="p-2 border-r border-slate-300 text-orange-800 font-bold">{waspadaCount} ({waspadaPct}%)</td>
+                <td className="p-2 border-r border-slate-300 text-rose-800 font-bold">{kritisCount} ({kritisPct}%)</td>
+                <td className="p-2 border-r border-slate-300 font-bold">{schoolAvgScore || "—"}</td>
+                <td className="p-2 font-bold">{schoolAttendanceRate !== null ? `${schoolAttendanceRate}%` : "—"}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* 2. Daftar Siswa Prioritas (Kritis & Waspada) */}
+        <div className="mb-5 space-y-2">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-300 pb-1">
+            II. Daftar Siswa Prioritas Penanganan (Kritis &amp; Waspada)
+          </h3>
+          {priorityStudents.length === 0 ? (
+            <p className="text-xs text-slate-500 italic p-2 border border-slate-200">
+              Tidak ada siswa yang berada dalam status risiko tinggi (Kritis atau Waspada).
+            </p>
+          ) : (
+            <table className="w-full text-xs border border-slate-300 text-left">
+              <thead className="bg-slate-100 font-bold border-b border-slate-300 text-[11px]">
+                <tr>
+                  <th className="p-1.5 border-r border-slate-300 w-8 text-center">No</th>
+                  <th className="p-1.5 border-r border-slate-300">Nama Siswa</th>
+                  <th className="p-1.5 border-r border-slate-300">NISN</th>
+                  <th className="p-1.5 border-r border-slate-300">Kelas</th>
+                  <th className="p-1.5 border-r border-slate-300">Status EWS</th>
+                  <th className="p-1.5 border-r border-slate-300">Pilar Anomali (AK • KH • PR • BK)</th>
+                  <th className="p-1.5">Parameter Pemicu Utama</th>
+                </tr>
+              </thead>
+              <tbody>
+                {priorityStudents.map((std, idx) => (
+                  <tr key={std.id} className="border-b border-slate-200">
+                    <td className="p-1.5 border-r border-slate-300 text-center font-bold">{idx + 1}</td>
+                    <td className="p-1.5 border-r border-slate-300 font-bold">{std.name}</td>
+                    <td className="p-1.5 border-r border-slate-300 font-mono">{std.nisn || "-"}</td>
+                    <td className="p-1.5 border-r border-slate-300">{std.class_name}</td>
+                    <td className="p-1.5 border-r border-slate-300 font-bold">
+                      {std.status}
+                    </td>
+                    <td className="p-1.5 border-r border-slate-300 text-[11px]">
+                      AK: {std.pillars?.ak || "-"} | KH: {std.pillars?.kh || "-"} | PR: {std.pillars?.pr || "-"} | BK: {std.pillars?.bk || "-"}
+                    </td>
+                    <td className="p-1.5 text-[11px] text-slate-700">
+                      {std.triggers && std.triggers.length > 0 ? std.triggers.join(", ") : "Terdeteksi deviasi evaluasi 4 pilar"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* 3. Matriks Kesehatan Rombel Kelas */}
+        <div className="mb-6 space-y-2">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-300 pb-1">
+            III. Distribusi Kesehatan per Rombongan Belajar (Kelas)
+          </h3>
+          <table className="w-full text-xs border border-slate-300 text-left">
+            <thead className="bg-slate-100 font-bold border-b border-slate-300 text-[11px]">
+              <tr>
+                <th className="p-1.5 border-r border-slate-300">Nama Rombel</th>
+                <th className="p-1.5 border-r border-slate-300">Wali Kelas</th>
+                <th className="p-1.5 border-r border-slate-300 text-center">Total</th>
+                <th className="p-1.5 border-r border-slate-300 text-center">Normal</th>
+                <th className="p-1.5 border-r border-slate-300 text-center">Berisiko</th>
+                <th className="p-1.5 border-r border-slate-300 text-center">Waspada</th>
+                <th className="p-1.5 border-r border-slate-300 text-center">Kritis</th>
+                <th className="p-1.5 border-r border-slate-300 text-center">Rerata Nilai</th>
+                <th className="p-1.5 text-center">Presensi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {classes.map((cls) => (
+                <tr key={cls.id} className="border-b border-slate-200">
+                  <td className="p-1.5 border-r border-slate-300 font-bold">{cls.name}</td>
+                  <td className="p-1.5 border-r border-slate-300">{cls.homeroom_teacher}</td>
+                  <td className="p-1.5 border-r border-slate-300 text-center font-bold">{cls.total_students}</td>
+                  <td className="p-1.5 border-r border-slate-300 text-center text-emerald-800 font-bold">{cls.normal_count}</td>
+                  <td className="p-1.5 border-r border-slate-300 text-center text-amber-800 font-bold">{cls.berisiko_count}</td>
+                  <td className="p-1.5 border-r border-slate-300 text-center text-orange-800 font-bold">{cls.waspada_count}</td>
+                  <td className="p-1.5 border-r border-slate-300 text-center text-rose-800 font-bold">{cls.kritis_count}</td>
+                  <td className="p-1.5 border-r border-slate-300 text-center font-bold">{cls.avg_score ?? "—"}</td>
+                  <td className="p-1.5 text-center font-bold">{cls.attendance_rate !== null ? `${cls.attendance_rate}%` : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 4. Lembar Pengesahan / Tanda Tangan */}
+        <div className="flex justify-end pt-4 break-inside-avoid">
+          <div className="text-center w-60 space-y-12">
+            <p className="text-xs">
+              Mengetahui,<br />
+              <strong>Kepala Sekolah</strong>
+            </p>
+            <div className="border-b border-slate-900 w-44 mx-auto" />
+            <p className="text-xs font-bold">
+              Drs. H. Hartono, M.Pd.<br />
+              <span className="font-normal text-[11px]">NIP. 197005121995031002</span>
+            </p>
           </div>
         </div>
       </div>

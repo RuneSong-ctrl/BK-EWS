@@ -16,40 +16,40 @@ class BkEwsDatabaseSeeder extends Seeder
     {
         // 1. Akun Pendidik Resmi Sekolah (Wali Kelas, Guru BK, Kepala Sekolah)
         $guruBudi = User::updateOrCreate(
-            ['email' => 'guru.budi@sekolah.sch.id'],
+            ['nip' => '198501152010011005'],
             [
+                'email' => 'guru1@gmail.com',
                 'name' => 'Budi Santoso, S.Pd.',
-                'nip' => '198501152010011005',
                 'password' => Hash::make('password'),
                 'role' => 'guru_kelas',
             ]
         );
 
         $guruSiti = User::updateOrCreate(
-            ['email' => 'guru.siti@sekolah.sch.id'],
+            ['nip' => '198803202012022003'],
             [
+                'email' => 'guru2@gmail.com',
                 'name' => 'Siti Aminah, S.Pd.',
-                'nip' => '198803202012022003',
                 'password' => Hash::make('password'),
                 'role' => 'guru_kelas',
             ]
         );
 
         $guruBk = User::updateOrCreate(
-            ['email' => 'bk.rahma@sekolah.sch.id'],
+            ['nip' => '198207102008012009'],
             [
+                'email' => 'bk@gmail.com',
                 'name' => 'Rahmawati, S.Pd., M.Psi.',
-                'nip' => '198207102008012009',
                 'password' => Hash::make('password'),
                 'role' => 'guru_bk',
             ]
         );
 
         $kepsek = User::updateOrCreate(
-            ['email' => 'kepsek.hartono@sekolah.sch.id'],
+            ['nip' => '197005121995031002'],
             [
+                'email' => 'kepsek@gmail.com',
                 'name' => 'Drs. H. Hartono, M.Pd.',
-                'nip' => '197005121995031002',
                 'password' => Hash::make('password'),
                 'role' => 'kepsek',
             ]

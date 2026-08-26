@@ -54,7 +54,7 @@ class DashboardController extends Controller
 
         // Hitung rata-rata akademik riil sekolah
         $schoolAvgAcademic = AcademicRecord::avg('score');
-        $stats['overall_avg_score'] = $schoolAvgAcademic !== null ? round((float) $schoolAvgAcademic, 1) : 0;
+        $stats['overall_avg_score'] = $schoolAvgAcademic !== null ? round((float) $schoolAvgAcademic, 1) : null;
 
         // Hitung persentase presensi riil sekolah (30 hari terakhir)
         $past30Days = Carbon::today()->subDays(30);
@@ -64,7 +64,7 @@ class DashboardController extends Controller
             ->count();
         $stats['overall_attendance_rate'] = $totalAttRecords > 0
             ? round(($presentAttRecords / $totalAttRecords) * 100, 1)
-            : 100;
+            : null;
 
         // Hitung total observasi & kasus BK aktif
         $stats['total_observations_count'] = BehaviorObservation::where('date', '>=', $past30Days)->count();
@@ -168,7 +168,7 @@ class DashboardController extends Controller
             $allAtt = $students->flatMap->attendanceRecords;
             $attCount = $allAtt->count();
             $attPresent = $allAtt->whereIn('status', ['HADIR', 'TERLAMBAT'])->count();
-            $attRate = $attCount > 0 ? round(($attPresent / $attCount) * 100, 1) : 100;
+            $attRate = $attCount > 0 ? round(($attPresent / $attCount) * 100, 1) : null;
 
             return [
                 'id' => $cls->id,

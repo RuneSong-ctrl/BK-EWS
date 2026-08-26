@@ -115,13 +115,13 @@ export function LinearScale({
 
 
       {mode === "discrete" ? (
-        <div className="space-y-1.5 pt-0.5">
+        <div className="space-y-2 pt-0.5">
           <div
             role="radiogroup"
             tabIndex={0}
             onKeyDown={handleKeyDown}
             aria-label={label || "Skala Penilaian"}
-            className="flex items-center gap-1.5 p-1.5 rounded-2xl neo-inset bg-[#E7EDF4] max-w-md focus-visible:ring-2 focus-visible:ring-blue-500/30 focus-visible:outline-none"
+            className="grid grid-cols-5 gap-1.5 p-1.5 rounded-2xl bg-[#E2E8F0]/80 border border-slate-300/60 focus-visible:ring-2 focus-visible:ring-blue-500/30 focus-visible:outline-none"
           >
             {steps.map((s) => {
               const isSelected = value === s
@@ -134,11 +134,11 @@ export function LinearScale({
                   aria-label={`Nilai ${s} dari ${max} (${DEFAULT_STEP_HINTS[s] || s})`}
                   onClick={() => onChange(s)}
                   className={cn(
-                    "flex-1 h-9 sm:h-10 rounded-xl text-xs sm:text-sm font-number font-extrabold transition-all cursor-pointer flex items-center justify-center select-none",
-                    "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none active:scale-95",
+                    "h-10 rounded-xl text-xs sm:text-sm font-number font-extrabold transition-all duration-150 cursor-pointer flex items-center justify-center select-none",
+                    "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none active:scale-[0.96]",
                     isSelected
-                      ? cn("scale-[1.03] font-extrabold shadow-sm ring-1 ring-white/50", getColorClass(s))
-                      : "neo-btn bg-[#EEF2F7] text-slate-700 hover:text-slate-900 hover:bg-white border border-white/80"
+                      ? cn("font-extrabold shadow-sm ring-2 ring-black/5", getColorClass(s))
+                      : "bg-white/90 hover:bg-white text-slate-700 hover:text-slate-900 border border-slate-200/80 shadow-2xs"
                   )}
                 >
                   {s}
@@ -148,10 +148,10 @@ export function LinearScale({
           </div>
 
           {(minLabel || midLabel || maxLabel) && (
-            <div className="flex items-center justify-between text-[11px] sm:text-xs font-semibold text-slate-500 px-1.5 max-w-md select-none">
-              <span>{minLabel}</span>
-              {midLabel && <span>{midLabel}</span>}
-              <span>{maxLabel}</span>
+            <div className="grid grid-cols-3 text-[10px] sm:text-[11px] font-semibold text-slate-500 px-1 select-none">
+              <span className="text-left text-slate-500">{minLabel}</span>
+              <span className="text-center text-slate-500">{midLabel}</span>
+              <span className="text-right text-slate-500">{maxLabel}</span>
             </div>
           )}
         </div>

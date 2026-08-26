@@ -45,7 +45,7 @@ export default function Login() {
               autoFocus
               value={data.identifier}
               onChange={(e) => setData("identifier", e.target.value)}
-              placeholder="Contoh: 19850115... atau guru@sekolah.sch.id"
+              placeholder="Contoh: guru1@gmail.com atau bk@gmail.com"
               className="w-full pl-10 pr-3.5 h-11 text-xs sm:text-sm neo-inset bg-[#E7EDF4] rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none font-medium transition-all"
             />
           </div>
