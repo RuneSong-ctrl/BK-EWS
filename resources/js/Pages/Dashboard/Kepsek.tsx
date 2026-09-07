@@ -203,6 +203,13 @@ export default function Kepsek({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            href="/ews"
+            className="px-3.5 py-1.5 rounded-xl text-xs font-bold neo-btn bg-indigo-50 text-indigo-700 hover:text-indigo-900 hover:bg-indigo-100 border border-indigo-200/80 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+          >
+            <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
+            <span>Radar EWS Eksekutif</span>
+          </Link>
           <a
             href="#prioritas"
             className="px-3.5 py-1.5 rounded-xl text-xs font-bold neo-btn bg-[#EEF2F7] text-rose-700 hover:text-rose-900 hover:bg-white border border-white/90 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none"
@@ -224,6 +231,41 @@ export default function Kepsek({
             <IconGroup className="w-3.5 h-3.5" />
             <span>Rombel Kelas ({classes.length})</span>
           </a>
+        </div>
+      </div>
+
+      {/* Executive Master Radar EWS Banner */}
+      <div className="p-5 sm:p-6 rounded-3xl neo-card bg-[#EEF2F7] border border-indigo-200/70 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)] relative overflow-hidden">
+        <div className="flex items-start sm:items-center gap-3.5 sm:gap-4 relative z-10">
+          <div className="w-12 h-12 rounded-2xl bg-white border border-indigo-200/80 flex items-center justify-center text-indigo-600 shadow-2xs shrink-0">
+            <IconAi className="w-6 h-6" />
+          </div>
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-indigo-700">
+                Early Warning System AI &bull; Pengawasan Eksekutif
+              </span>
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-100/70 text-indigo-800 border border-indigo-200/60">
+                Master View
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm font-bold text-slate-900">
+              Pusat Kendali Supervisi Deteksi Dini &amp; Intervensi Siswa Seluruh Sekolah
+            </p>
+            <p className="text-xs text-slate-500 font-medium">
+              Pantau kepatuhan tindak lanjut Guru BK dan Wali Kelas terhadap siswa berisiko dari model LMS Moodle &amp; SLM Qwen.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 shrink-0 relative z-10">
+          <Link
+            href="/ews"
+            className="w-full md:w-auto px-5 py-2.5 rounded-2xl text-xs font-extrabold bg-slate-900 hover:bg-slate-800 text-white flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer"
+          >
+            <span>Buka Radar EWS Eksekutif</span>
+            <IconArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
       </div>
 

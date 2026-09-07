@@ -18,6 +18,19 @@ import { Button } from "@/components/ui/button"
 import { EwsDetailModal, type EwsNotificationDetail } from "@/components/ews/EwsDetailModal"
 import { cn } from "@/lib/utils"
 
+export interface ClassBreakdownItem {
+  id: number
+  name: string
+  grade_level: number
+  homeroom_teacher: string
+  total_at_risk: number
+  tinggi_count: number
+  sedang_count: number
+  rendah_count: number
+  intervened_count: number
+  coverage_percent: number
+}
+
 interface EwsMonitoringProps {
   ewsNotifications?: {
     data: EwsNotificationDetail[]
@@ -40,12 +53,18 @@ interface EwsMonitoringProps {
     rendah_count: number
     wa_sent_count: number
     pending_count: number
+    intervened_count?: number
+    unhandled_count?: number
+    tinggi_unhandled_count?: number
+    coverage_rate?: number
+    tinggi_coverage_rate?: number
   }
   classes: Array<{
     id: number
     name: string
     grade_level: number
   }>
+  classBreakdown?: ClassBreakdownItem[]
   homeroomClass: {
     id: number
     name: string
@@ -65,6 +84,7 @@ export default function EwsMonitoring({
   notifications: legacyNotifications,
   stats,
   classes = [],
+  classBreakdown = [],
   homeroomClass,
   userRole = "guru_bk",
   filters,
@@ -85,8 +105,15 @@ export default function EwsMonitoring({
   const [selectedStatus, setSelectedStatus] = React.useState(filters.status || "ALL")
   const [selectedClass, setSelectedClass] = React.useState(filters.class_id || "ALL")
 
+  const isKepsek = userRole === "kepsek"
   const isWaliKelas = userRole === "guru_kelas"
-  const dashboardBackUrl = isWaliKelas ? "/guru-kelas/dashboard" : "/guru-bk/dashboard"
+  const isBk = !isKepsek && !isWaliKelas
+
+  const dashboardBackUrl = isKepsek
+    ? "/kepsek/dashboard"
+    : isWaliKelas
+    ? "/guru-kelas/dashboard"
+    : "/guru-bk/dashboard"
 
   const applyFilters = (newParams: Record<string, string>) => {
     const currentParams = {
@@ -125,11 +152,15 @@ export default function EwsMonitoring({
     setIsDetailModalOpen(true)
   }
 
-  const pageTitle = isWaliKelas
+  const pageTitle = isKepsek
+    ? "Radar EWS Eksekutif • Pengawasan Terpadu Seluruh Sekolah"
+    : isWaliKelas
     ? `Radar EWS Pembelajaran • Kelas ${homeroomClass?.name || "Binaan"}`
-    : "Radar Early Warning System (EWS) LMS Moodle"
+    : "Radar EWS Bimbingan Konseling • Triage & Intervensi Klinis"
 
-  const pageSubtitle = isWaliKelas
+  const pageSubtitle = isKepsek
+    ? "Pusat pengawasan makro risiko siswa, kepatuhan tindak lanjut konseling BK/Wali Kelas, dan deteksi dini Moodle ML"
+    : isWaliKelas
     ? `Pemantauan risiko akademik & keterlibatan belajar siswa kelas ${homeroomClass?.name || ""} berbasis analisis log Moodle`
     : "Deteksi dini risiko kegagalan studi & disengagement siswa berbasis kebiasaan belajar di LMS Moodle"
 
@@ -153,7 +184,11 @@ export default function EwsMonitoring({
           <div>
             <div className="flex items-center gap-2">
               <span className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
-                {isWaliKelas ? `Ruang Pantau Wali Kelas (${homeroomClass?.name || "-"})` : "Pusat Pemantauan EWS Sekolah"}
+                {isKepsek
+                  ? "Ruang Pengawasan Eksekutif Kepala Sekolah"
+                  : isWaliKelas
+                  ? `Ruang Pantau Wali Kelas (${homeroomClass?.name || "-"})`
+                  : "Pusat Triage EWS Bimbingan Konseling"}
               </span>
               <span className="px-2.5 py-0.5 rounded-xl text-xs font-bold bg-white text-indigo-800 border border-slate-200/80 shadow-2xs">
                 Moodle ML AI
@@ -181,7 +216,7 @@ export default function EwsMonitoring({
           <div className="absolute top-0 right-0 w-36 h-36 bg-blue-500/6 rounded-full blur-2xl pointer-events-none" />
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
-              Total Siswa Terpantau
+              {isKepsek ? "Indeks Risiko Sekolah" : isWaliKelas ? "Siswa Berisiko di Kelas" : "Total Siswa Berisiko"}
             </span>
             <div className="w-8 h-8 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 shadow-2xs">
               <IconBook className="w-4 h-4" />
@@ -192,7 +227,7 @@ export default function EwsMonitoring({
               {stats.total}
             </span>
             <span className="text-xs font-semibold text-slate-500 mt-1 block">
-              {isWaliKelas ? `Populasi kelas ${homeroomClass?.name || ""}` : "Seluruh siswa terdaftar di LMS"}
+              {isKepsek ? "Siswa terdeteksi risiko Moodle ML di sekolah" : isWaliKelas ? `Populasi kelas ${homeroomClass?.name || ""}` : "Seluruh siswa terdaftar di LMS"}
             </span>
           </div>
         </div>
@@ -202,7 +237,7 @@ export default function EwsMonitoring({
           <div className="absolute top-0 right-0 w-36 h-36 bg-rose-500/7 rounded-full blur-2xl pointer-events-none" />
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-extrabold uppercase tracking-wider text-rose-500">
-              Risiko Tinggi (Urgent)
+              {isKepsek ? "Kasus Kritis Butuh Atensi" : isWaliKelas ? "Butuh Pendampingan Cepat" : "Prioritas Kritis (Urgent)"}
             </span>
             <div className="w-8 h-8 rounded-xl bg-rose-50 border border-rose-200/80 flex items-center justify-center text-rose-600 shadow-2xs">
               <IconExclamation className="w-4 h-4" />
@@ -214,21 +249,21 @@ export default function EwsMonitoring({
                 {stats.tinggi_count}
               </span>
               <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200/80">
-                Panggilan / Tindak Lanjut
+                {isKepsek ? `${stats.tinggi_unhandled_count ?? 0} Belum Ditangani` : isWaliKelas ? "Prioritas Kelas" : "Panggilan / Tindak Lanjut"}
               </span>
             </div>
             <span className="text-xs font-semibold text-slate-500 mt-1 block">
-              Probabilitas kegagalan $\ge 70\%$
+              Probabilitas kegagalan &ge; 70%
             </span>
           </div>
         </div>
 
-        {/* Card 3: Medium Risk */}
+        {/* Card 3: Contextual Action Metric */}
         <div className="p-6 rounded-3xl neo-card bg-[#EEF2F7] border border-white/85 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)] flex flex-col justify-between min-h-[155px] space-y-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-36 h-36 bg-amber-500/7 rounded-full blur-2xl pointer-events-none" />
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-600">
-              Risiko Sedang
+              {isKepsek ? "Tingkat Penanganan" : isWaliKelas ? "Sudah Didampingi" : "Risiko Sedang (Waspada)"}
             </span>
             <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 shadow-2xs">
               <IconAlert className="w-4 h-4" />
@@ -237,14 +272,18 @@ export default function EwsMonitoring({
           <div>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl sm:text-4xl font-mono font-extrabold text-amber-600 tracking-tight">
-                {stats.sedang_count}
+                {isKepsek ? `${stats.coverage_rate ?? 0}%` : isWaliKelas ? (stats.intervened_count ?? 0) : stats.sedang_count}
               </span>
               <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/80">
-                Konfirmasi Santai
+                {isKepsek
+                  ? `${stats.intervened_count ?? 0}/${stats.total} Selesai`
+                  : isWaliKelas
+                  ? `${stats.unhandled_count ?? 0} Menunggu`
+                  : "Konfirmasi Santai"}
               </span>
             </div>
             <span className="text-xs font-semibold text-slate-500 mt-1 block">
-              Probabilitas $40\% - 69\%$
+              {isKepsek ? "Kepatuhan tindak lanjut staf BK & Wali Kelas" : isWaliKelas ? "Catatan bimbingan kelas tersimpan" : "Probabilitas 40% - 69%"}
             </span>
           </div>
         </div>
@@ -270,11 +309,92 @@ export default function EwsMonitoring({
               </span>
             </div>
             <span className="text-xs font-semibold text-slate-500 mt-1 block">
-              Notifikasi tersalurkan ke pendidik
+              {isKepsek ? "Kepatuhan notifikasi sampai ke orang tua" : "Peringatan terkirim ke wali murid"}
             </span>
           </div>
         </div>
       </div>
+
+      {/* Peta Risiko Siswa per Rombel Kelas (Khusus Kepala Sekolah - Master Admin) */}
+      {isKepsek && classBreakdown && classBreakdown.length > 0 && (
+        <div className="rounded-3xl neo-card bg-[#EEF2F7] border border-white/85 p-5 sm:p-6 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)] space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-600" />
+                <h3 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
+                  Distribusi Risiko Belajar per Rombel Kelas (Executive Overview)
+                </h3>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Klik salah satu rombel kelas untuk memfilter daftar siswa dan memantau progres penanganan secara spesifik.
+              </p>
+            </div>
+            {selectedClass !== "ALL" && (
+              <button
+                type="button"
+                onClick={() => { setSelectedClass("ALL"); applyFilters({ class_id: "ALL" }); }}
+                className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-blue-600 hover:text-blue-800 shadow-2xs cursor-pointer transition-all"
+              >
+                Tampilkan Semua Kelas
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+            {classBreakdown.map((c) => {
+              const isSelected = selectedClass === String(c.id)
+              return (
+                <div
+                  key={c.id}
+                  onClick={() => {
+                    const nextClass = isSelected ? "ALL" : String(c.id)
+                    setSelectedClass(nextClass)
+                    applyFilters({ class_id: nextClass })
+                  }}
+                  className={cn(
+                    "p-4 rounded-2xl border transition-all cursor-pointer select-none relative overflow-hidden",
+                    isSelected
+                      ? "bg-white border-blue-500 shadow-sm ring-2 ring-blue-400/20"
+                      : "bg-white/80 hover:bg-white border-slate-200/80 shadow-2xs hover:shadow-xs"
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="font-extrabold text-slate-900 text-sm block">{c.name}</span>
+                      <span className="text-[11px] text-slate-500 block truncate max-w-[150px]">
+                        Wali: {c.homeroom_teacher}
+                      </span>
+                    </div>
+                    <span className={cn(
+                      "px-2 py-0.5 rounded-lg text-xs font-mono font-bold",
+                      c.tinggi_count > 0 ? "bg-rose-50 text-rose-700 border border-rose-200" : "bg-slate-100 text-slate-700"
+                    )}>
+                      {c.total_at_risk} Berisiko
+                    </span>
+                  </div>
+
+                  {/* Badges distribution */}
+                  <div className="flex items-center gap-1.5 mt-3 pt-2.5 border-t border-slate-100 text-[10px] font-bold">
+                    <span className="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">
+                      T: {c.tinggi_count}
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
+                      S: {c.sedang_count}
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      R: {c.rendah_count}
+                    </span>
+                    <span className="ml-auto text-slate-400 font-medium">
+                      {c.intervened_count}/{c.total_at_risk} Selesai
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Filter & Search Bar */}
       <div className="p-4 sm:p-5 rounded-3xl neo-card bg-[#EEF2F7] border border-white/85 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)] flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -364,7 +484,11 @@ export default function EwsMonitoring({
         <div className="p-5 sm:p-6 bg-white/70 border-b border-slate-200/80 flex items-center justify-between gap-4">
           <div>
             <h3 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
-              Daftar Siswa Berisiko Terdeteksi Model LMS
+              {isKepsek
+                ? "Daftar Siswa Berisiko Seluruh Sekolah (Supervisi Eksekutif)"
+                : isWaliKelas
+                ? `Daftar Siswa Berisiko di Kelas ${homeroomClass?.name || "Binaan"}`
+                : "Daftar Siswa Berisiko Terdeteksi Model LMS (Triage Klinis BK)"}
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
               Menampilkan {records.data.length} dari total {records.total} catatan deteksi aktif
@@ -378,10 +502,12 @@ export default function EwsMonitoring({
               <tr className="border-b border-slate-200/80 bg-slate-100/50 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
                 <th className="py-3.5 px-4 sm:px-6">Siswa &amp; Kelas</th>
                 <th className="py-3.5 px-4">Mata Pelajaran LMS</th>
-                <th className="py-3.5 px-4">Tingkat Risiko &amp; Probabilitas</th>
+                <th className="py-3.5 px-4">Tingkat Risiko &amp; Skor</th>
                 <th className="py-3.5 px-4">Indikator Cepat Belajar</th>
-                <th className="py-3.5 px-4">Status WA</th>
-                <th className="py-3.5 px-4 sm:px-6 text-right">Aksi Intervensi</th>
+                <th className="py-3.5 px-4">{isKepsek ? "Status Penanganan" : "Status WA"}</th>
+                <th className="py-3.5 px-4 sm:px-6 text-right">
+                  {isKepsek ? "Aksi Supervisi" : isWaliKelas ? "Aksi Wali Kelas" : "Aksi Intervensi"}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200/60 text-xs text-slate-800">
@@ -472,9 +598,26 @@ export default function EwsMonitoring({
                         </div>
                       </td>
 
-                      {/* Status Notifikasi WA */}
+                      {/* Status Penanganan & WA */}
                       <td className="py-4 px-4">
-                        {item.status === "sent" ? (
+                        {isKepsek ? (
+                          <div className="space-y-1">
+                            {item.interventions && item.interventions.length > 0 ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                <IconCheck className="w-3 h-3 text-blue-600" />
+                                <span>{item.interventions.length}x Ditindaklanjuti</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                <IconAlert className="w-3 h-3 text-amber-600" />
+                                <span>Menunggu Tindak Lanjut</span>
+                              </span>
+                            )}
+                            <span className="text-[10px] text-slate-400 block font-medium">
+                              WA: {item.status === "sent" ? "Tersalurkan" : "Antrean"}
+                            </span>
+                          </div>
+                        ) : item.status === "sent" ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                             <IconCheck className="w-3 h-3 text-emerald-600" />
                             <span>Terkirim WA</span>
@@ -494,10 +637,31 @@ export default function EwsMonitoring({
                           variant="outline"
                           size="sm"
                           onClick={() => handleOpenDetail(item)}
-                          className="h-8 px-3 rounded-xl text-xs font-bold bg-white hover:bg-slate-50 border-slate-200/90 text-indigo-700 hover:text-indigo-800 shadow-2xs"
+                          className={cn(
+                            "h-8 px-3 rounded-xl text-xs font-bold shadow-2xs transition-all",
+                            isKepsek
+                              ? "bg-slate-900 hover:bg-slate-800 text-white border-slate-900 hover:text-white"
+                              : isWaliKelas
+                              ? "bg-white hover:bg-slate-50 border-slate-200/90 text-blue-700 hover:text-blue-800"
+                              : "bg-white hover:bg-slate-50 border-slate-200/90 text-indigo-700 hover:text-indigo-800"
+                          )}
                         >
-                          <IconEye className="w-3.5 h-3.5 mr-1" />
-                          <span>Analisis &amp; Intervensi</span>
+                          {isKepsek ? (
+                            <>
+                              <IconEye className="w-3.5 h-3.5 mr-1" />
+                              <span>Review &amp; Supervisi</span>
+                            </>
+                          ) : isWaliKelas ? (
+                            <>
+                              <IconUserCheck className="w-3.5 h-3.5 mr-1" />
+                              <span>Bimbingan / Rujuk</span>
+                            </>
+                          ) : (
+                            <>
+                              <IconHandshake className="w-3.5 h-3.5 mr-1" />
+                              <span>Analisis &amp; Intervensi</span>
+                            </>
+                          )}
                         </Button>
                       </td>
                     </tr>

@@ -88,21 +88,59 @@ class EwsMonitoringController extends Controller
             });
         }
 
+        $totalCount = (clone $statsBase)->count();
+        $totalIntervened = (clone $statsBase)->has('interventions')->count();
+        $tinggiCount = (clone $statsBase)->where('risk_level', 'TINGGI')->count();
+        $tinggiIntervened = (clone $statsBase)->where('risk_level', 'TINGGI')->has('interventions')->count();
+
         $stats = [
-            'total' => (clone $statsBase)->count(),
-            'tinggi_count' => (clone $statsBase)->where('risk_level', 'TINGGI')->count(),
+            'total' => $totalCount,
+            'tinggi_count' => $tinggiCount,
             'sedang_count' => (clone $statsBase)->where('risk_level', 'SEDANG')->count(),
             'rendah_count' => (clone $statsBase)->where('risk_level', 'RENDAH')->count(),
             'wa_sent_count' => (clone $statsBase)->where('status', 'sent')->count(),
             'pending_count' => (clone $statsBase)->whereIn('status', ['pending', 'ready'])->count(),
+            'intervened_count' => $totalIntervened,
+            'unhandled_count' => max(0, $totalCount - $totalIntervened),
+            'tinggi_unhandled_count' => max(0, $tinggiCount - $tinggiIntervened),
+            'coverage_rate' => $totalCount > 0 ? round(($totalIntervened / $totalCount) * 100) : 100,
+            'tinggi_coverage_rate' => $tinggiCount > 0 ? round(($tinggiIntervened / $tinggiCount) * 100) : 100,
         ];
 
-        $classes = SchoolClass::orderBy('name')->get(['id', 'name', 'grade_level', 'academic_year']);
+        // Rombel Kelas & Breakdown Risiko per Kelas untuk Master Admin (Kepsek) & Filter BK
+        $classes = SchoolClass::with('homeroomTeacher')->orderBy('name')->get();
+        $classBreakdown = $classes->map(function ($c) {
+            $notifs = EwsNotification::where(function ($q) use ($c) {
+                $q->whereHas('student.enrollments', function ($sub) use ($c) {
+                    $sub->where('class_id', $c->id)->where('is_current', true);
+                })->orWhere('class_name', $c->name);
+            })->with('interventions')->get();
+
+            $total = $notifs->count();
+            $tinggi = $notifs->where('risk_level', 'TINGGI')->count();
+            $sedang = $notifs->where('risk_level', 'SEDANG')->count();
+            $rendah = $notifs->where('risk_level', 'RENDAH')->count();
+            $intervened = $notifs->filter(fn ($n) => $n->interventions->isNotEmpty())->count();
+
+            return [
+                'id' => $c->id,
+                'name' => $c->name,
+                'grade_level' => (int) $c->grade_level,
+                'homeroom_teacher' => $c->homeroomTeacher?->name ?? 'Belum ditentukan',
+                'total_at_risk' => $total,
+                'tinggi_count' => $tinggi,
+                'sedang_count' => $sedang,
+                'rendah_count' => $rendah,
+                'intervened_count' => $intervened,
+                'coverage_percent' => $total > 0 ? round(($intervened / $total) * 100) : 100,
+            ];
+        })->values();
 
         return Inertia::render('Dashboard/EwsMonitoring', [
             'ewsNotifications' => $notifications,
             'stats' => $stats,
             'classes' => $classes,
+            'classBreakdown' => $classBreakdown,
             'homeroomClass' => $homeroomClass,
             'userRole' => $user->role,
             'filters' => [

@@ -60,6 +60,8 @@ return new class extends Migration
                 'PEMANGGILAN',
                 'KONFIRMASI_WALI',
                 'HOME_VISIT',
+                'SUPERVISI_KEPSEK',
+                'DISPOSISI_KEPSEK',
                 'LAINNYA',
             ]);
             $table->text('action_notes');
