@@ -397,11 +397,11 @@ export default function GuruKelas({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2.5 w-full lg:w-auto flex-wrap">
+        <div className="flex items-center gap-2.5 w-full lg:w-auto flex-wrap sm:flex-nowrap shrink-0">
           <button
             type="button"
             onClick={() => setIsAttendanceModalOpen(true)}
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl neo-btn text-emerald-800 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-white/90 cursor-pointer transition-all shadow-2xs"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl neo-btn text-emerald-800 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-white/90 cursor-pointer transition-all shadow-2xs whitespace-nowrap"
           >
             <IconCalendarCheck className="w-4 h-4 text-emerald-700" />
             <span>Input Presensi</span>
@@ -409,21 +409,14 @@ export default function GuruKelas({
           <button
             type="button"
             onClick={() => setIsAcademicModalOpen(true)}
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl neo-btn text-indigo-800 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-white/90 cursor-pointer transition-all shadow-2xs"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl neo-btn text-indigo-800 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-white/90 cursor-pointer transition-all shadow-2xs whitespace-nowrap"
           >
             <IconGraduationCap className="w-4 h-4 text-indigo-700" />
             <span>Input Nilai Akademik</span>
           </button>
-          <Link
-            href="/ews"
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer transition-all shadow-xs active:scale-95"
-          >
-            <IconMagicWand className="w-4 h-4 text-white" />
-            <span>Radar EWS Moodle</span>
-          </Link>
           <a
             href="#observasi"
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl neo-btn-primary font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl neo-btn-primary font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs whitespace-nowrap"
           >
             <IconChevronDown className="w-4 h-4 text-white" />
             <span>Catat Jurnal Siswa</span>
@@ -455,10 +448,10 @@ export default function GuruKelas({
 
         <Link
           href="/ews"
-          className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-blue-700 hover:text-blue-800 border border-blue-200/90 text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-2xs transition-all active:scale-95 shrink-0"
+          className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95 shrink-0"
         >
           <span>Buka Radar EWS Kelas Saya</span>
-          <IconChevronRight className="w-3.5 h-3.5" />
+          <IconChevronRight className="w-4 h-4 text-white" />
         </Link>
       </div>
 

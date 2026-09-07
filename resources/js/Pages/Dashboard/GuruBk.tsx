@@ -302,18 +302,10 @@ export default function GuruBk({
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <Link
-            href="/ews"
-            className="px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-xs transition-all cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
-          >
-            <IconMagicWand className="w-4 h-4 text-white" />
-            <span>Radar EWS Moodle</span>
-          </Link>
-
+        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap shrink-0">
           <a
             href="#form-bk"
-            className="px-4 py-2.5 rounded-2xl neo-btn-primary text-white text-xs font-bold inline-flex items-center gap-2 shadow-xs transition-all cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl neo-btn-primary text-white text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-95 whitespace-nowrap"
           >
             <IconFile className="w-4 h-4 text-white" />
             <span>Catat Layanan Bimbingan</span>
@@ -321,7 +313,7 @@ export default function GuruBk({
 
           <a
             href="#matriks"
-            className="px-4 py-2.5 rounded-2xl neo-btn bg-[#EEF2F7] hover:bg-white text-slate-700 hover:text-slate-900 text-xs font-bold inline-flex items-center gap-2 border border-white/90 transition-all cursor-pointer shadow-2xs active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl neo-btn bg-[#EEF2F7] hover:bg-white text-slate-700 hover:text-slate-900 text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 border border-white/90 transition-all cursor-pointer shadow-2xs active:scale-95 whitespace-nowrap"
           >
             <IconSearch className="w-4 h-4 text-slate-500" />
             <span>Daftar Siswa &amp; Status EWS</span>
@@ -353,10 +345,10 @@ export default function GuruBk({
 
         <Link
           href="/ews"
-          className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-indigo-700 hover:text-indigo-800 border border-indigo-200/90 text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-2xs transition-all active:scale-95 shrink-0"
+          className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95 shrink-0"
         >
           <span>Buka Monitoring EWS Moodle</span>
-          <IconChevronRight className="w-3.5 h-3.5" />
+          <IconChevronRight className="w-4 h-4 text-white" />
         </Link>
       </div>
 

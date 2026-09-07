@@ -202,31 +202,24 @@ export default function Kepsek({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <Link
-            href="/ews"
-            className="px-3.5 py-1.5 rounded-xl text-xs font-bold neo-btn bg-indigo-50 text-indigo-700 hover:text-indigo-900 hover:bg-indigo-100 border border-indigo-200/80 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
-          >
-            <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
-            <span>Radar EWS Eksekutif</span>
-          </Link>
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
           <a
             href="#prioritas"
-            className="px-3.5 py-1.5 rounded-xl text-xs font-bold neo-btn bg-[#EEF2F7] text-rose-700 hover:text-rose-900 hover:bg-white border border-white/90 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none"
+            className="px-3.5 py-2 rounded-xl text-xs font-bold neo-btn bg-[#EEF2F7] text-rose-700 hover:text-rose-900 hover:bg-white border border-white/90 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 whitespace-nowrap"
           >
             <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
             <span>Siswa Prioritas ({priorityStudents.length})</span>
           </a>
           <a
             href="#eskalasi"
-            className="px-3.5 py-1.5 rounded-xl text-xs font-bold neo-btn bg-[#EEF2F7] text-indigo-700 hover:text-indigo-900 hover:bg-white border border-white/90 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+            className="px-3.5 py-2 rounded-xl text-xs font-bold neo-btn bg-[#EEF2F7] text-indigo-700 hover:text-indigo-900 hover:bg-white border border-white/90 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 whitespace-nowrap"
           >
             <IconHandshake className="w-3.5 h-3.5" />
             <span>Kasus BK Berat ({escalatedCases.length})</span>
           </a>
           <a
             href="#rombel"
-            className="px-3.5 py-1.5 rounded-xl text-xs font-bold neo-btn bg-[#EEF2F7] text-slate-700 hover:text-slate-900 hover:bg-white border border-white/90 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+            className="px-3.5 py-2 rounded-xl text-xs font-bold neo-btn bg-[#EEF2F7] text-slate-700 hover:text-slate-900 hover:bg-white border border-white/90 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 whitespace-nowrap"
           >
             <IconGroup className="w-3.5 h-3.5" />
             <span>Rombel Kelas ({classes.length})</span>
