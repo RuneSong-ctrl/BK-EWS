@@ -15,6 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'api/ai/*',
             '/api/ai/*',
+            'api/ews/*',
+            '/api/ews/*',
             ...(env('APP_ENV') === 'testing' ? ['*'] : []),
         ]);
         $middleware->web(append: [

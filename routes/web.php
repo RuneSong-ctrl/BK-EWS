@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\EwsApiController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GuruBK;
@@ -98,5 +99,16 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard', [Kepsek\DashboardController::class, 'index'])->name('dashboard');
         Route::post('/disposition', [Kepsek\DashboardController::class, 'storeDisposition'])->name('disposition');
     });
+});
+
+// ==========================================
+// 3. EWS Moodle & WA Notification APIs
+// ==========================================
+Route::prefix('api/ews')->name('api.ews.')->group(function () {
+    Route::get('/notifications', [EwsApiController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/{id}', [EwsApiController::class, 'show'])->name('notifications.show');
+    Route::post('/notifications', [EwsApiController::class, 'store'])->name('notifications.store');
+    Route::patch('/notifications/{id}/status', [EwsApiController::class, 'updateStatus'])->name('notifications.update-status');
+    Route::post('/interventions', [EwsApiController::class, 'storeIntervention'])->name('interventions.store');
 });
 

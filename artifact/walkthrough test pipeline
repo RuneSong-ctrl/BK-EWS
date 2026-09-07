@@ -1,0 +1,122 @@
+# Laporan Pelaksanaan Fase 1: Validasi Pipeline Model & Kontrak Data EWS
+
+## Status: ✅ SUKSES PENUH (100% SELESAI)
+
+Seluruh checklist pada **Fase 1** dari rencana kerja telah berhasil diselesaikan dan diverifikasi langsung pada environment lokal.
+
+---
+
+## 1. Pekerjaan yang Dilakukan
+
+### A. Perbaikan Environment Python
+- Terdeteksi ketidakcocokan biner (`numpy.dtype size changed`) akibat upgrade `numpy 2.2.6` pada Python 3.10 sementara `pandas` dan `scipy` dikompilasi untuk `numpy 1.x`.
+- Berhasil diselesaikan dengan mendowngrade numpy ke `numpy 1.26.4` yang kompatibel penuh dengan `pandas 2.0.3`, `scikit-learn 1.7.2`, dan `scipy 1.11.1`.
+
+### B. Pembuatan Script Pipeline: [test_pipeline.py](file:///c:/Users/ramad/Documents/PROJECT/Model-BK-Ews/test_pipeline.py)
+Script Python mandiri dibuat untuk menguji seluruh siklus data tanpa dependensi eksternal:
+1. **Load Model Bundle**: Memuat model `RandomForestClassifier` (150 estimator), 8 fitur Moodle, `optimal_threshold=0.40`, dan `cut_off_day=60` dari `ews_moodle_model.pkl`.
+2. **Representasi 5 Profil Siswa**:
+   - **Siswa 1 (ID 65002 - Ahmad Fauzan)**: Data riil ground truth dari notebook. Inaktif 50 hari, 3 klik materi, probabilitas 69.3% (**SEDANG / Butuh Konfirmasi**).
+   - **Siswa 2 (ID 102444 - Budi Santoso)**: Inaktif 35 hari, 3 tugas belum dikumpulkan, nilai 38/100, terlambat 2 kali, probabilitas 98.1% (**TINGGI / Pemanggilan Langsung**).
+   - **Siswa 3 (ID 204551 - Citra Lestari)**: Inaktif 16 hari, 1 tugas tertinggal, nilai 58.5/100, terlambat 2 kali, probabilitas 87.7% (**TINGGI**).
+   - **Siswa 4 (ID 305112 - Dina Rahmawati)**: Siswa aktif, 380 klik, inaktif 2 hari, tugas lengkap nilai 89/100, probabilitas 15.5% (**RENDAH / AMAN**).
+   - **Siswa 5 (ID 410998 - Eko Prasetyo)**: Inaktif 15 hari, 1 tugas belum dikumpulkan, probabilitas 87.1% (**TINGGI**).
+3. **Model Inference**: Menghitung probabilitas kelas risiko (`predict_proba`) secara batch menggunakan pandas DataFrame.
+4. **Transformasi JSON Kontrak EWS (`generate_ews_json`)**: Menghasilkan metadata profil, level risiko, urgensi intervensi, metrik perilaku Moodle, dan faktor pemicu spesifik (rule-based trigger).
+5. **Generator Prompt SLM (`create_slm_prompt`)**: Membentuk prompt berformat *system-user-instruction* untuk 3 target audiens (`guru_bk`, `siswa`, `orang_tua`).
+6. **Generator Template Statis Fallback (`generate_wa_notification`)**: Menghasilkan draf teks WhatsApp siap kirim jika AI SLM offline/gagal.
+7. **Penyimpanan Kontrak Data**: Mengekspor seluruh output terstruktur ke [sample_output.json](file:///c:/Users/ramad/Documents/PROJECT/Model-BK-Ews/sample_output.json).
+
+---
+
+## 2. Hasil Eksekusi & Verifikasi
+
+Hasil output terminal dari eksekusi `python test_pipeline.py`:
+
+```
+===========================================================================
+      TESTING PIPELINE EWS (FASE 1) - VALIDASI MODEL & NOTIFIER
+===========================================================================
+
+[LANGKAH 1] Memuat Model Bundle 'ews_moodle_model.pkl'...
+  ✓ Model Loaded      : RandomForestClassifier (150 estimators)
+  ✓ Fitur Model (8): ['total_clicks', 'active_days', 'days_inactive', 'missing_assignments', 'late_submission_count', 'avg_submission_gap', 'avg_score', 'min_score']
+  ✓ Optimal Threshold : 0.4
+  ✓ Cut-off Day       : Hari ke-60
+
+[LANGKAH 2] Menyiapkan Data Sampel (5 Profil Siswa)...
+  ✓ Berhasil menyiapkan 5 sampel profil siswa.
+
+[LANGKAH 3] Menjalankan Model Inference (predict_proba)...
+
+[LANGKAH 4] Membentuk JSON Kontrak Data, SLM Prompt, & WA Template...
+---------------------------------------------------------------------------
+ID       | Nama             | Prob     | Kategori | Status     | Pemicu Utama          
+---------------------------------------------------------------------------
+65002    | Ahmad Fauzan     | 69.3%    | SEDANG   | INTERVENSI | Tidak aktif di Mood...
+102444   | Budi Santoso     | 98.1%    | TINGGI   | INTERVENSI | Tidak aktif di Mood...
+204551   | Citra Lestari    | 87.7%    | TINGGI   | INTERVENSI | Tidak aktif di Mood...
+305112   | Dina Rahmawati   | 15.5%    | RENDAH   | AMAN       | Seluruh indikator a...
+410998   | Eko Prasetyo     | 87.1%    | TINGGI   | INTERVENSI | Tidak aktif di Mood...
+---------------------------------------------------------------------------
+
+[LANGKAH 5] File Kontrak Data Berhasil Disimpan:
+  ✓ Target File : C:\Users\ramad\Documents\PROJECT\Model-BK-Ews\sample_output.json
+  ✓ Ukuran File : 35,471 bytes
+```
+
+---
+
+## 3. Deliverable Utama: [sample_output.json](file:///c:/Users/ramad/Documents/PROJECT/Model-BK-Ews/sample_output.json)
+
+File ini menjadi **Data Contract resmi** yang menghubungkan:
+1. **Model Python** (penghasil skor risiko & fitur perilaku)
+2. **Laravel Dashboard** (penyimpan notifikasi & tampilan UI guru BK)
+3. **VPS Notifier / Local LLM** (penerima prompt & pembuat narasi WhatsApp)
+
+### Contoh Potongan Kontrak Data (Kasus ID 102444):
+```json
+{
+  "student_profile": {
+    "id_student": 102444,
+    "nama_siswa": "Budi Santoso",
+    "kelas": "X-MIPA-2",
+    "code_module": "BBB",
+    "code_presentation": "2014J"
+  },
+  "risk_assessment": {
+    "risk_level": "TINGGI",
+    "risk_probability": 0.9808,
+    "risk_percentage": "98.1%",
+    "decision_threshold": 0.4,
+    "needs_intervention": true,
+    "intervention_urgency": "Tinggi (butuh intervensi/pemanggilan langsung dalam minggu ini)"
+  },
+  "moodle_behavior_metrics": {
+    "days_inactive": 35,
+    "total_clicks": 18,
+    "active_days": 2,
+    "missing_assignments": 3,
+    "tasks_submitted": 1,
+    "late_submission_count": 2,
+    "avg_submission_gap": 5.5,
+    "avg_score": 38.0,
+    "min_score": 25.0
+  },
+  "detected_risk_factors": [
+    "Tidak aktif di Moodle selama 35 hari berturut-turut.",
+    "Ada 3 tugas/kuis yang belum dikumpulkan.",
+    "Rata-rata nilai kuis di bawah standar (38.0/100).",
+    "Tercatat 2 kali mengumpulkan tugas terlambat.",
+    "Frekuensi akses materi sangat minim (hanya 18 klik)."
+  ]
+}
+```
+
+---
+
+## 4. Langkah Selanjutnya (Fase 2)
+
+Dengan telah tersedianya [sample_output.json](file:///c:/Users/ramad/Documents/PROJECT/Model-BK-Ews/sample_output.json), kamu sekarang siap melanjutkan ke **Fase 2**:
+1. Buat migration tabel `ews_notifications` dan `ews_interventions` di Laravel dashboard.
+2. Buat Seeder Laravel yang langsung membaca payload dari `sample_output.json` ini sehingga dashboard frontend langsung memiliki data riil untuk ditesting tanpa perlu menunggu VPS.

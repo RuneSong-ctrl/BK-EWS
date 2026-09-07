@@ -77,4 +77,9 @@ class Student extends Model
     {
         return $this->hasMany(AiAnalysisLog::class);
     }
+
+    public function ewsNotifications(): HasMany
+    {
+        return $this->hasMany(EwsNotification::class);
+    }
 }
