@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\EwsApiController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EwsMonitoringController;
 use App\Http\Controllers\GuruBK;
 use App\Http\Controllers\GuruKelas;
 use App\Http\Controllers\Kepsek;
@@ -60,6 +61,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/students/{student}/ai-advice', [StudentController::class, 'generateAiAdvice'])
         ->name('students.ai-advice')
         ->middleware('throttle:15,1');
+
+    // Radar EWS Moodle & Notifikasi AI (Multirole: Guru BK, Guru Kelas/Wali Kelas, Kepsek)
+    Route::middleware(['role:guru_bk,guru_kelas,kepsek'])->group(function () {
+        Route::get('/ews', [EwsMonitoringController::class, 'index'])->name('ews.index');
+        Route::post('/ews/interventions', [EwsMonitoringController::class, 'storeIntervention'])->name('ews.interventions.store');
+    });
 
     // Internal AI Structuring Helper APIs (Wajib terautentikasi & rate-limited)
     Route::post('/api/ai/structure-observation', [GuruKelas\ObservationController::class, 'structureWithAi'])

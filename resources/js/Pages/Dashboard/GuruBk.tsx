@@ -303,6 +303,14 @@ export default function GuruBk({
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
+          <Link
+            href="/ews"
+            className="px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold inline-flex items-center gap-2 shadow-xs transition-all cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+          >
+            <IconMagicWand className="w-4 h-4 text-white" />
+            <span>Radar EWS Moodle</span>
+          </Link>
+
           <a
             href="#form-bk"
             className="px-4 py-2.5 rounded-2xl neo-btn-primary text-white text-xs font-bold inline-flex items-center gap-2 shadow-xs transition-all cursor-pointer active:scale-95 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
@@ -319,6 +327,37 @@ export default function GuruBk({
             <span>Daftar Siswa &amp; Status EWS</span>
           </a>
         </div>
+      </div>
+
+      {/* Ambient EWS Moodle AI Quick Banner */}
+      <div className="p-4 sm:p-5 rounded-3xl neo-card bg-[#EEF2F7] border border-white/85 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)] relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/6 rounded-full blur-3xl pointer-events-none" />
+        <div className="flex items-center gap-3.5 relative z-10">
+          <div className="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-200/80 text-indigo-700 flex items-center justify-center shrink-0 shadow-2xs">
+            <IconMagicWand className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs sm:text-sm font-bold text-slate-900">
+                Peringatan Dini LMS Moodle &amp; WhatsApp Notifier
+              </span>
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80">
+                Deteksi Otomatis AI
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Sistem telah menganalisis log keaktifan belajar siswa selama 60 hari semester dan menyiapkan draf notifikasi WhatsApp.
+            </p>
+          </div>
+        </div>
+
+        <Link
+          href="/ews"
+          className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-indigo-700 hover:text-indigo-800 border border-indigo-200/90 text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-2xs transition-all active:scale-95 shrink-0"
+        >
+          <span>Buka Monitoring EWS Moodle</span>
+          <IconChevronRight className="w-3.5 h-3.5" />
+        </Link>
       </div>
 
       {/* 4-Card Operational Bento Grid */}

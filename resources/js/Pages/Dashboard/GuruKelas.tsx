@@ -414,6 +414,13 @@ export default function GuruKelas({
             <IconGraduationCap className="w-4 h-4 text-indigo-700" />
             <span>Input Nilai Akademik</span>
           </button>
+          <Link
+            href="/ews"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer transition-all shadow-xs active:scale-95"
+          >
+            <IconMagicWand className="w-4 h-4 text-white" />
+            <span>Radar EWS Moodle</span>
+          </Link>
           <a
             href="#observasi"
             className="w-full sm:w-auto px-4 py-2.5 rounded-xl neo-btn-primary font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
@@ -422,6 +429,37 @@ export default function GuruKelas({
             <span>Catat Jurnal Siswa</span>
           </a>
         </div>
+      </div>
+
+      {/* Ambient EWS Moodle Radar Quick Banner for Homeroom Teacher */}
+      <div className="p-4 sm:p-5 rounded-3xl neo-card bg-[#EEF2F7] border border-white/85 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)] relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/6 rounded-full blur-3xl pointer-events-none" />
+        <div className="flex items-center gap-3.5 relative z-10">
+          <div className="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-200/80 text-blue-700 flex items-center justify-center shrink-0 shadow-2xs">
+            <IconMagicWand className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs sm:text-sm font-bold text-slate-900">
+                Radar Early Warning System (EWS) • LMS Moodle Kelas {className}
+              </span>
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">
+                Deteksi Otomatis AI
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Pantau siswa di kelas Anda yang memiliki catatan inaktif di e-learning, tugas tertinggal, atau skor kuis rendah untuk pendampingan santai.
+            </p>
+          </div>
+        </div>
+
+        <Link
+          href="/ews"
+          className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-blue-700 hover:text-blue-800 border border-blue-200/90 text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-2xs transition-all active:scale-95 shrink-0"
+        >
+          <span>Buka Radar EWS Kelas Saya</span>
+          <IconChevronRight className="w-3.5 h-3.5" />
+        </Link>
       </div>
 
       {/* 4-Card Operational Bento Grid for Guru Kelas */}
