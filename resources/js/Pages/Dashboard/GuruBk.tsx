@@ -272,7 +272,7 @@ export default function GuruBk({
   const inMediationCount = recentCases.filter((c) => c.status === "DALAM_PROSES").length
   const completedCount = recentCases.filter((c) => c.status === "SELESAI").length
   const escalatedCount = recentCases.filter((c) => c.status === "DIESKALASI_KE_KEPSEK" || c.severity === "BERAT").length
-  const resolutionRate = totalCases > 0 ? Math.round((completedCount / totalCases) * 100) : 100
+  const resolutionRate = totalCases > 0 ? Math.round((completedCount / totalCases) * 100) : null
 
   return (
     <AppLayout
@@ -463,12 +463,21 @@ export default function GuruBk({
           <div className="flex items-center justify-between gap-4 py-1 relative z-10">
             <div className="space-y-1">
               <div className="flex items-baseline gap-2.5">
-                <span className="text-4xl sm:text-5xl font-extrabold text-emerald-600 tracking-tight font-number">
-                  {resolutionRate}%
+                <span className={cn(
+                  "text-4xl sm:text-5xl font-extrabold tracking-tight font-number",
+                  resolutionRate !== null ? "text-emerald-600" : "text-slate-400"
+                )}>
+                  {resolutionRate !== null ? `${resolutionRate}%` : "—"}
                 </span>
               </div>
               <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                <strong className="font-number font-bold text-slate-800">{completedCount}</strong> dari <strong className="font-number font-bold text-slate-800">{totalCases}</strong> sesi bimbingan telah selesai mencapai kesepakatan positif.
+                {totalCases > 0 ? (
+                  <>
+                    <strong className="font-number font-bold text-slate-800">{completedCount}</strong> dari <strong className="font-number font-bold text-slate-800">{totalCases}</strong> sesi bimbingan telah selesai mencapai kesepakatan positif.
+                  </>
+                ) : (
+                  "Belum ada catatan sesi bimbingan konseling yang tercatat."
+                )}
               </p>
             </div>
 
@@ -482,24 +491,29 @@ export default function GuruBk({
                   fill="none"
                   d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 />
-                <path
-                  className="text-emerald-600"
-                  strokeDasharray={`${resolutionRate}, 100`}
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                  stroke="currentColor"
-                  fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
+                {resolutionRate !== null && (
+                  <path
+                    className="text-emerald-600"
+                    strokeDasharray={`${resolutionRate}, 100`}
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                )}
               </svg>
-              <IconCheck className="w-5 h-5 text-emerald-600 absolute" />
+              <IconCheck className={cn("w-5 h-5 absolute", resolutionRate !== null ? "text-emerald-600" : "text-slate-400")} />
             </div>
           </div>
 
           <div className="pt-3 border-t border-slate-200/80 relative z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-xs font-semibold text-slate-700">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 ring-4 ring-emerald-500/15" />
-              <span>Progres Layanan Positif</span>
+              <span className={cn(
+                "w-2 h-2 rounded-full",
+                totalCases > 0 ? "bg-emerald-500 ring-4 ring-emerald-500/15" : "bg-slate-400 ring-4 ring-slate-400/15"
+              )} />
+              <span>{totalCases > 0 ? "Progres Layanan Positif" : "Belum Ada Kasus Aktif"}</span>
             </div>
           </div>
         </div>
@@ -604,12 +618,8 @@ export default function GuruBk({
               <IconHandshake className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
+              <h2 className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight">
                 Form Pencatatan Layanan Bimbingan Konseling
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-xs font-bold text-indigo-800">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 ring-2 ring-indigo-500/20" />
-                  <span>Guru BK • AI</span>
-                </div>
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
                 Dokumentasikan sesi konseling, dinamika masalah, dan kesepakatan tindak lanjut siswa secara terstruktur
@@ -724,34 +734,45 @@ export default function GuruBk({
             {/* Right Column: Urgency, Openness, Follow-up & Resolution Status */}
             <div className="lg:col-span-5 space-y-4">
               <div className="p-5 sm:p-6 rounded-2xl neo-inset bg-[#E7EDF4] border border-slate-300/40 space-y-4">
-                <Label className="text-xs sm:text-sm font-bold text-slate-800 block border-b border-slate-300/50 pb-2">
-                  5. Evaluasi &amp; Tingkat Penanganan:
-                </Label>
+                <div className="flex items-center justify-between border-b border-slate-300/60 pb-2.5">
+                  <Label className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight block">
+                    5. Evaluasi &amp; Tingkat Penanganan
+                  </Label>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-white/80 px-2 py-0.5 rounded-lg border border-slate-200/80">
+                    Layanan BK
+                  </span>
+                </div>
 
                 {/* Urgency Level Buttons */}
                 <div className="space-y-1.5">
-                  <span className="text-xs font-bold text-slate-700 block">Tingkat Urgensi Masalah:</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-700 block">Tingkat Urgensi Masalah:</span>
+                    <span className="text-[11px] font-semibold text-slate-600">
+                      {urgencyLevel === "RINGAN" ? "Konsultasi Rutin" : urgencyLevel === "SEDANG" ? "Perlu Dipantau" : "Tindakan Cepat"}
+                    </span>
+                  </div>
                   <div className="grid grid-cols-3 gap-2">
-                    {(
-                      [
-                        { key: "RINGAN", label: "Ringan / Rutin", desc: "Konsultasi biasa", color: "text-emerald-800 bg-emerald-50/80" },
-                        { key: "SEDANG", label: "Sedang", desc: "Perlu dipantau", color: "text-amber-800 bg-amber-50/80" },
-                        { key: "BERAT", label: "Berat / Kritis", desc: "Tindakan cepat", color: "text-rose-800 bg-rose-50/80" },
-                      ] as const
-                    ).map((lvl) => (
+                    {[
+                      { key: "RINGAN", label: "Ringan", desc: "Rutin / Biasa", activeCls: "bg-emerald-50 text-emerald-900 border-emerald-300 ring-2 ring-emerald-500/15 shadow-xs font-bold", dot: "bg-emerald-500" },
+                      { key: "SEDANG", label: "Sedang", desc: "Perlu Dipantau", activeCls: "bg-amber-50 text-amber-900 border-amber-300 ring-2 ring-amber-500/15 shadow-xs font-bold", dot: "bg-amber-500" },
+                      { key: "BERAT", label: "Berat", desc: "Kritis / Mendesak", activeCls: "bg-rose-50 text-rose-900 border-rose-300 ring-2 ring-rose-500/15 shadow-xs font-bold", dot: "bg-rose-500" },
+                    ].map((lvl) => (
                       <button
                         key={lvl.key}
                         type="button"
-                        onClick={() => setUrgencyLevel(lvl.key)}
+                        onClick={() => setUrgencyLevel(lvl.key as any)}
                         className={cn(
-                          "p-2.5 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer border",
+                          "p-2.5 rounded-xl text-xs transition-all duration-150 flex flex-col items-center justify-center gap-0.5 cursor-pointer border select-none active:scale-[0.97]",
                           urgencyLevel === lvl.key
-                            ? "neo-btn-primary text-white shadow-xs border-transparent font-extrabold"
-                            : "neo-btn bg-[#EEF2F7] text-slate-700 hover:text-slate-900 border-white/90"
+                            ? lvl.activeCls
+                            : "bg-white/90 hover:bg-white text-slate-700 hover:text-slate-900 border-slate-200/80 shadow-2xs"
                         )}
                       >
-                        <span>{lvl.label}</span>
-                        <span className={cn("text-[10px] font-normal opacity-85", urgencyLevel === lvl.key ? "text-white/90" : "text-slate-500")}>
+                        <div className="flex items-center gap-1.5">
+                          <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", urgencyLevel === lvl.key ? lvl.dot : "bg-slate-300")} />
+                          <span className="font-bold">{lvl.label}</span>
+                        </div>
+                        <span className={cn("text-[10px] font-medium", urgencyLevel === lvl.key ? "opacity-80" : "text-slate-600")}>
                           {lvl.desc}
                         </span>
                       </button>
@@ -762,62 +783,94 @@ export default function GuruBk({
                 {/* Scale: Keterbukaan Siswa */}
                 <LinearScale
                   label="Tingkat Keterbukaan Siswa"
-                  description="Respon &amp; kooperatif siswa saat diajak berdialog"
+                  description="Respon &amp; kooperatif siswa saat sesi dialog konseling"
                   min={1}
                   max={5}
                   value={opennessScore}
                   onChange={setOpennessScore}
-                  minLabel="1 (Tertutup/Menolak)"
+                  minLabel="1 (Tertutup)"
                   midLabel="3 (Cukup Terbuka)"
                   maxLabel="5 (Sangat Terbuka)"
                 />
 
                 {/* Rencana Tindak Lanjut Checkboxes */}
-                <div className="p-4 rounded-xl neo-card-subtle bg-[#EEF2F7] border border-white/90 space-y-2.5">
-                  <span className="text-xs sm:text-sm font-bold text-slate-800 block">
-                    Rencana Tindak Lanjut (RTL):
-                  </span>
+                <div className="p-4 rounded-2xl bg-[#EEF2F7] border border-white/90 space-y-2.5 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs sm:text-sm font-bold text-slate-800 block">
+                      Rencana Tindak Lanjut (RTL)
+                    </span>
+                    <span className="text-[10px] text-slate-600 font-semibold">Opsi Multi-Pilih</span>
+                  </div>
 
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2.5 text-xs sm:text-sm font-medium text-slate-700 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={scheduleNextSession}
-                        onChange={(e) => setScheduleNextSession(e.target.checked)}
-                        className="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
-                      />
-                      <span>📅 Jadwalkan Sesi Bimbingan Lanjutan</span>
-                    </label>
-
-                    <label className="flex items-center gap-2.5 text-xs sm:text-sm font-medium text-slate-700 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={callParent}
-                        onChange={(e) => setCallParent(e.target.checked)}
-                        className="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
-                      />
-                      <span>📞 Hubungi / Panggil Orang Tua (Wali Murid)</span>
-                    </label>
-
-                    <label className="flex items-center gap-2.5 text-xs sm:text-sm font-medium text-slate-700 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={referExternal}
-                        onChange={(e) => setReferExternal(e.target.checked)}
-                        className="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
-                      />
-                      <span>🩺 Rujukan Ahli / Psikolog / Layanan Luar</span>
-                    </label>
-
-                    <label className="flex items-center gap-2.5 text-xs sm:text-sm font-bold text-rose-700 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={escalateKepsek}
-                        onChange={(e) => setEscalateKepsek(e.target.checked)}
-                        className="rounded text-rose-600 focus:ring-rose-500 w-4 h-4 cursor-pointer"
-                      />
-                      <span>🏛️ Lapor &amp; Koordinasi Kepala Sekolah</span>
-                    </label>
+                    {[
+                      {
+                        checked: scheduleNextSession,
+                        onChange: setScheduleNextSession,
+                        label: "Jadwalkan Sesi Bimbingan Lanjutan",
+                        sub: "Kontrak waktu pertemuan evaluasi berkala",
+                        icon: IconCalendar,
+                        color: "text-blue-600 bg-blue-50 border-blue-200",
+                      },
+                      {
+                        checked: callParent,
+                        onChange: setCallParent,
+                        label: "Panggil Orang Tua (Wali Murid)",
+                        sub: "Koordinasi tatap muka keluarga",
+                        icon: IconUserCheck,
+                        color: "text-indigo-600 bg-indigo-50 border-indigo-200",
+                      },
+                      {
+                        checked: referExternal,
+                        onChange: setReferExternal,
+                        label: "Rujukan Ahli / Psikolog / Layanan Luar",
+                        sub: "Pendampingan profesional eksternal",
+                        icon: IconShield,
+                        color: "text-purple-600 bg-purple-50 border-purple-200",
+                      },
+                      {
+                        checked: escalateKepsek,
+                        onChange: setEscalateKepsek,
+                        label: "Eskalasi ke Kepala Sekolah",
+                        sub: "Kasus kritis butuh arahan pimpinan",
+                        icon: IconExclamation,
+                        color: "text-rose-600 bg-rose-50 border-rose-200",
+                        activeHighlight: "border-rose-300 bg-rose-50/70 text-rose-950",
+                      },
+                    ].map((item, idx) => {
+                      const IconComp = item.icon
+                      return (
+                        <label
+                          key={idx}
+                          className={cn(
+                            "flex items-start gap-3 p-2.5 rounded-xl border transition-all duration-150 cursor-pointer select-none",
+                            item.checked
+                              ? item.activeHighlight || "bg-white border-blue-300 shadow-2xs"
+                              : "bg-white/70 hover:bg-white/95 border-slate-200/80"
+                          )}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={item.checked}
+                            onChange={(e) => item.onChange(e.target.checked)}
+                            className="mt-0.5 rounded text-blue-600 focus:ring-blue-500/20 w-4 h-4 cursor-pointer shrink-0"
+                          />
+                          <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                            <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border", item.color)}>
+                              <IconComp className="w-3.5 h-3.5" />
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                              <span className={cn("text-xs font-bold leading-tight truncate", item.checked ? "text-slate-900" : "text-slate-700")}>
+                                {item.label}
+                              </span>
+                              <span className="text-[10px] text-slate-600 leading-normal truncate">
+                                {item.sub}
+                              </span>
+                            </div>
+                          </div>
+                        </label>
+                      )
+                    })}
                   </div>
                 </div>
 
@@ -829,26 +882,34 @@ export default function GuruBk({
                       type="button"
                       onClick={() => setCaseResolutionStatus("DALAM_PROSES")}
                       className={cn(
-                        "p-2.5 rounded-xl text-xs font-bold transition-all border cursor-pointer",
+                        "p-2.5 rounded-xl text-xs font-bold transition-all duration-150 border cursor-pointer select-none flex items-center justify-center gap-2 active:scale-[0.97]",
                         caseResolutionStatus === "DALAM_PROSES"
-                          ? "neo-btn bg-amber-100/90 text-amber-900 border-amber-300 font-extrabold shadow-2xs"
-                          : "neo-card-subtle bg-[#EEF2F7] text-slate-600 border-white/90"
+                          ? "bg-amber-50 text-amber-900 border-amber-300 ring-2 ring-amber-500/15 shadow-xs font-bold"
+                          : "bg-white/90 hover:bg-white text-slate-600 hover:text-slate-800 border-slate-200/80 shadow-2xs"
                       )}
                     >
-                      🟡 Masih Dalam Proses
+                      <span className={cn(
+                        "w-2 h-2 rounded-full",
+                        caseResolutionStatus === "DALAM_PROSES" ? "bg-amber-500 ring-4 ring-amber-500/20" : "bg-slate-300"
+                      )} />
+                      <span>Masih Dalam Proses</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => setCaseResolutionStatus("SELESAI")}
                       className={cn(
-                        "p-2.5 rounded-xl text-xs font-bold transition-all border cursor-pointer",
+                        "p-2.5 rounded-xl text-xs font-bold transition-all duration-150 border cursor-pointer select-none flex items-center justify-center gap-2 active:scale-[0.97]",
                         caseResolutionStatus === "SELESAI"
-                          ? "neo-btn bg-emerald-100/90 text-emerald-900 border-emerald-300 font-extrabold shadow-2xs"
-                          : "neo-card-subtle bg-[#EEF2F7] text-slate-600 border-white/90"
+                          ? "bg-emerald-50 text-emerald-900 border-emerald-300 ring-2 ring-emerald-500/15 shadow-xs font-bold"
+                          : "bg-white/90 hover:bg-white text-slate-600 hover:text-slate-800 border-slate-200/80 shadow-2xs"
                       )}
                     >
-                      🟢 Selesai / Tuntas
+                      <span className={cn(
+                        "w-2 h-2 rounded-full",
+                        caseResolutionStatus === "SELESAI" ? "bg-emerald-500 ring-4 ring-emerald-500/20" : "bg-slate-300"
+                      )} />
+                      <span>Selesai / Tuntas</span>
                     </button>
                   </div>
                 </div>
