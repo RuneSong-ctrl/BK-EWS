@@ -100,7 +100,7 @@ class EwsMonitoringController extends Controller
         $classes = SchoolClass::orderBy('name')->get(['id', 'name', 'grade_level', 'academic_year']);
 
         return Inertia::render('Dashboard/EwsMonitoring', [
-            'notifications' => $notifications,
+            'ewsNotifications' => $notifications,
             'stats' => $stats,
             'classes' => $classes,
             'homeroomClass' => $homeroomClass,

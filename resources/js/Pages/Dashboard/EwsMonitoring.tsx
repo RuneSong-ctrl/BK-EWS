@@ -19,7 +19,14 @@ import { EwsDetailModal, type EwsNotificationDetail } from "@/components/ews/Ews
 import { cn } from "@/lib/utils"
 
 interface EwsMonitoringProps {
-  notifications: {
+  ewsNotifications?: {
+    data: EwsNotificationDetail[]
+    links: any[]
+    current_page: number
+    last_page: number
+    total: number
+  }
+  notifications?: {
     data: EwsNotificationDetail[]
     links: any[]
     current_page: number
@@ -54,13 +61,21 @@ interface EwsMonitoringProps {
 }
 
 export default function EwsMonitoring({
-  notifications,
+  ewsNotifications,
+  notifications: legacyNotifications,
   stats,
   classes = [],
   homeroomClass,
   userRole = "guru_bk",
   filters,
 }: EwsMonitoringProps) {
+  const records = ewsNotifications || legacyNotifications || {
+    data: [],
+    links: [],
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+  }
   const [selectedNotification, setSelectedNotification] = React.useState<EwsNotificationDetail | null>(null)
   const [isDetailModalOpen, setIsDetailModalOpen] = React.useState(false)
 
@@ -352,7 +367,7 @@ export default function EwsMonitoring({
               Daftar Siswa Berisiko Terdeteksi Model LMS
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Menampilkan {notifications.data.length} dari total {notifications.total} catatan deteksi aktif
+              Menampilkan {records.data.length} dari total {records.total} catatan deteksi aktif
             </p>
           </div>
         </div>
@@ -370,7 +385,7 @@ export default function EwsMonitoring({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200/60 text-xs text-slate-800">
-              {notifications.data.length === 0 ? (
+              {records.data.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-slate-400">
                     <IconAlert className="w-8 h-8 mx-auto text-slate-300 mb-2" />
@@ -379,7 +394,7 @@ export default function EwsMonitoring({
                   </td>
                 </tr>
               ) : (
-                notifications.data.map((item) => {
+                records.data.map((item) => {
                   const m = item.moodle_metrics || {}
                   const riskStyle = {
                     TINGGI: "bg-rose-50 text-rose-700 border-rose-200/80",
@@ -494,13 +509,13 @@ export default function EwsMonitoring({
         </div>
 
         {/* Pagination */}
-        {notifications.last_page > 1 && (
+        {records.last_page > 1 && (
           <div className="p-4 sm:p-5 bg-white/70 border-t border-slate-200/80 flex items-center justify-between gap-4">
             <span className="text-xs text-slate-500 font-medium">
-              Halaman {notifications.current_page} dari {notifications.last_page}
+              Halaman {records.current_page} dari {records.last_page}
             </span>
             <div className="flex items-center gap-1.5">
-              {notifications.links.map((link, idx) => {
+              {records.links.map((link, idx) => {
                 if (!link.url) {
                   return (
                     <span

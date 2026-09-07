@@ -105,24 +105,27 @@ export function AppLayout({
   const [isNotificationOpen, setIsNotificationOpen] = React.useState(false)
   const notificationRef = React.useRef<HTMLDivElement>(null)
 
-  const [notifications, setNotifications] = React.useState<NotificationItem[]>(serverNotifications)
+  const [notifications, setNotifications] = React.useState<NotificationItem[]>(
+    Array.isArray(serverNotifications) ? serverNotifications : []
+  )
 
   React.useEffect(() => {
-    if (serverNotifications) {
+    if (Array.isArray(serverNotifications)) {
       setNotifications(serverNotifications)
     }
   }, [serverNotifications])
 
-  const unreadCount = notifications.filter((n) => !n.read).length
+  const safeNotifications = Array.isArray(notifications) ? notifications : []
+  const unreadCount = safeNotifications.filter((n) => !n.read).length
 
   const markNotificationAsRead = (id: string) => {
     setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+      Array.isArray(prev) ? prev.map((n) => (n.id === id ? { ...n, read: true } : n)) : []
     )
   }
 
   const markAllNotificationsAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+    setNotifications((prev) => (Array.isArray(prev) ? prev.map((n) => ({ ...n, read: true })) : []))
   }
 
 
@@ -216,6 +219,21 @@ export function AppLayout({
               <span className="hidden sm:inline">{roleMeta.roleLabel}</span>
             </div>
 
+            {/* Direct Radar EWS Navigation Button */}
+            <Link
+              href="/ews"
+              className={cn(
+                "px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold border flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95",
+                activeMenu === "ews_monitoring"
+                  ? "bg-indigo-600 text-white border-indigo-700 shadow-xs"
+                  : "bg-white hover:bg-slate-50 text-indigo-700 border-indigo-200/90"
+              )}
+              title="Buka Radar EWS Moodle"
+            >
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+              <span>Radar EWS</span>
+            </Link>
+
             {/* Notification Button & Interactive Popover */}
             <div className="relative">
               <button
@@ -267,7 +285,7 @@ export function AppLayout({
                   </div>
 
                   <div className="max-h-[320px] overflow-y-auto space-y-2.5 pr-1 divide-y divide-slate-50">
-                    {notifications.map((notif) => (
+                    {safeNotifications.map((notif) => (
                       <div
                         key={notif.id}
                         onClick={() => markNotificationAsRead(notif.id)}
