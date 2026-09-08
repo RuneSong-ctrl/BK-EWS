@@ -6,11 +6,12 @@ import {
   IconSearch,
   IconBell,
   IconLogOut,
+  IconShieldCheck,
 } from "@/components/ui/storage-icon"
 import { Link, router, usePage } from "@inertiajs/react"
 import { cn } from "@/lib/utils"
 
-export type UserRole = "guru_kelas" | "guru_bk" | "kepsek"
+export type UserRole = "admin" | "guru_kelas" | "guru_bk" | "kepsek"
 
 interface AuthUser {
   id: number
@@ -58,6 +59,14 @@ export function AppLayout({
 
   const getRoleMetadata = (role: UserRole) => {
     switch (role) {
+      case "admin":
+        return {
+          roleLabel: "Administrator IT",
+          classLabel: "Operator IT",
+          badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
+          icon: IconShieldCheck,
+          dashboardHref: "/admin/dashboard",
+        }
       case "guru_kelas":
         return {
           roleLabel: "Wali / Guru Kelas",
@@ -101,7 +110,6 @@ export function AppLayout({
     router.post("/logout")
   }
 
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = React.useState(false)
   const [isNotificationOpen, setIsNotificationOpen] = React.useState(false)
   const notificationRef = React.useRef<HTMLDivElement>(null)
 
@@ -143,7 +151,6 @@ export function AppLayout({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setIsNotificationOpen(false)
-        setIsMobileSearchOpen(false)
       }
     }
 
@@ -184,30 +191,8 @@ export function AppLayout({
             </Link>
           </div>
 
-          {/* Center: Desktop Search Bar */}
-          <div className="relative flex-1 max-w-md hidden md:block">
-            <IconSearch className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Cari nama siswa, NISN, atau kelas..."
-              aria-label="Pencarian cepat siswa, NISN, atau rombel kelas"
-              className="w-full h-10 pl-10 pr-4 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/20 focus:outline-none font-medium transition-all"
-            />
-          </div>
-
           {/* Right: User Profile & Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Mobile Search Toggle Button */}
-            <button
-              type="button"
-              onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-              className="md:hidden w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-slate-300 flex items-center justify-center cursor-pointer shrink-0 shadow-2xs hover:shadow-xs transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
-              title="Buka Pencarian Siswa"
-              aria-label="Buka Pencarian Siswa"
-            >
-              <IconSearch className="w-4 h-4" />
-            </button>
-
             {/* Role Badge */}
             <div
               className={cn(
@@ -219,20 +204,22 @@ export function AppLayout({
               <span className="hidden sm:inline">{roleMeta.roleLabel}</span>
             </div>
 
-            {/* Direct Radar EWS Navigation Button */}
-            <Link
-              href="/ews"
-              className={cn(
-                "px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold border flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95",
-                activeMenu === "ews_monitoring"
-                  ? "bg-indigo-600 text-white border-indigo-700 shadow-xs"
-                  : "bg-white hover:bg-slate-50 text-indigo-700 border-indigo-200/90"
-              )}
-              title="Buka Radar EWS Moodle"
-            >
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-              <span>Radar EWS</span>
-            </Link>
+            {/* Direct Radar EWS Navigation Button - Only for guru_kelas, guru_bk, kepsek */}
+            {["guru_kelas", "guru_bk", "kepsek"].includes(effectiveRole) && (
+              <Link
+                href="/ews"
+                className={cn(
+                  "px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold border flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95",
+                  activeMenu === "ews_monitoring"
+                    ? "bg-indigo-600 text-white border-indigo-700 shadow-xs"
+                    : "bg-white hover:bg-slate-50 text-indigo-700 border-indigo-200/90"
+                )}
+                title="Buka Radar EWS Moodle"
+              >
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                <span>Radar EWS</span>
+              </Link>
+            )}
 
             {/* Notification Button & Interactive Popover */}
             <div className="relative">
@@ -358,22 +345,6 @@ export function AppLayout({
             </button>
           </div>
         </div>
-
-        {/* Mobile Search Bar Drawer */}
-        {isMobileSearchOpen && (
-          <div className="md:hidden pt-3 border-t border-slate-100 mt-3 animate-in fade-in-0 slide-in-from-top-2 duration-150">
-            <div className="relative flex items-center">
-              <IconSearch className="w-4 h-4 absolute left-3.5 text-slate-400 pointer-events-none" />
-              <input
-                type="text"
-                autoFocus
-                placeholder="Cari nama siswa, NISN, atau kelas..."
-                aria-label="Pencarian cepat siswa di perangkat seluler"
-                className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/20 focus:outline-none font-medium transition-all"
-              />
-            </div>
-          </div>
-        )}
       </header>
 
       {/* Main Content Area - Full Width Container with Generous Top Margin & Spacing */}

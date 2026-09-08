@@ -1,1214 +1,848 @@
 import * as React from "react"
-import {
-  IconHandshake,
-  IconExclamation,
-  IconCalendar,
-  IconCheck,
-  IconShield,
-  IconSearch,
-  IconFilter,
-  IconArrowUpRight,
-  IconFile,
-  IconUserCheck,
-  IconChevronRight,
-  IconLock,
-  IconSave,
-  IconMagicWand,
-  IconLoader,
-} from "@/components/ui/storage-icon"
-import { Link, router } from "@inertiajs/react"
 import { AppLayout } from "@/Layouts/AppLayout"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { EwsStatusBadge, type EwsStatus } from "@/components/ews/EwsStatusBadge"
-import { PillarIndicators, type PillarStatuses } from "@/components/ews/PillarIndicators"
-import { LinearScale } from "@/components/forms/LinearScale"
-import { StudentAutocomplete, type StudentOption } from "@/components/forms/StudentAutocomplete"
-import { AiBkStructuringModal, type AiBkDraftResult, type AiBkStructuredResult } from "@/components/ews/AiBkStructuringModal"
-import { BkCaseSuccessModal, type BkCaseSuccessDetail } from "@/components/ews/BkCaseSuccessModal"
-import { DatePickerInput, formatLocalDateToYMD } from "@/components/ui/date-picker-input"
-import { toast } from "@/hooks/use-toast"
+import { router } from "@inertiajs/react"
+import {
+  IconAlert,
+  IconAlertSign,
+  IconCheck,
+  IconCheckCircle,
+  IconEye,
+  IconBook,
+  IconSpreadsheet,
+  IconTrendUp,
+  IconAi,
+  IconClose,
+  IconSave,
+  IconCalendar,
+  IconCalendarCheck,
+  IconHandshake,
+  IconUser,
+  IconUserCheck,
+  IconUsers,
+  IconArrowRight,
+  IconFilter,
+} from "@/components/ui/storage-icon"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 
-interface BkCaseItem {
-  id: number
-  title: string
-  student_name: string
-  class_name: string
-  severity: "RINGAN" | "SEDANG" | "BERAT"
-  status: "BARU_DILAPORKAN" | "DALAM_PROSES" | "DIESKALASI_KE_KEPSEK" | "SELESAI"
-  date: string
-  counselor: string
+interface SubjectDetail {
+  kode_modul: string
+  nama_mapel: string
+  kategori: string
+  guru_pengampu: string
+  probabilitas: number
+  status_risiko: "MERAH" | "KUNING" | "HIJAU"
+  tugas_belum_dikumpul: number
+  durasi_belajar_jam: number
+  lesson_attempts?: number
+  days_inactive?: number
+  avg_score?: number
 }
 
-interface HolisticStudentItem {
+interface CounselingJournal {
   id: number
-  name: string
-  nisn: string
-  class_name: string
-  grade: string
-  pillars: PillarStatuses
-  ews_status: EwsStatus
-  trigger_reason: string
+  summary_id: number
+  guru_bk_id: number
+  jenis_layanan: "konseling_individu" | "pemanggilan_siswa" | "home_visit" | "koordinasi_ortu"
+  catatan_konseling: string
+  rencana_tindak_lanjut: string
+  evaluasi_perilaku?: "membaik" | "tetap" | "memburuk" | null
+  tanggal_monitoring_berikutnya?: string | null
+  created_at: string
+  counselor?: {
+    name: string
+  }
+}
+
+interface StudentSummaryItem {
+  id: number
+  siswa_id: number
+  total_mapel_diambil: number
+  total_mapel_berisiko: number
+  total_jam_belajar: number
+  total_tugas_belum_dikumpul: number
+  total_tugas_terlambat: number
+  inaktivitas_terlama_hari: number
+  profil_karakter_belajar: string
+  prioritas_konseling: "TINGGI" | "SEDANG" | "RENDAH"
+  rekomendasi_tindakan: string
+  rincian_per_mata_pelajaran: SubjectDetail[]
+  status_penanganan: "open" | "in_counseling" | "resolved"
+  counseling_journals?: CounselingJournal[]
+  student?: {
+    id: number
+    nis: string
+    nisn: string
+    name: string
+    classes?: Array<{ name: string }>
+  }
 }
 
 interface GuruBkProps {
-  students?: { data: any[] }
+  studentSummaries?: StudentSummaryItem[]
   stats?: {
-    total_students: number
-    normal_count: number
-    berisiko_count: number
-    waspada_count: number
-    kritis_count: number
-    data_belum_lengkap_count: number
+    total: number
+    high_priority: number
+    medium_priority: number
+    low_priority: number
+    inactive_critical: number
+    in_counseling: number
   }
-  classes?: any[]
-  watchlist?: any[]
-  recentCases?: BkCaseItem[]
-  allStudentOptions?: StudentOption[]
+  recentJournals?: CounselingJournal[]
+  counselorName?: string
 }
 
-export default function GuruBk({
-  students,
-  stats,
-  watchlist: initialWatchlist = [],
-  recentCases: initialRecentCases = [],
-  allStudentOptions: initialStudentOptions = [],
+export default function GuruBkDashboard({
+  studentSummaries = [],
+  stats = {
+    total: 0,
+    high_priority: 0,
+    medium_priority: 0,
+    low_priority: 0,
+    inactive_critical: 0,
+    in_counseling: 0,
+  },
+  recentJournals = [],
+  counselorName,
 }: GuruBkProps) {
-  const studentOptions = initialStudentOptions
-  const watchlist = initialWatchlist
-  const recentCases = initialRecentCases
+  const [triageFilter, setTriageFilter] = React.useState<"ALL" | "TINGGI" | "INAKTIF_KRITIS" | "SEDANG">("ALL")
+  const [selectedStudentSummary, setSelectedStudentSummary] = React.useState<StudentSummaryItem | null>(null)
+  const [searchQuery, setSearchQuery] = React.useState("")
 
-  const [selectedStudent, setSelectedStudent] = React.useState<StudentOption | null>(
-    studentOptions.length > 0 ? studentOptions[0] : null
-  )
+  // State Modal Jurnal Konseling
+  const [journalModalSummary, setJournalModalSummary] = React.useState<StudentSummaryItem | null>(null)
+  const [journalForm, setJournalForm] = React.useState({
+    jenis_layanan: "konseling_individu",
+    catatan_konseling: "",
+    rencana_tindak_lanjut: "",
+    evaluasi_perilaku: "membaik",
+    tanggal_monitoring_berikutnya: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+  })
+  const [isSubmittingJournal, setIsSubmittingJournal] = React.useState(false)
 
-  // Keep selectedStudent in sync with refreshed studentOptions
-  React.useEffect(() => {
-    if (selectedStudent && studentOptions.length > 0) {
-      const updated = studentOptions.find((s) => s.id === selectedStudent.id)
-      if (updated) {
-        setSelectedStudent(updated)
+  // Filter siswa sesuai triage dan pencarian
+  const filteredSummaries = React.useMemo(() => {
+    return (Array.isArray(studentSummaries) ? studentSummaries : []).filter((s) => {
+      if (triageFilter === "TINGGI" && s.prioritas_konseling !== "TINGGI") return false
+      if (triageFilter === "INAKTIF_KRITIS" && s.inaktivitas_terlama_hari <= 14) return false
+      if (triageFilter === "SEDANG" && s.prioritas_konseling !== "SEDANG") return false
+
+      if (searchQuery.trim() !== "") {
+        const q = searchQuery.toLowerCase()
+        const nameMatch = (s.student?.name || "").toLowerCase().includes(q)
+        const nisMatch = (s.student?.nis || "").toLowerCase().includes(q)
+        if (!nameMatch && !nisMatch) return false
       }
-    } else if (!selectedStudent && studentOptions.length > 0) {
-      setSelectedStudent(studentOptions[0])
-    }
-  }, [studentOptions])
+      return true
+    })
+  }, [studentSummaries, triageFilter, searchQuery])
 
-  const [incidentDate, setIncidentDate] = React.useState(formatLocalDateToYMD(new Date()))
-  const [problemDomain, setProblemDomain] = React.useState("PRIBADI_SOSIAL")
-  const [serviceFormat, setServiceFormat] = React.useState("KONSELING_INDIVIDU")
-  const [urgencyLevel, setUrgencyLevel] = React.useState<"RINGAN" | "SEDANG" | "BERAT">("SEDANG")
-  const [opennessScore, setOpennessScore] = React.useState(3)
-  const [caseResolutionStatus, setCaseResolutionStatus] = React.useState<"DALAM_PROSES" | "SELESAI">("DALAM_PROSES")
-  const [notes, setNotes] = React.useState("")
-
-  // Tindak Lanjut Checkboxes
-  const [callParent, setCallParent] = React.useState(false)
-  const [scheduleNextSession, setScheduleNextSession] = React.useState(false)
-  const [referExternal, setReferExternal] = React.useState(false)
-  const [escalateKepsek, setEscalateKepsek] = React.useState(false)
-
-  // AI BK Modal State
-  const [isAiModalOpen, setIsAiModalOpen] = React.useState(false)
-  const [successModalDetail, setSuccessModalDetail] = React.useState<BkCaseSuccessDetail | null>(null)
-
-  // Filters
-  const [gradeFilter, setGradeFilter] = React.useState<string>("ALL")
-  const [statusFilter, setStatusFilter] = React.useState<string>("ALL")
-  const [searchQuery, setSearchQuery] = React.useState<string>("")
-
-  const handleApplyAiDraft = (draft: AiBkDraftResult) => {
-    if (draft.generated_narrative) {
-      setNotes(draft.generated_narrative)
-    }
-    if (draft.urgency_level) {
-      setUrgencyLevel(draft.urgency_level)
-    }
-
-    toast({
-      title: "Catatan AI Terpasang",
-      description: "Draf catatan hasil bimbingan telah dimasukkan ke dalam form. Silakan tinjau sebelum menyimpan.",
+  const openJournalModal = (summary: StudentSummaryItem) => {
+    setJournalModalSummary(summary)
+    setJournalForm({
+      jenis_layanan: "konseling_individu",
+      catatan_konseling: "",
+      rencana_tindak_lanjut: "",
+      evaluasi_perilaku: "membaik",
+      tanggal_monitoring_berikutnya: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
     })
   }
 
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
-
-  const handleSaveCounselingSession = (e: React.FormEvent) => {
+  const handleSaveJournal = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedStudent) {
-      toast({
-        title: "Pilih Siswa Terlebih Dahulu",
-        description: "Silakan pilih nama siswa yang diberikan bimbingan konseling.",
-        variant: "destructive",
-      })
-      return
-    }
+    if (!journalModalSummary) return
 
-    if (!notes.trim()) {
-      toast({
-        title: "Isi Catatan Bimbingan",
-        description: "Tuliskan ringkasan masalah atau hasil konseling siswa.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setIsSubmitting(true)
-    const currentStudent = selectedStudent
-    const currentNotes = notes.trim()
-    const currentUrgency = urgencyLevel
-    const currentDate = incidentDate
-    const currentStatus =
-      caseResolutionStatus === "SELESAI"
-        ? "SELESAI"
-        : escalateKepsek
-          ? "DIESKALASI_KE_KEPSEK"
-          : referExternal
-            ? "DIRUJUK_EKSTERNAL"
-            : "DALAM_PROSES"
-
-    const currentFollowUp = [
-      ...(callParent ? ["Pemanggilan Orang Tua"] : []),
-      ...(scheduleNextSession ? ["Sesi Konseling Lanjutan"] : []),
-      ...(referExternal ? ["Rujukan Ahli / Psikolog"] : []),
-      ...(escalateKepsek ? ["Koordinasi Kepala Sekolah"] : []),
-    ]
-    if (currentFollowUp.length === 0) {
-      currentFollowUp.push("Pemantauan Berkala")
-    }
-
+    setIsSubmittingJournal(true)
     router.post(
-      "/guru-bk/cases",
+      "/ews/interventions",
       {
-        student_id: currentStudent.id,
-        incident_date: currentDate,
-        reported_date: currentDate,
-        case_types: [problemDomain, serviceFormat],
-        bullying_role: null,
-        severity: currentUrgency,
-        status: currentStatus,
-        follow_up_actions: currentFollowUp,
-        involved_students_count: 1,
-        confidential_notes: currentNotes,
+        summary_id: journalModalSummary.id,
+        ...journalForm,
       },
       {
         preserveScroll: true,
         onSuccess: () => {
-          setSuccessModalDetail({
-            student_id: currentStudent.id,
-            student_name: currentStudent.name,
-            class_name: currentStudent.class_name,
-            nisn: currentStudent.nisn || "-",
-            date: currentDate,
-            category: `${problemDomain.replace(/_/g, " ")} • ${serviceFormat.replace(/_/g, " ")}`,
-            severity: currentUrgency,
-            status: currentStatus,
-            follow_up: currentFollowUp,
-            notes: currentNotes,
-          })
-          setNotes("")
-          setCallParent(false)
-
-          setScheduleNextSession(false)
-          setReferExternal(false)
-          setEscalateKepsek(false)
-          setCaseResolutionStatus("DALAM_PROSES")
+          setIsSubmittingJournal(false)
+          setJournalModalSummary(null)
         },
         onError: () => {
-          toast({
-            title: "Gagal Menyimpan Kasus",
-            description: "Pastikan seluruh data wajib terisi dengan benar.",
-            variant: "destructive",
-          })
+          setIsSubmittingJournal(false)
         },
         onFinish: () => {
-          setIsSubmitting(false)
+          setIsSubmittingJournal(false)
         },
       }
     )
   }
 
-  const studentDataList = students?.data || []
-  const holisticList: HolisticStudentItem[] = React.useMemo(() => {
-    return studentDataList.map((s: any) => ({
-      id: s.id,
-      name: s.name,
-      nisn: s.nisn,
-      class_name: s.classes?.[0]?.name || s.class_name || "-",
-      grade: s.classes?.[0]?.name?.startsWith("10") ? "X" : s.classes?.[0]?.name?.startsWith("11") ? "XI" : "XII",
-      pillars: {
-        ak: s.ews_score?.academic_sub_status || "DATA_BELUM_LENGKAP",
-        kh: s.ews_score?.attendance_sub_status || "DATA_BELUM_LENGKAP",
-        pr: s.ews_score?.behavior_sub_status || "DATA_BELUM_LENGKAP",
-        bk: s.ews_score?.bk_sub_status || "DATA_BELUM_LENGKAP",
-      },
-      ews_status: s.ews_score?.status || "DATA_BELUM_LENGKAP",
-      trigger_reason: s.ews_score?.triggered_by_parameters?.join(", ") || "Data pilar dikumpulkan",
-    }))
-  }, [studentDataList])
-
-
-  const filteredMatrix = React.useMemo(() => {
-    const q = searchQuery.toLowerCase().trim()
-    return holisticList.filter((item) => {
-      const matchGrade = gradeFilter === "ALL" || item.grade === gradeFilter
-      const matchStatus = statusFilter === "ALL" || item.ews_status === statusFilter
-      const matchSearch =
-        !q ||
-        item.name.toLowerCase().includes(q) ||
-        (item.nisn && item.nisn.toLowerCase().includes(q)) ||
-        (item.class_name && item.class_name.toLowerCase().includes(q))
-      return matchGrade && matchStatus && matchSearch
-    })
-  }, [holisticList, gradeFilter, statusFilter, searchQuery])
-
-  const totalSchool = stats?.total_students || studentOptions.length
-  const kritisSchool = stats?.kritis_count || 0
-  const waspadaSchool = stats?.waspada_count || 0
-  const totalCases = recentCases.length
-  const activeCasesCount = recentCases.filter((c) => c.status === "DALAM_PROSES" || c.status === "BARU_DILAPORKAN").length
-  const inMediationCount = recentCases.filter((c) => c.status === "DALAM_PROSES").length
-  const completedCount = recentCases.filter((c) => c.status === "SELESAI").length
-  const escalatedCount = recentCases.filter((c) => c.status === "DIESKALASI_KE_KEPSEK" || c.severity === "BERAT").length
-  const resolutionRate = totalCases > 0 ? Math.round((completedCount / totalCases) * 100) : null
-
   return (
     <AppLayout
       currentRole="guru_bk"
-      activeMenu="dashboard_bk"
-      title="Layanan Bimbingan Konseling & Pemantauan EWS"
-      subtitle="Deteksi dini risiko siswa lintas jenjang dan pencatatan rekam konseling terpadu"
+      activeMenu="dashboard"
+      title="Guru BK — Tier 2 Clinical Triage & Konseling"
+      subtitle="Rekapitulasi holistik karakter belajar lintas mata pelajaran dan penanganan bimbingan siswa"
     >
-      {/* Top Quick-Action Navigation Bar */}
-      <div className="p-4 sm:p-5 rounded-3xl neo-card bg-[#EEF2F7] border border-white/85 flex flex-wrap items-center justify-between gap-4 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)]">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl neo-btn bg-[#EEF2F7] text-indigo-700 flex items-center justify-center shrink-0 border border-white/90">
-            <IconHandshake className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
-                Ruang Kerja Guru BK (Bimbingan Konseling)
+      <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 space-y-8">
+        
+        {/* Top Header Card */}
+        <div className="p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] border border-white/80 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-3 py-1 rounded-xl text-[11px] font-extrabold font-mono tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-2xs">
+                TIER 2 &bull; GURU BIMBINGAN KONSELING
               </span>
-              <span className="px-2.5 py-1 rounded-xl text-xs font-bold bg-white/90 text-indigo-800 border border-slate-200/80 shadow-2xs">
-                Seluruh Kelas X - XII
+              <span className="text-xs text-slate-500 font-bold">
+                Konselor: {counselorName || "Guru BK / Konselor"}
               </span>
             </div>
-            <p className="text-xs text-slate-500 font-medium">
-              {totalSchool} Total Siswa • {watchlist.length} Siswa Terdeteksi Butuh Perhatian Khusus
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              Clinical Triage &amp; Manajemen Kasus Holistik
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 max-w-3xl leading-relaxed">
+              Analisis komparatif lintas seluruh mata pelajaran untuk mengidentifikasi akar permasalahan belajar siswa (kronis multi-mapel vs kendala spesifik mapel tertentu) guna menentukan intervensi konseling yang tepat.
             </p>
           </div>
+
+          <div className="flex items-center gap-2.5 shrink-0 bg-white/80 p-2.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600">
+              <IconHandshake className="w-5 h-5" />
+            </div>
+            <div className="pr-2">
+              <div className="text-[11px] font-bold text-slate-400 uppercase">Siswa Terpantau</div>
+              <div className="text-lg font-black text-slate-900 font-mono">
+                {stats.total} <span className="text-xs font-semibold text-slate-500">Siswa</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap shrink-0">
-          <a
-            href="#form-bk"
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl neo-btn-primary text-white text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+        {/* 4 Bento KPI Cards (Neumorphic with Varied Ambient Silhouette Glow) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+          {/* Card 1: Prioritas Tinggi */}
+          <div
+            className="p-6 sm:p-7 rounded-3xl neo-card relative overflow-hidden border border-white/80 flex flex-col justify-between min-h-[155px] space-y-4"
+            style={{
+              background:
+                "radial-gradient(circle at 90% 10%, rgba(225, 29, 72, 0.08) 0%, rgba(238, 242, 247, 0) 48%), #EEF2F7",
+            }}
           >
-            <IconFile className="w-4 h-4 text-white" />
-            <span>Catat Layanan Bimbingan</span>
-          </a>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Prioritas Tinggi (Multi-Mapel)
+              </span>
+              <div className="w-9 h-9 rounded-2xl bg-white border border-rose-200/80 flex items-center justify-center text-rose-600 shadow-2xs">
+                <IconAlert className="w-4 h-4" />
+              </div>
+            </div>
+            <div>
+              <div className="text-3xl font-black text-rose-600 font-mono tracking-tight">
+                {stats.high_priority} <span className="text-xs font-semibold text-slate-500 font-sans">Siswa</span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Bermasalah pada &ge; 2 mata pelajaran sekaligus
+              </p>
+            </div>
+            <div className="flex items-center gap-1 text-[11px] font-extrabold text-rose-700">
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+              <span>Jadwalkan konseling &amp; hubungi ortu</span>
+            </div>
+          </div>
 
-          <a
-            href="#matriks"
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl neo-btn bg-[#EEF2F7] hover:bg-white text-slate-700 hover:text-slate-900 text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 border border-white/90 transition-all cursor-pointer shadow-2xs active:scale-95 whitespace-nowrap"
+          {/* Card 2: Inaktif Kritis */}
+          <div
+            className="p-6 sm:p-7 rounded-3xl neo-card relative overflow-hidden border border-white/80 flex flex-col justify-between min-h-[155px] space-y-4"
+            style={{
+              background:
+                "radial-gradient(circle at 10% 90%, rgba(245, 158, 11, 0.08) 0%, rgba(238, 242, 247, 0) 48%), #EEF2F7",
+            }}
           >
-            <IconSearch className="w-4 h-4 text-slate-500" />
-            <span>Daftar Siswa &amp; Status EWS</span>
-          </a>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Inaktif Kritis (&gt; 14 Hari)
+              </span>
+              <div className="w-9 h-9 rounded-2xl bg-white border border-amber-200/80 flex items-center justify-center text-amber-600 shadow-2xs">
+                <IconCalendarCheck className="w-4 h-4" />
+              </div>
+            </div>
+            <div>
+              <div className="text-3xl font-black text-amber-600 font-mono tracking-tight">
+                {stats.inactive_critical} <span className="text-xs font-semibold text-slate-500 font-sans">Siswa</span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Menghilang dan tidak membuka LMS Moodle
+              </p>
+            </div>
+            <div className="text-[11px] font-bold text-amber-700">
+              Perlu konfirmasi presensi fisik / home visit
+            </div>
+          </div>
+
+          {/* Card 3: Kendala Spesifik */}
+          <div
+            className="p-6 sm:p-7 rounded-3xl neo-card relative overflow-hidden border border-white/80 flex flex-col justify-between min-h-[155px] space-y-4"
+            style={{
+              background:
+                "radial-gradient(circle at 90% 90%, rgba(59, 130, 246, 0.08) 0%, rgba(238, 242, 247, 0) 48%), #EEF2F7",
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Kendala Spesifik (1 Mapel)
+              </span>
+              <div className="w-9 h-9 rounded-2xl bg-white border border-blue-200/80 flex items-center justify-center text-blue-600 shadow-2xs">
+                <IconBook className="w-4 h-4" />
+              </div>
+            </div>
+            <div>
+              <div className="text-3xl font-black text-slate-900 font-mono tracking-tight">
+                {stats.medium_priority} <span className="text-xs font-semibold text-slate-500 font-sans">Siswa</span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Performa aman di mata pelajaran lain
+              </p>
+            </div>
+            <div className="text-[11px] font-bold text-blue-700">
+              Koordinasi dengan Guru Mapel bersangkutan
+            </div>
+          </div>
+
+          {/* Card 4: Dalam Konseling */}
+          <div
+            className="p-6 sm:p-7 rounded-3xl neo-card relative overflow-hidden border border-white/80 flex flex-col justify-between min-h-[155px] space-y-4"
+            style={{
+              background:
+                "radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.08) 0%, rgba(238, 242, 247, 0) 48%), #EEF2F7",
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Sedang Dalam Konseling
+              </span>
+              <div className="w-9 h-9 rounded-2xl bg-white border border-emerald-200/80 flex items-center justify-center text-emerald-600 shadow-2xs">
+                <IconCheckCircle className="w-4 h-4" />
+              </div>
+            </div>
+            <div>
+              <div className="text-3xl font-black text-emerald-600 font-mono tracking-tight">
+                {stats.in_counseling} <span className="text-xs font-semibold text-slate-500 font-sans">Siswa</span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Memiliki sesi konseling aktif / terjadwal
+              </p>
+            </div>
+            <div className="text-[11px] font-bold text-emerald-700">
+              {stats.total > 0
+                ? `${Math.round((stats.in_counseling / stats.total) * 100)}% siswa tertangani`
+                : "Semua sesi terekam"}
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Ambient EWS Moodle AI Quick Banner */}
-      <div className="p-4 sm:p-5 rounded-3xl neo-card bg-[#EEF2F7] border border-white/85 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)] relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/6 rounded-full blur-3xl pointer-events-none" />
-        <div className="flex items-center gap-3.5 relative z-10">
-          <div className="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-200/80 text-indigo-700 flex items-center justify-center shrink-0 shadow-2xs">
-            <IconMagicWand className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs sm:text-sm font-bold text-slate-900">
-                Peringatan Dini LMS Moodle &amp; WhatsApp Notifier
-              </span>
-              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80">
-                Deteksi Otomatis AI
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Sistem telah menganalisis log keaktifan belajar siswa selama 60 hari semester dan menyiapkan draf notifikasi WhatsApp.
-            </p>
-          </div>
-        </div>
+        {/* Filter & Search Bar */}
+        <div className="p-4 sm:p-5 rounded-2xl neo-card bg-[#EEF2F7] border border-white/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 mr-1">
+              <IconFilter className="w-3.5 h-3.5 text-slate-500" />
+              <span>Triage:</span>
+            </span>
 
-        <Link
-          href="/ews"
-          className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95 shrink-0"
-        >
-          <span>Buka Monitoring EWS Moodle</span>
-          <IconChevronRight className="w-4 h-4 text-white" />
-        </Link>
-      </div>
-
-      {/* 4-Card Operational Bento Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-5 sm:gap-6 items-stretch">
-        {/* ROW 1 - LEFT: Watchlist Prioritas EWS (8 Cols) */}
-        <div
-          className="md:col-span-8 p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] relative overflow-hidden border border-white/80 flex flex-col justify-between space-y-5 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)]"
-          style={{
-            background: "radial-gradient(circle at 92% -8%, rgba(244, 63, 94, 0.08) 0%, rgba(238, 242, 247, 0) 48%), #EEF2F7",
-          }}
-        >
-          <div className="flex items-start justify-between gap-4 relative z-10">
-            <div className="space-y-1.5">
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-rose-600 ring-3 ring-rose-500/20 animate-pulse" />
-                  <span className="text-xs font-bold text-rose-800">Perhatian Segera</span>
-                </div>
-                <span className="text-xs font-semibold text-slate-500">Prioritas Tindak Lanjut</span>
-              </div>
-              <h2 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
-                Siswa Membutuhkan Pendampingan Bimbingan Konseling
-              </h2>
-            </div>
-
-            <div className="w-12 h-12 rounded-2xl neo-btn text-rose-600 flex items-center justify-center shrink-0 shadow-xs border border-white/90">
-              <IconExclamation className="w-6 h-6" />
-            </div>
-          </div>
-
-          <div className="space-y-4 relative z-10">
-            <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
-              <span className="text-5xl sm:text-6xl font-extrabold text-rose-600 tracking-tight font-number">
-                {watchlist.length}
-              </span>
-              <div className="space-y-0.5">
-                <span className="text-sm sm:text-base font-extrabold text-slate-800 block">
-                  Siswa Masuk Kategori Kritis &amp; Waspada
-                </span>
-                <span className="text-xs text-slate-500 font-medium block">
-                  <strong className="font-number font-bold text-rose-700">{kritisSchool}</strong> Status Kritis • <strong className="font-number font-bold text-amber-700">{waspadaSchool}</strong> Status Waspada • <strong className="font-number font-bold text-slate-700">{activeCasesCount}</strong> Kasus Sedang Berjalan
-                </span>
-              </div>
-            </div>
-
-            {/* Quick Watchlist Preview inside neo-inset */}
-            <div className="p-3.5 rounded-2xl neo-inset bg-[#E7EDF4] space-y-2.5 border border-slate-300/40">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                <span>Rincian Siswa Butuh Penanganan Pekan Ini</span>
-                <span className="font-semibold text-slate-500"><strong className="font-number font-bold">{totalSchool}</strong> Total Siswa</span>
-              </div>
-
-              {watchlist.length > 0 ? (
-                <div className="flex flex-wrap items-center gap-2">
-                  {watchlist.slice(0, 3).map((item) => (
-                    <Link
-                      key={item.id}
-                      href={`/students/${item.id}`}
-                      className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-white/90 hover:bg-white border border-slate-200/80 text-xs font-bold text-slate-800 transition-all shadow-2xs hover:shadow-xs group/item"
-                    >
-                      <span
-                        className={cn(
-                          "w-2 h-2 rounded-full shrink-0",
-                          item.status === "KRITIS"
-                            ? "bg-rose-500 ring-3 ring-rose-500/20"
-                            : "bg-orange-500 ring-3 ring-orange-500/20"
-                        )}
-                      />
-                      <span>{item.name}</span>
-                      <span className="text-slate-500 font-normal">({item.class_name})</span>
-                      <IconChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover/item:translate-x-0.5 transition-transform" />
-                    </Link>
-                  ))}
-                  {watchlist.length > 3 && (
-                    <a href="#matriks" className="text-xs font-bold text-blue-700 hover:text-blue-900 p-1 px-2 font-number">
-                      +{watchlist.length - 3} Siswa Lainnya &rarr;
-                    </a>
+            <div className="inline-flex rounded-xl bg-white p-1 border border-slate-200 shadow-2xs">
+              {(
+                [
+                  { key: "ALL", label: `Semua (${stats.total})` },
+                  { key: "TINGGI", label: `Prioritas Tinggi (${stats.high_priority})` },
+                  { key: "INAKTIF_KRITIS", label: `Inaktif >14 Hari (${stats.inactive_critical})` },
+                  { key: "SEDANG", label: `Kendala Spesifik (${stats.medium_priority})` },
+                ] as const
+              ).map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setTriageFilter(tab.key)}
+                  className={cn(
+                    "px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap",
+                    triageFilter === tab.key
+                      ? "bg-indigo-600 text-white shadow-xs font-extrabold"
+                      : "text-slate-600 hover:text-slate-900"
                   )}
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 text-xs font-medium text-emerald-800 bg-white/90 p-2.5 px-3.5 rounded-xl border border-emerald-200/80 shadow-2xs">
-                  <IconCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Kondisi Kondusif: Seluruh siswa saat ini berada di zona aman tanpa anomali perilaku kritis.</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ROW 1 - RIGHT: Tingkat Penyelesaian Sesi (4 Cols) */}
-        <div
-          className="md:col-span-4 p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] relative overflow-hidden border border-white/80 flex flex-col justify-between space-y-4 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)]"
-          style={{
-            background: "radial-gradient(circle at 88% 45%, rgba(16, 185, 129, 0.08) 0%, rgba(238, 242, 247, 0) 45%), #EEF2F7",
-          }}
-        >
-          <div className="flex items-start justify-between gap-4 relative z-10">
-            <div>
-              <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-emerald-800 block">
-                Penyelesaian Kasus
-              </span>
-              <span className="text-xs text-slate-500 font-medium mt-0.5 block">
-                Tingkat Masalah Tuntas
-              </span>
-            </div>
-            <div className="w-12 h-12 rounded-2xl neo-btn text-emerald-600 flex items-center justify-center shrink-0 shadow-xs border border-white/90">
-              <IconCheck className="w-6 h-6" />
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-4 py-1 relative z-10">
-            <div className="space-y-1">
-              <div className="flex items-baseline gap-2.5">
-                <span className={cn(
-                  "text-4xl sm:text-5xl font-extrabold tracking-tight font-number",
-                  resolutionRate !== null ? "text-emerald-600" : "text-slate-400"
-                )}>
-                  {resolutionRate !== null ? `${resolutionRate}%` : "—"}
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                {totalCases > 0 ? (
-                  <>
-                    <strong className="font-number font-bold text-slate-800">{completedCount}</strong> dari <strong className="font-number font-bold text-slate-800">{totalCases}</strong> sesi bimbingan telah selesai mencapai kesepakatan positif.
-                  </>
-                ) : (
-                  "Belum ada catatan sesi bimbingan konseling yang tercatat."
-                )}
-              </p>
-            </div>
-
-            {/* SVG Radial Gauge */}
-            <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
-              <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                <path
-                  className="text-slate-200"
-                  strokeWidth="3.5"
-                  stroke="currentColor"
-                  fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-                {resolutionRate !== null && (
-                  <path
-                    className="text-emerald-600"
-                    strokeDasharray={`${resolutionRate}, 100`}
-                    strokeWidth="3.5"
-                    strokeLinecap="round"
-                    stroke="currentColor"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                )}
-              </svg>
-              <IconCheck className={cn("w-5 h-5 absolute", resolutionRate !== null ? "text-emerald-600" : "text-slate-400")} />
-            </div>
-          </div>
-
-          <div className="pt-3 border-t border-slate-200/80 relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-xs font-semibold text-slate-700">
-              <span className={cn(
-                "w-2 h-2 rounded-full",
-                totalCases > 0 ? "bg-emerald-500 ring-4 ring-emerald-500/15" : "bg-slate-400 ring-4 ring-slate-400/15"
-              )} />
-              <span>{totalCases > 0 ? "Progres Layanan Positif" : "Belum Ada Kasus Aktif"}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* ROW 2 - LEFT: Sesi Dalam Pendampingan (6 Cols) */}
-        <div
-          className="md:col-span-6 p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] relative overflow-hidden border border-white/80 flex flex-col justify-between space-y-4 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)]"
-          style={{
-            background: "radial-gradient(circle at 12% -12%, rgba(245, 158, 11, 0.08) 0%, rgba(238, 242, 247, 0) 45%), #EEF2F7",
-          }}
-        >
-          <div className="flex items-start justify-between gap-4 relative z-10">
-            <div>
-              <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-800 block">
-                Sesi Dalam Pendampingan
-              </span>
-              <span className="text-xs text-slate-500 font-medium mt-0.5 block">
-                Kasus Aktif yang Sedang Dipantau Perubahannya
-              </span>
-            </div>
-            <div className="w-12 h-12 rounded-2xl neo-btn text-amber-600 flex items-center justify-center shrink-0 shadow-xs border border-white/90">
-              <IconCalendar className="w-6 h-6" />
-            </div>
-          </div>
-
-          <div className="space-y-2 relative z-10">
-            <div className="flex items-baseline gap-2.5">
-              <span className="text-4xl sm:text-5xl font-extrabold text-amber-600 tracking-tight font-number">
-                {inMediationCount}
-              </span>
-              <span className="text-sm sm:text-base font-semibold text-slate-700">
-                Siswa Dalam Tahap Bimbingan
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 leading-relaxed font-medium">
-              Siswa menjalani kontrak kesepakatan perubahan diri dan pemantauan berkala bersama wali kelas.
-            </p>
-          </div>
-
-          <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs font-semibold relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 text-xs font-semibold text-slate-700 shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-amber-500 ring-4 ring-amber-500/15" />
-              <span>Tahap Pemantauan</span>
-            </div>
-            <span className="text-[11px] text-slate-500 font-medium">Bimbingan Berkelanjutan</span>
-          </div>
-        </div>
-
-        {/* ROW 2 - RIGHT: Kasus Rujukan / Koordinasi (6 Cols) */}
-        <div
-          className="md:col-span-6 p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] relative overflow-hidden border border-white/80 flex flex-col justify-between space-y-4 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)]"
-          style={{
-            background: "radial-gradient(circle at 88% 112%, rgba(59, 130, 246, 0.08) 0%, rgba(238, 242, 247, 0) 45%), #EEF2F7",
-          }}
-        >
-          <div className="flex items-start justify-between gap-4 relative z-10">
-            <div>
-              <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-blue-800 block">
-                Kasus Rujukan / Koordinasi Khusus
-              </span>
-              <span className="text-xs text-slate-500 font-medium mt-0.5 block">
-                Melibatkan Orang Tua, Psikolog, atau Kepala Sekolah
-              </span>
-            </div>
-            <div className="w-12 h-12 rounded-2xl neo-btn text-blue-600 flex items-center justify-center shrink-0 shadow-xs border border-white/90">
-              <IconLock className="w-6 h-6" />
-            </div>
-          </div>
-
-          <div className="space-y-2 relative z-10">
-            <div className="flex items-baseline gap-2.5">
-              <span className="text-4xl sm:text-5xl font-extrabold text-blue-600 tracking-tight font-number">
-                {escalatedCount}
-              </span>
-              <span className="text-sm sm:text-base font-semibold text-slate-700">
-                Kasus Butuh Penanganan Lanjut
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 leading-relaxed font-medium">
-              Memerlukan tindak lanjut pemanggilan wali murid, rujukan profesional luar, atau koordinasi kebijakan sekolah.
-            </p>
-          </div>
-
-          <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs font-semibold relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 text-xs font-semibold text-slate-700 shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-blue-500 ring-4 ring-blue-500/15" />
-              <span>Koordinasi Lanjutan</span>
-            </div>
-            <span className="text-[11px] text-slate-500 font-medium">Wali Murid • Pimpinan</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Action Panel: Pencatatan Layanan Bimbingan Konseling */}
-      <section
-        id="form-bk"
-        className="p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] border border-white/85 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)] space-y-6 scroll-mt-24"
-      >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/70 pb-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl neo-btn text-indigo-700 flex items-center justify-center shrink-0 border border-white/90">
-              <IconHandshake className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight">
-                Form Pencatatan Layanan Bimbingan Konseling
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Dokumentasikan sesi konseling, dinamika masalah, dan kesepakatan tindak lanjut siswa secara terstruktur
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="text-xs sm:text-sm font-bold text-slate-600">Tanggal:</span>
-            <DatePickerInput
-              value={incidentDate}
-              onChange={setIncidentDate}
-              size="md"
+          <div className="relative w-full sm:w-64">
+            <input
+              type="text"
+              placeholder="Cari siswa atau NIS..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-9 px-3 text-xs rounded-xl neo-inset bg-white border border-slate-200 focus:outline-none focus:border-indigo-500 text-slate-800 placeholder:text-slate-400 font-medium"
             />
           </div>
         </div>
 
-        <form onSubmit={handleSaveCounselingSession} className="space-y-6">
-          {/* 2-COLUMN BALANCED FORM LAYOUT */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* Left Column: Student Select, Problem Domain, Service Format & Notes */}
-            <div className="lg:col-span-7 space-y-4">
-              {/* 1. Pilih Siswa */}
-              <div className="space-y-1.5">
-                <Label className="text-xs sm:text-sm font-bold text-slate-800 block">
-                  1. Pilih Nama Siswa:
-                </Label>
-                <StudentAutocomplete
-                  students={studentOptions}
-                  selectedStudent={selectedStudent}
-                  onSelect={setSelectedStudent}
-                  placeholder="Ketik nama siswa atau NISN (semua kelas)..."
-                />
-              </div>
-
-              {/* 2. Bidang Masalah & Bentuk Layanan (Side by Side) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs sm:text-sm font-bold text-slate-800 block">
-                    2. Bidang Bimbingan / Masalah:
-                  </Label>
-                  <select
-                    value={problemDomain}
-                    onChange={(e) => setProblemDomain(e.target.value)}
-                    className="w-full h-11 px-3.5 rounded-2xl neo-card-subtle bg-[#EEF2F7] text-xs font-bold text-slate-800 border border-white/90 focus:outline-none cursor-pointer"
-                  >
-                    <option value="PRIBADI_EMOSI">Bimbingan Pribadi &amp; Emosi</option>
-                    <option value="SOSIAL_PERTEMANAN">Hubungan Sosial &amp; Teman Sebaya</option>
-                    <option value="BELAJAR_AKADEMIK">Kesulitan Belajar &amp; Motivasi</option>
-                    <option value="KARIR_MASA_DEPAN">Bimbingan Karir &amp; Peminatan</option>
-                    <option value="KEDISIPLINAN_TATA_TERTIB">Kedisiplinan &amp; Presensi</option>
-                    <option value="DUGAAN_BULLYING">Dugaan Perundungan (Bullying)</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs sm:text-sm font-bold text-slate-800 block">
-                    3. Bentuk Layanan BK:
-                  </Label>
-                  <select
-                    value={serviceFormat}
-                    onChange={(e) => setServiceFormat(e.target.value)}
-                    className="w-full h-11 px-3.5 rounded-2xl neo-card-subtle bg-[#EEF2F7] text-xs font-bold text-slate-800 border border-white/90 focus:outline-none cursor-pointer"
-                  >
-                    <option value="KONSELING_INDIVIDU">Konseling Individual (Tatap Muka)</option>
-                    <option value="MEDIASI_PEER">Mediasi Teman Sebaya</option>
-                    <option value="BIMBINGAN_KELOMPOK">Bimbingan Kelompok Terarah</option>
-                    <option value="KONFERENSI_KASUS">Konferensi Kasus (Bersama Ortu/Wali)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* 3. Catatan Ringkas Sesi Konseling */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="notes" className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                    <IconLock className="w-4 h-4 text-emerald-600" />
-                    <span>4. Ringkasan Masalah &amp; Hasil Bimbingan:</span>
-                  </Label>
-                  <span className="text-xs text-slate-500 font-medium">
-                    Catatan konselor BK
-                  </span>
-                </div>
-
-                {/* Relative Container for Textarea with AI Button in Bottom Right */}
-                <div className="relative rounded-2xl neo-inset bg-[#E7EDF4] p-1 border border-slate-300/40">
-                  <Textarea
-                    id="notes"
-                    rows={8}
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Tuliskan dinamika pembicaraan, keluhan siswa, atau kesepakatan komitmen yang dicapai..."
-                    className="w-full rounded-xl p-4 pb-14 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 bg-transparent border-0 focus:outline-none resize-none font-sans"
-                    required
-                  />
-
-                  {/* AI Assistance Button */}
-                  <div className="absolute right-3 bottom-3 flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsAiModalOpen(true)}
-                      className="px-4 py-2 rounded-xl text-xs font-bold neo-btn-primary text-white shadow-xs flex items-center gap-1.5 cursor-pointer transition-all"
-                    >
-                      <IconMagicWand className="w-3.5 h-3.5 text-indigo-200" />
-                      <span> Bantu Tulis AI</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
+        {/* Main Table: Clinical Triage Siswa Holistik */}
+        <div className="rounded-3xl neo-card bg-[#EEF2F7] border border-white/80 overflow-hidden shadow-xs">
+          <div className="p-6 sm:p-7 border-b border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 className="text-lg font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                <span>Tabel Triage Klinis Siswa Terindikasi</span>
+                <span className="px-2.5 py-0.5 rounded-lg text-xs font-mono font-bold bg-white text-slate-700 border border-slate-200 shadow-2xs">
+                  {filteredSummaries.length} Siswa
+                </span>
+              </h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Daftar rekapitulasi siswa semester aktif. Klik baris atau tombol Matriks untuk melihat komparasi seluruh mata pelajaran yang diambil.
+              </p>
             </div>
+          </div>
 
-            {/* Right Column: Urgency, Openness, Follow-up & Resolution Status */}
-            <div className="lg:col-span-5 space-y-4">
-              <div className="p-5 sm:p-6 rounded-2xl neo-inset bg-[#E7EDF4] border border-slate-300/40 space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-300/60 pb-2.5">
-                  <Label className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight block">
-                    5. Evaluasi &amp; Tingkat Penanganan
-                  </Label>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-white/80 px-2 py-0.5 rounded-lg border border-slate-200/80">
-                    Layanan BK
-                  </span>
-                </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-white/60 border-b border-slate-200/80 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                <tr>
+                  <th className="py-4 px-6">Siswa</th>
+                  <th className="py-4 px-6 text-center">Prioritas</th>
+                  <th className="py-4 px-4 text-center">Mapel Bermasalah</th>
+                  <th className="py-4 px-4 text-center">Inaktif Terlama</th>
+                  <th className="py-4 px-6">Diagnosis Karakter Belajar</th>
+                  <th className="py-4 px-6">Status Konseling</th>
+                  <th className="py-4 px-6 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200/60 text-slate-700">
+                {filteredSummaries.map((summary) => {
+                  const studentName = summary.student?.name || `Siswa ${summary.siswa_id}`
 
-                {/* Urgency Level Buttons */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-700 block">Tingkat Urgensi Masalah:</span>
-                    <span className="text-[11px] font-semibold text-slate-600">
-                      {urgencyLevel === "RINGAN" ? "Konsultasi Rutin" : urgencyLevel === "SEDANG" ? "Perlu Dipantau" : "Tindakan Cepat"}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { key: "RINGAN", label: "Ringan", desc: "Rutin / Biasa", activeCls: "bg-emerald-50 text-emerald-900 border-emerald-300 ring-2 ring-emerald-500/15 shadow-xs font-bold", dot: "bg-emerald-500" },
-                      { key: "SEDANG", label: "Sedang", desc: "Perlu Dipantau", activeCls: "bg-amber-50 text-amber-900 border-amber-300 ring-2 ring-amber-500/15 shadow-xs font-bold", dot: "bg-amber-500" },
-                      { key: "BERAT", label: "Berat", desc: "Kritis / Mendesak", activeCls: "bg-rose-50 text-rose-900 border-rose-300 ring-2 ring-rose-500/15 shadow-xs font-bold", dot: "bg-rose-500" },
-                    ].map((lvl) => (
-                      <button
-                        key={lvl.key}
-                        type="button"
-                        onClick={() => setUrgencyLevel(lvl.key as any)}
-                        className={cn(
-                          "p-2.5 rounded-xl text-xs transition-all duration-150 flex flex-col items-center justify-center gap-0.5 cursor-pointer border select-none active:scale-[0.97]",
-                          urgencyLevel === lvl.key
-                            ? lvl.activeCls
-                            : "bg-white/90 hover:bg-white text-slate-700 hover:text-slate-900 border-slate-200/80 shadow-2xs"
-                        )}
-                      >
-                        <div className="flex items-center gap-1.5">
-                          <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", urgencyLevel === lvl.key ? lvl.dot : "bg-slate-300")} />
-                          <span className="font-bold">{lvl.label}</span>
-                        </div>
-                        <span className={cn("text-[10px] font-medium", urgencyLevel === lvl.key ? "opacity-80" : "text-slate-600")}>
-                          {lvl.desc}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                  return (
+                    <tr key={summary.id} className="hover:bg-white/50 transition-colors">
+                      <td className="py-4 px-6">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedStudentSummary(summary)}
+                          className="text-left group cursor-pointer"
+                        >
+                          <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors flex items-center gap-1.5">
+                            <span>{studentName}</span>
+                            <IconEye className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-indigo-500 transition-opacity" />
+                          </div>
+                          <span className="text-xs text-slate-400 font-mono">
+                            NIS: {summary.student?.nis || summary.siswa_id}
+                          </span>
+                        </button>
+                      </td>
 
-                {/* Scale: Keterbukaan Siswa */}
-                <LinearScale
-                  label="Tingkat Keterbukaan Siswa"
-                  description="Respon &amp; kooperatif siswa saat sesi dialog konseling"
-                  min={1}
-                  max={5}
-                  value={opennessScore}
-                  onChange={setOpennessScore}
-                  minLabel="1 (Tertutup)"
-                  midLabel="3 (Cukup Terbuka)"
-                  maxLabel="5 (Sangat Terbuka)"
-                />
-
-                {/* Rencana Tindak Lanjut Checkboxes */}
-                <div className="p-4 rounded-2xl bg-[#EEF2F7] border border-white/90 space-y-2.5 shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs sm:text-sm font-bold text-slate-800 block">
-                      Rencana Tindak Lanjut (RTL)
-                    </span>
-                    <span className="text-[10px] text-slate-600 font-semibold">Opsi Multi-Pilih</span>
-                  </div>
-
-                  <div className="space-y-2">
-                    {[
-                      {
-                        checked: scheduleNextSession,
-                        onChange: setScheduleNextSession,
-                        label: "Jadwalkan Sesi Bimbingan Lanjutan",
-                        sub: "Kontrak waktu pertemuan evaluasi berkala",
-                        icon: IconCalendar,
-                        color: "text-blue-600 bg-blue-50 border-blue-200",
-                      },
-                      {
-                        checked: callParent,
-                        onChange: setCallParent,
-                        label: "Panggil Orang Tua (Wali Murid)",
-                        sub: "Koordinasi tatap muka keluarga",
-                        icon: IconUserCheck,
-                        color: "text-indigo-600 bg-indigo-50 border-indigo-200",
-                      },
-                      {
-                        checked: referExternal,
-                        onChange: setReferExternal,
-                        label: "Rujukan Ahli / Psikolog / Layanan Luar",
-                        sub: "Pendampingan profesional eksternal",
-                        icon: IconShield,
-                        color: "text-purple-600 bg-purple-50 border-purple-200",
-                      },
-                      {
-                        checked: escalateKepsek,
-                        onChange: setEscalateKepsek,
-                        label: "Eskalasi ke Kepala Sekolah",
-                        sub: "Kasus kritis butuh arahan pimpinan",
-                        icon: IconExclamation,
-                        color: "text-rose-600 bg-rose-50 border-rose-200",
-                        activeHighlight: "border-rose-300 bg-rose-50/70 text-rose-950",
-                      },
-                    ].map((item, idx) => {
-                      const IconComp = item.icon
-                      return (
-                        <label
-                          key={idx}
+                      <td className="py-4 px-6 text-center whitespace-nowrap">
+                        <span
                           className={cn(
-                            "flex items-start gap-3 p-2.5 rounded-xl border transition-all duration-150 cursor-pointer select-none",
-                            item.checked
-                              ? item.activeHighlight || "bg-white border-blue-300 shadow-2xs"
-                              : "bg-white/70 hover:bg-white/95 border-slate-200/80"
+                            "inline-flex items-center px-3 py-1 rounded-xl text-xs font-extrabold border shadow-2xs whitespace-nowrap",
+                            summary.prioritas_konseling === "TINGGI"
+                              ? "bg-rose-50 text-rose-700 border-rose-200"
+                              : summary.prioritas_konseling === "SEDANG"
+                              ? "bg-amber-50 text-amber-700 border-amber-200"
+                              : "bg-emerald-50 text-emerald-700 border-emerald-200"
                           )}
                         >
-                          <input
-                            type="checkbox"
-                            checked={item.checked}
-                            onChange={(e) => item.onChange(e.target.checked)}
-                            className="mt-0.5 rounded text-blue-600 focus:ring-blue-500/20 w-4 h-4 cursor-pointer shrink-0"
-                          />
-                          <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                            <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border", item.color)}>
-                              <IconComp className="w-3.5 h-3.5" />
-                            </div>
-                            <div className="flex flex-col min-w-0">
-                              <span className={cn("text-xs font-bold leading-tight truncate", item.checked ? "text-slate-900" : "text-slate-700")}>
-                                {item.label}
-                              </span>
-                              <span className="text-[10px] text-slate-600 leading-normal truncate">
-                                {item.sub}
-                              </span>
-                            </div>
-                          </div>
-                        </label>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                {/* Status Kasus Pasca Sesi */}
-                <div className="space-y-1.5 pt-1">
-                  <span className="text-xs font-bold text-slate-700 block">Status Penanganan Kasus:</span>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setCaseResolutionStatus("DALAM_PROSES")}
-                      className={cn(
-                        "p-2.5 rounded-xl text-xs font-bold transition-all duration-150 border cursor-pointer select-none flex items-center justify-center gap-2 active:scale-[0.97]",
-                        caseResolutionStatus === "DALAM_PROSES"
-                          ? "bg-amber-50 text-amber-900 border-amber-300 ring-2 ring-amber-500/15 shadow-xs font-bold"
-                          : "bg-white/90 hover:bg-white text-slate-600 hover:text-slate-800 border-slate-200/80 shadow-2xs"
-                      )}
-                    >
-                      <span className={cn(
-                        "w-2 h-2 rounded-full",
-                        caseResolutionStatus === "DALAM_PROSES" ? "bg-amber-500 ring-4 ring-amber-500/20" : "bg-slate-300"
-                      )} />
-                      <span>Masih Dalam Proses</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setCaseResolutionStatus("SELESAI")}
-                      className={cn(
-                        "p-2.5 rounded-xl text-xs font-bold transition-all duration-150 border cursor-pointer select-none flex items-center justify-center gap-2 active:scale-[0.97]",
-                        caseResolutionStatus === "SELESAI"
-                          ? "bg-emerald-50 text-emerald-900 border-emerald-300 ring-2 ring-emerald-500/15 shadow-xs font-bold"
-                          : "bg-white/90 hover:bg-white text-slate-600 hover:text-slate-800 border-slate-200/80 shadow-2xs"
-                      )}
-                    >
-                      <span className={cn(
-                        "w-2 h-2 rounded-full",
-                        caseResolutionStatus === "SELESAI" ? "bg-emerald-500 ring-4 ring-emerald-500/20" : "bg-slate-300"
-                      )} />
-                      <span>Selesai / Tuntas</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Submit Button */}
-              <div className="p-4 rounded-2xl neo-card-subtle bg-[#EEF2F7] border border-white/90 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <p className="text-xs text-slate-600 leading-snug">
-                  Data yang disimpan akan langsung memperbarui skor <strong>Pilar BK</strong> pada sistem EWS siswa.
-                </p>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full sm:w-auto h-11 px-6 neo-btn-primary disabled:opacity-60 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs flex items-center justify-center gap-2 cursor-pointer shrink-0 transition-all active:scale-[0.98]"
-                >
-                  {isSubmitting ? (
-                    <IconLoader className="w-4 h-4 text-white animate-spin" />
-                  ) : (
-                    <IconSave className="w-4 h-4 text-white" />
-                  )}
-                  <span>{isSubmitting ? "Menyimpan Data..." : "Simpan Catatan Bimbingan"}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </form>
-      </section>
-
-      {/* Split Section: Watchlist & Recent Cases Feed */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
-        {/* Left: Priority EWS Watchlist */}
-        <div className="lg:col-span-6 p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] border border-white/85 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)] space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-200/70 pb-3.5">
-            <div>
-              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
-                Daftar Siswa Perlu Penanganan Segera
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-xs font-bold text-rose-700 font-mono">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-600 ring-2 ring-rose-500/20" />
-                  <span>{watchlist.length} Siswa</span>
-                </div>
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Siswa dengan status Kritis &amp; Waspada yang membutuhkan bimbingan konselor
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {watchlist.length === 0 ? (
-              <div className="p-6 text-center text-xs sm:text-sm text-slate-400 neo-inset bg-[#E7EDF4] rounded-2xl border border-slate-300/40">
-                Tidak ada siswa yang berada dalam status Kritis atau Waspada saat ini.
-              </div>
-            ) : (
-              watchlist.map((item) => (
-                <div
-                  key={item.id}
-                  className="p-4 rounded-2xl neo-card-subtle bg-[#EEF2F7] border border-white/90 flex flex-col justify-between gap-3 hover:bg-white/80 transition-all"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm sm:text-base text-slate-900">{item.name}</span>
-                        <span className="px-2 py-0.5 rounded-lg text-xs font-bold bg-white/90 text-slate-700 border border-slate-200/80 shadow-2xs">
-                          {item.class_name}
+                          {summary.prioritas_konseling}
                         </span>
-                      </div>
-                      <p className="text-xs sm:text-sm text-slate-600 mt-1">
-                        Pemicu Risiko: <span className="text-slate-900 font-semibold">{item.trigger}</span>
-                      </p>
-                    </div>
+                      </td>
 
-                    <EwsStatusBadge status={item.status} size="sm" />
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2.5 border-t border-slate-200/60 text-xs sm:text-sm">
-                    <span className="text-xs sm:text-sm text-amber-800 font-bold">
-                      {item.urgency}
-                    </span>
-                    <Link
-                      href={`/students/${item.id}`}
-                      className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-indigo-700 hover:text-indigo-900"
-                    >
-                      <span>Buka Profil Siswa</span>
-                      <IconArrowUpRight className="w-4 h-4" />
-                    </Link>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Right: Recent Counseling Case Feed */}
-        <div className="lg:col-span-6 p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] border border-white/85 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)] space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-200/70 pb-3.5">
-            <div>
-              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
-                Riwayat Layanan Konseling Terakhir
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Daftar sesi bimbingan dan tindak lanjut yang telah dicatat oleh Guru BK
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {recentCases.length === 0 ? (
-              <div className="p-6 text-center text-xs sm:text-sm text-slate-400 neo-inset bg-[#E7EDF4] rounded-2xl border border-slate-300/40">
-                Belum ada catatan bimbingan konseling yang tersimpan.
-              </div>
-            ) : (
-              recentCases.map((caseItem) => (
-                <div
-                  key={caseItem.id}
-                  className="p-4 rounded-2xl neo-card-subtle bg-[#EEF2F7] border border-white/90 space-y-2 hover:bg-white/80 transition-all"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h4 className="text-xs sm:text-sm font-bold text-slate-900">{caseItem.title}</h4>
-                      <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                        {caseItem.student_name} ({caseItem.class_name}) • {caseItem.date}
-                      </p>
-                    </div>
-
-                    <span
-                      className={cn(
-                        "px-2.5 py-1 rounded-xl text-xs font-bold uppercase border bg-white/90 shadow-2xs",
-                        caseItem.status === "DIESKALASI_KE_KEPSEK"
-                          ? "border-rose-200 text-rose-800"
-                          : caseItem.status === "DALAM_PROSES"
-                            ? "border-amber-200 text-amber-800"
-                            : "border-emerald-200 text-emerald-800"
-                      )}
-                    >
-                      {caseItem.status.replace(/_/g, " ")}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs sm:text-sm text-slate-500 pt-2 border-t border-slate-200/60">
-                    <span>Konselor: {caseItem.counselor}</span>
-                    <span
-                      className={cn(
-                        "font-bold",
-                        caseItem.severity === "BERAT" ? "text-rose-700" : "text-slate-700"
-                      )}
-                    >
-                      Urgensi: {caseItem.severity}
-                    </span>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Section: Holistic Student Matrix Across School */}
-      <section
-        id="matriks"
-        className="p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] border border-white/85 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)] space-y-5 scroll-mt-24"
-      >
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200/70 pb-4">
-          <div>
-            <h2 className="text-base sm:text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight">
-              Daftar &amp; Status EWS Seluruh Siswa Sekolah
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              Rekapitulasi 4 pilar (Akademik, Kehadiran, Perilaku, BK) di seluruh jenjang kelas (X, XI, XII)
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
-            {/* Quick Search */}
-            <div className="relative w-full sm:w-60">
-              <IconSearch className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari nama, NISN, atau kelas..."
-                className="w-full h-10 pl-9 pr-3 text-xs sm:text-sm rounded-xl neo-inset bg-[#EEF2F7] border border-slate-300/40 text-slate-800 placeholder:text-slate-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-              />
-            </div>
-
-            <select
-              value={gradeFilter}
-              aria-label="Filter jenjang tingkat kelas"
-              onChange={(e) => setGradeFilter(e.target.value)}
-              className="h-10 px-3 rounded-xl neo-card-subtle bg-[#EEF2F7] border border-white/90 text-xs sm:text-sm font-bold text-slate-700 cursor-pointer focus:outline-none shrink-0 shadow-2xs"
-            >
-              <option value="ALL">Semua Jenjang</option>
-              <option value="X">Kelas X</option>
-              <option value="XI">Kelas XI</option>
-              <option value="XII">Kelas XII</option>
-            </select>
-
-            <select
-              value={statusFilter}
-              aria-label="Filter status risiko siswa EWS"
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-10 px-3 rounded-xl neo-card-subtle bg-[#EEF2F7] border border-white/90 text-xs sm:text-sm font-bold text-slate-700 cursor-pointer focus:outline-none shrink-0 shadow-2xs"
-            >
-              <option value="ALL">Semua Status EWS</option>
-              <option value="NORMAL">Normal</option>
-              <option value="BERISIKO">Berisiko</option>
-              <option value="WASPADA">Waspada</option>
-              <option value="KRITIS">Kritis</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto rounded-2xl neo-card-subtle bg-white border border-slate-200/80 overflow-hidden shadow-2xs">
-          <table className="w-full text-xs sm:text-sm text-left">
-            <thead className="bg-[#F0F3F8] text-slate-600 font-bold uppercase tracking-wider text-xs border-b border-slate-200">
-              <tr>
-                <th className="py-3.5 px-4 min-w-[200px]">Nama Siswa</th>
-                <th className="py-3.5 px-3 text-center whitespace-nowrap">Kelas</th>
-                <th className="py-3.5 px-3 text-center whitespace-nowrap">4 Pilar EWS</th>
-                <th className="py-3.5 px-3 text-center whitespace-nowrap">Status EWS</th>
-                <th className="py-3.5 px-4 min-w-[200px]">Pemicu Risiko / Catatan</th>
-                <th className="py-3.5 px-4 text-right whitespace-nowrap min-w-[130px]">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredMatrix.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-xs sm:text-sm text-slate-400 font-medium">
-                    Tidak ada data siswa yang cocok dengan filter pencarian.
-                  </td>
-                </tr>
-              ) : (
-                filteredMatrix.map((student) => (
-                  <tr key={student.id} className="hover:bg-indigo-50/40 transition-colors group">
-
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-[#EEF2F7] border border-slate-200 text-indigo-700 font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                          {student.name.charAt(0)}
+                      <td className="py-4 px-4 text-center whitespace-nowrap">
+                        <div className="font-mono font-bold text-slate-900">
+                          {summary.total_mapel_berisiko} / {summary.total_mapel_diambil}
                         </div>
-                        <div className="min-w-0">
-                          <h4 className="font-bold text-xs sm:text-sm text-slate-900 truncate">
-                            {student.name}
-                          </h4>
-                          <span className="text-[11px] text-slate-500 font-medium block font-number">
-                            NISN: {student.nisn || "-"}
+                        <span className="text-[10px] text-slate-400 font-semibold">Mapel</span>
+                      </td>
+
+                      <td className="py-4 px-4 text-center font-mono whitespace-nowrap">
+                        <span
+                          className={cn(
+                            "font-extrabold whitespace-nowrap",
+                            summary.inaktivitas_terlama_hari > 14
+                              ? "text-rose-600"
+                              : "text-slate-800"
+                          )}
+                        >
+                          {summary.inaktivitas_terlama_hari} hari
+                        </span>
+                      </td>
+
+                      <td className="py-4 px-6">
+                        <p className="font-semibold text-slate-800 text-xs">
+                          {summary.profil_karakter_belajar}
+                        </p>
+                        <p className="text-[11px] text-slate-500 truncate max-w-xs mt-0.5" title={summary.rekomendasi_tindakan}>
+                          {summary.rekomendasi_tindakan}
+                        </p>
+                      </td>
+
+                      <td className="py-4 px-6 whitespace-nowrap">
+                        {summary.status_penanganan === "in_counseling" && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-2xs whitespace-nowrap">
+                            <IconCalendarCheck className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                            <span>Dalam Konseling</span>
                           </span>
+                        )}
+                        {summary.status_penanganan === "open" && (
+                          <span className="inline-flex items-center px-3 py-1 rounded-xl text-xs font-bold bg-white text-slate-600 border border-slate-200 shadow-2xs whitespace-nowrap">
+                            Belum Ditangani
+                          </span>
+                        )}
+                        {summary.status_penanganan === "resolved" && (
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs whitespace-nowrap">
+                            <IconCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <span>Selesai Ditangani</span>
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="py-4 px-6 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openJournalModal(summary)}
+                            className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl neo-btn-primary text-white text-xs font-bold shadow-xs active:scale-95 cursor-pointer"
+                          >
+                            <IconHandshake className="w-3.5 h-3.5" />
+                            <span>Jurnal BK</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedStudentSummary(summary)}
+                            className="p-2 rounded-xl neo-btn bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 text-xs shadow-2xs active:scale-95 cursor-pointer"
+                            title="Buka Matriks Lintas Mapel"
+                          >
+                            <IconSpreadsheet className="w-4 h-4 text-slate-600" />
+                          </button>
                         </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+                {filteredSummaries.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="text-center py-16 text-slate-400">
+                      <div className="flex flex-col items-center justify-center space-y-2">
+                        <IconCheckCircle className="w-8 h-8 text-emerald-500/70" />
+                        <span className="font-bold text-sm text-slate-600">Tidak ada siswa dalam kategori triage ini</span>
+                        <span className="text-xs text-slate-400">Seluruh siswa aktif berada di luar parameter risiko yang dipilih.</span>
                       </div>
-                    </td>
-                    <td className="py-3.5 px-3 text-center whitespace-nowrap">
-                      <span className="px-2.5 py-1 rounded-xl text-xs font-bold bg-[#EEF2F7] text-slate-700 border border-slate-200/80 shadow-2xs">
-                        {student.class_name}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-3 text-center whitespace-nowrap">
-                      <PillarIndicators pillars={student.pillars} />
-                    </td>
-                    <td className="py-3.5 px-3 text-center whitespace-nowrap">
-                      <EwsStatusBadge status={student.ews_status} size="sm" />
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className="text-xs text-slate-600 font-medium line-clamp-1 max-w-[260px]" title={student.trigger_reason}>
-                        {student.trigger_reason}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                      <Link
-                        href={`/students/${student.id}`}
-                        className="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-900 px-3.5 py-1.5 rounded-xl neo-btn bg-[#EEF2F7] hover:bg-white border border-white/90 shadow-2xs whitespace-nowrap transition-all active:scale-[0.98] shrink-0"
-                      >
-                        <span className="whitespace-nowrap">Lembar Profil 360°</span>
-                        <IconChevronRight className="w-3.5 h-3.5 shrink-0" />
-                      </Link>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </section>
 
-      {/* AI BK Auto-Complete Modal */}
-      <AiBkStructuringModal
-        isOpen={isAiModalOpen}
-        onClose={() => setIsAiModalOpen(false)}
-        onApplyToForm={handleApplyAiDraft}
-        studentName={selectedStudent?.name || "Siswa"}
-        initialRawText={notes}
-      />
+        {/* Jurnal Konseling Terkini Feed */}
+        {recentJournals.length > 0 && (
+          <div className="rounded-3xl neo-card bg-[#EEF2F7] border border-white/80 p-6 sm:p-8 space-y-5 shadow-xs">
+            <div className="flex items-center justify-between border-b border-slate-200/60 pb-3.5">
+              <div className="space-y-1">
+                <h3 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                  <IconHandshake className="w-4 h-4 text-indigo-600" />
+                  <span>Histori Sesi Konseling Terkini</span>
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Catatan intervensi konseling yang telah dilakukan oleh Guru BK terhadap siswa terindikasi.
+                </p>
+              </div>
+              <span className="text-xs font-mono font-bold text-slate-400">
+                {recentJournals.length} Sesi Tercatat
+              </span>
+            </div>
 
-      {/* BK Case Saved Success Modal */}
-      <BkCaseSuccessModal
-        isOpen={!!successModalDetail}
-        onClose={() => setSuccessModalDetail(null)}
-        onAddAnother={() => setSuccessModalDetail(null)}
-        detail={successModalDetail}
-      />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {recentJournals.map((j) => (
+                <div key={j.id} className="p-4 rounded-2xl neo-card bg-white border border-slate-200/80 space-y-3 shadow-2xs">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="font-extrabold text-sm text-slate-900">
+                        {j.summary_id ? `Siswa ID #${j.summary_id}` : "Siswa Binaan"}
+                      </div>
+                      <span className="text-[11px] text-slate-400 font-mono">
+                        Konselor: {j.counselor?.name || "Guru BK"} &bull; {new Date(j.created_at).toLocaleDateString("id-ID")}
+                      </span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold uppercase bg-indigo-50 text-indigo-700 border border-indigo-200">
+                      {j.jenis_layanan.replace("_", " ")}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-slate-700 leading-relaxed bg-[#EEF2F7] p-3 rounded-xl border border-slate-200/60">
+                    &ldquo;{j.catatan_konseling}&rdquo;
+                  </p>
+
+                  <div className="flex items-center justify-between text-[11px] pt-1">
+                    <span className="text-slate-500 font-medium">
+                      Rencana: <strong className="text-slate-800">{j.rencana_tindak_lanjut}</strong>
+                    </span>
+                    {j.evaluasi_perilaku && (
+                      <span className="font-bold text-indigo-600 capitalize">
+                        Status: {j.evaluasi_perilaku}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* SHADCN DIALOG 1: Matriks Performa Lintas Mapel Siswa */}
+      <Dialog open={!!selectedStudentSummary} onOpenChange={(open) => !open && setSelectedStudentSummary(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-[#EEF2F7] border border-white/90 shadow-2xl rounded-3xl p-6 sm:p-8 space-y-6">
+          {selectedStudentSummary && (
+            <>
+              <DialogHeader className="border-b border-slate-200/60 pb-4">
+                <span className="text-[11px] font-extrabold font-mono text-indigo-600 uppercase tracking-wider">
+                  MATRIKS KOMPARATIF LINTAS MAPEL — TIER 2
+                </span>
+                <DialogTitle className="text-xl font-extrabold text-slate-900 tracking-tight mt-1">
+                  {selectedStudentSummary.student?.name || `Siswa ${selectedStudentSummary.siswa_id}`}
+                </DialogTitle>
+                <DialogDescription className="text-xs text-slate-500">
+                  Diagnosis Karakter: <strong className="text-slate-800">{selectedStudentSummary.profil_karakter_belajar}</strong> &bull; Prioritas Konseling:{" "}
+                  <span className="font-extrabold text-rose-600">{selectedStudentSummary.prioritas_konseling}</span>
+                </DialogDescription>
+              </DialogHeader>
+
+              {/* Rekap Semester Ringkas */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="p-3.5 rounded-2xl neo-card bg-white border border-slate-200">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase">Mapel Berisiko</span>
+                  <div className="text-lg font-black text-rose-600 font-mono mt-0.5">
+                    {selectedStudentSummary.total_mapel_berisiko} / {selectedStudentSummary.total_mapel_diambil}
+                  </div>
+                </div>
+                <div className="p-3.5 rounded-2xl neo-card bg-white border border-slate-200">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase">Total Jam Belajar</span>
+                  <div className="text-lg font-black text-indigo-600 font-mono mt-0.5">
+                    {selectedStudentSummary.total_jam_belajar} jam
+                  </div>
+                </div>
+                <div className="p-3.5 rounded-2xl neo-card bg-white border border-slate-200">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase">Tugas Belum Dikumpul</span>
+                  <div className="text-lg font-black text-slate-900 font-mono mt-0.5">
+                    {selectedStudentSummary.total_tugas_belum_dikumpul} tugas
+                  </div>
+                </div>
+                <div className="p-3.5 rounded-2xl neo-card bg-white border border-slate-200">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase">Inaktif Terlama</span>
+                  <div className="text-lg font-black text-slate-900 font-mono mt-0.5">
+                    {selectedStudentSummary.inaktivitas_terlama_hari} hari
+                  </div>
+                </div>
+              </div>
+
+              {/* Tabel Matriks Lintas Kursus */}
+              <div>
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+                  Rincian Per Mata Pelajaran yang Diambil
+                </h4>
+                <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-white border-b border-slate-200 font-bold text-slate-500 uppercase">
+                      <tr>
+                        <th className="py-3 px-4">Modul &amp; Mapel</th>
+                        <th className="py-3 px-3 text-center">Status</th>
+                        <th className="py-3 px-3 text-center">Tugas Bolong</th>
+                        <th className="py-3 px-3 text-center">Durasi Jam</th>
+                        <th className="py-3 px-3 text-center">Lesson</th>
+                        <th className="py-3 px-3 text-center">Inaktif</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-slate-700 bg-white">
+                      {(Array.isArray(selectedStudentSummary.rincian_per_mata_pelajaran)
+                        ? selectedStudentSummary.rincian_per_mata_pelajaran
+                        : []
+                      ).map((m, idx) => (
+                        <tr key={idx}>
+                          <td className="py-3 px-4">
+                            <div className="font-bold text-slate-900">{m.nama_mapel}</div>
+                            <div className="text-[11px] text-slate-400 font-mono">
+                              {m.kode_modul} &bull; {m.guru_pengampu}
+                            </div>
+                          </td>
+                          <td className="py-3 px-3 text-center whitespace-nowrap">
+                            <span
+                              className={cn(
+                                "px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap",
+                                m.status_risiko === "MERAH"
+                                  ? "bg-rose-50 text-rose-700 border-rose-200"
+                                  : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              )}
+                            >
+                              {m.status_risiko}
+                            </span>
+                          </td>
+                          <td className="py-3 px-3 text-center font-mono font-bold">
+                            {m.tugas_belum_dikumpul}
+                          </td>
+                          <td className="py-3 px-3 text-center font-mono">
+                            {m.durasi_belajar_jam}j
+                          </td>
+                          <td className="py-3 px-3 text-center font-mono">
+                            {m.lesson_attempts ?? 0}x
+                          </td>
+                          <td className="py-3 px-3 text-center font-mono">
+                            {m.days_inactive ?? 0}h
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <DialogFooter className="pt-4 border-t border-slate-200/60 flex items-center justify-between sm:justify-between w-full">
+                <button
+                  type="button"
+                  onClick={() => openJournalModal(selectedStudentSummary)}
+                  className="px-4 py-2.5 rounded-xl neo-btn-primary text-white text-xs font-bold shadow-xs active:scale-95 cursor-pointer flex items-center gap-1.5"
+                >
+                  <IconHandshake className="w-4 h-4" />
+                  <span>Catat Jurnal Konseling Siswa Ini</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedStudentSummary(null)}
+                  className="px-5 py-2.5 rounded-xl neo-btn bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold border border-slate-200/80 cursor-pointer"
+                >
+                  Tutup
+                </button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* SHADCN DIALOG 2: Form Catat Jurnal Konseling BK */}
+      <Dialog open={!!journalModalSummary} onOpenChange={(open) => !open && setJournalModalSummary(null)}>
+        <DialogContent className="max-w-lg bg-[#EEF2F7] border border-white/90 shadow-2xl rounded-3xl p-6 sm:p-8 space-y-5">
+          {journalModalSummary && (
+            <>
+              <DialogHeader className="border-b border-slate-200/60 pb-3.5">
+                <span className="text-[11px] font-extrabold font-mono text-indigo-600 uppercase tracking-wider">
+                  LAYANAN BIMBINGAN KONSELING
+                </span>
+                <DialogTitle className="text-lg font-extrabold text-slate-900 tracking-tight mt-0.5">
+                  Pencatatan Sesi Konseling Siswa
+                </DialogTitle>
+                <DialogDescription className="text-xs text-slate-500">
+                  {journalModalSummary.student?.name || `Siswa ${journalModalSummary.siswa_id}`} &bull; {journalModalSummary.profil_karakter_belajar}
+                </DialogDescription>
+              </DialogHeader>
+
+              <form onSubmit={handleSaveJournal} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Jenis Layanan Konseling
+                  </label>
+                  <select
+                    value={journalForm.jenis_layanan}
+                    onChange={(e) => setJournalForm({ ...journalForm, jenis_layanan: e.target.value })}
+                    className="w-full h-10 px-3.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none shadow-2xs font-medium"
+                  >
+                    <option value="konseling_individu">Konseling Individual</option>
+                    <option value="pemanggilan_siswa">Pemanggilan Siswa ke Ruang BK</option>
+                    <option value="koordinasi_ortu">Komunikasi / Koordinasi Orang Tua (WA/Tatap Muka)</option>
+                    <option value="home_visit">Kunjungan Rumah (Home Visit)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Catatan Temuan Sesi Konseling
+                  </label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={journalForm.catatan_konseling}
+                    onChange={(e) => setJournalForm({ ...journalForm, catatan_konseling: e.target.value })}
+                    placeholder="Contoh: Siswa mengakui sering bergadang bermain game sehingga menunda pengerjaan tugas modul Web dan Basis Data..."
+                    className="w-full p-3 rounded-xl bg-white border border-slate-200 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none shadow-2xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Rencana Tindak Lanjut &amp; Solusi
+                  </label>
+                  <textarea
+                    rows={2}
+                    required
+                    value={journalForm.rencana_tindak_lanjut}
+                    onChange={(e) => setJournalForm({ ...journalForm, rencana_tindak_lanjut: e.target.value })}
+                    placeholder="Contoh: Penyusunan jadwal belajar mandiri, konfirmasi tugas susulan ke guru mapel..."
+                    className="w-full p-3 rounded-xl bg-white border border-slate-200 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none shadow-2xs"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Evaluasi Perilaku
+                    </label>
+                    <select
+                      value={journalForm.evaluasi_perilaku}
+                      onChange={(e) => setJournalForm({ ...journalForm, evaluasi_perilaku: e.target.value })}
+                      className="w-full h-10 px-3.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none shadow-2xs"
+                    >
+                      <option value="membaik">Membaik</option>
+                      <option value="tetap">Tetap / Dalam Pantauan</option>
+                      <option value="memburuk">Memburuk</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Jadwal Pantau Berikutnya
+                    </label>
+                    <input
+                      type="date"
+                      value={journalForm.tanggal_monitoring_berikutnya}
+                      onChange={(e) => setJournalForm({ ...journalForm, tanggal_monitoring_berikutnya: e.target.value })}
+                      className="w-full h-10 px-3.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none font-mono shadow-2xs"
+                    />
+                  </div>
+                </div>
+
+                <DialogFooter className="pt-3 border-t border-slate-200/60 flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setJournalModalSummary(null)}
+                    className="px-4 py-2.5 rounded-xl neo-btn bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold border border-slate-200/80 cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingJournal}
+                    className="px-5 py-2.5 rounded-xl neo-btn-primary text-white text-xs font-bold shadow-xs disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                  >
+                    <IconSave className="w-3.5 h-3.5" />
+                    <span>{isSubmittingJournal ? "Menyimpan..." : "Simpan Jurnal Konseling"}</span>
+                  </button>
+                </DialogFooter>
+              </form>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </AppLayout>
   )
 }

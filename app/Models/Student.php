@@ -78,8 +78,13 @@ class Student extends Model
         return $this->hasMany(AiAnalysisLog::class);
     }
 
-    public function ewsNotifications(): HasMany
+    public function courseAlerts(): HasMany
     {
-        return $this->hasMany(EwsNotification::class);
+        return $this->hasMany(EwsCourseAlert::class, 'siswa_id');
+    }
+
+    public function studentSummaries(): HasMany
+    {
+        return $this->hasMany(EwsStudentSummary::class, 'siswa_id');
     }
 }

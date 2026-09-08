@@ -14,7 +14,17 @@ class BkEwsDatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Akun Pendidik Resmi Sekolah (Wali Kelas, Guru BK, Kepala Sekolah)
+        // 1. Akun Pendidik & Administrator Resmi Sekolah
+        $admin = User::updateOrCreate(
+            ['email' => 'admin@gmail.com'],
+            [
+                'nip' => '199001012015011001',
+                'name' => 'Operator IT / Admin Sistem',
+                'password' => Hash::make('password'),
+                'role' => 'admin',
+            ]
+        );
+
         $guruBudi = User::updateOrCreate(
             ['nip' => '198501152010011005'],
             [

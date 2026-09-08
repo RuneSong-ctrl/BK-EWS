@@ -16,7 +16,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             BkEwsDatabaseSeeder::class,
-            EwsNotificationSeeder::class,
+            CourseMappingSeeder::class,
+            Ews2TierSeeder::class,
         ]);
     }
 }

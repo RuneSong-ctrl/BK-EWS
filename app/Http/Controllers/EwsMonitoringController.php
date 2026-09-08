@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\EwsIntervention;
-use App\Models\EwsNotification;
+use App\Models\EwsCounselingJournal;
+use App\Models\EwsCourseAlert;
+use App\Models\EwsStudentSummary;
 use App\Models\SchoolClass;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,169 +14,85 @@ use Inertia\Response;
 class EwsMonitoringController extends Controller
 {
     /**
-     * Tampilkan Halaman Monitoring EWS Moodle & Notifikasi AI
-     * Mendukung auto-scoping data untuk Guru BK (seluruh sekolah) dan Guru Kelas (hanya rombelnya).
+     * Tampilkan Halaman Monitoring EWS Moodle 2-Tier
      */
     public function index(Request $request): Response
     {
         $user = $request->user();
-        $homeroomClass = null;
 
-        if ($user->role === 'guru_kelas') {
-            $homeroomClass = SchoolClass::where('homeroom_teacher_id', $user->id)->first();
+        // Ambil data Tier 1 (Alert Per Mapel)
+        $courseAlertsQuery = EwsCourseAlert::with('student');
+        if ($request->filled('kode_modul') && $request->query('kode_modul') !== 'ALL') {
+            $courseAlertsQuery->where('kode_modul', $request->query('kode_modul'));
         }
-
-        $query = EwsNotification::with([
-            'student',
-            'targetUser',
-            'interventions.counselor',
-        ]);
-
-        // Auto-Scoping: Jika Wali Kelas, batasi hanya murid di kelas binaannya
-        if ($user->role === 'guru_kelas') {
-            if ($homeroomClass) {
-                $query->where(function ($q) use ($homeroomClass) {
-                    $q->whereHas('student.enrollments', function ($sub) use ($homeroomClass) {
-                        $sub->where('class_id', $homeroomClass->id)->where('is_current', true);
-                    })->orWhere('class_name', $homeroomClass->name);
-                });
-            } else {
-                $query->whereRaw('1 = 0');
-            }
-        } elseif ($request->filled('class_id') && $request->query('class_id') !== 'ALL') {
-            $classId = $request->query('class_id');
-            $selectedClass = SchoolClass::find($classId);
-            if ($selectedClass) {
-                $query->where(function ($q) use ($selectedClass) {
-                    $q->whereHas('student.enrollments', function ($sub) use ($selectedClass) {
-                        $sub->where('class_id', $selectedClass->id)->where('is_current', true);
-                    })->orWhere('class_name', $selectedClass->name);
-                });
-            }
+        if ($request->filled('tingkat_risiko') && $request->query('tingkat_risiko') !== 'ALL') {
+            $courseAlertsQuery->where('tingkat_risiko', strtoupper($request->query('tingkat_risiko')));
         }
+        $courseAlerts = $courseAlertsQuery->orderBy('probabilitas_risiko', 'desc')->get();
 
-        // Filter: Tingkat Risiko
-        if ($request->filled('risk_level') && $request->query('risk_level') !== 'ALL') {
-            $query->where('risk_level', strtoupper($request->query('risk_level')));
-        }
+        // Ambil data Tier 2 (Rekapitulasi Karakter Belajar BK)
+        $studentSummaries = EwsStudentSummary::with(['student', 'counselingJournals.counselor'])
+            ->orderByRaw("CASE 
+                WHEN prioritas_konseling = 'TINGGI' THEN 1 
+                WHEN prioritas_konseling = 'SEDANG' THEN 2 
+                ELSE 3 END")
+            ->orderBy('inaktivitas_terlama_hari', 'desc')
+            ->get();
 
-        // Filter: Status Notifikasi WA
-        if ($request->filled('status') && $request->query('status') !== 'ALL') {
-            $query->where('status', strtolower($request->query('status')));
-        }
+        // Metrik Ringkas
+        $totalAlerts = EwsCourseAlert::count();
+        $highRiskAlerts = EwsCourseAlert::where('tingkat_risiko', 'TINGGI')->count();
+        $handledAlerts = EwsCourseAlert::whereIn('status', ['konfirmasi_tugas', 'remedial', 'selesai'])->count();
 
-        // Search: Nama Siswa, ID Moodle, atau Kelas
-        if ($request->filled('search')) {
-            $search = $request->query('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('student_name', 'like', "%{$search}%")
-                  ->orWhere('moodle_student_id', 'like', "%{$search}%")
-                  ->orWhere('class_name', 'like', "%{$search}%");
-            });
-        }
-
-        $notifications = $query->orderBy('risk_probability', 'desc')
-            ->paginate(15)
-            ->withQueryString();
-
-        // Hitung statistik kontekstual sesuai scope peran
-        $statsBase = EwsNotification::query();
-        if ($user->role === 'guru_kelas' && $homeroomClass) {
-            $statsBase->where(function ($q) use ($homeroomClass) {
-                $q->whereHas('student.enrollments', function ($sub) use ($homeroomClass) {
-                    $sub->where('class_id', $homeroomClass->id)->where('is_current', true);
-                })->orWhere('class_name', $homeroomClass->name);
-            });
-        }
-
-        $totalCount = (clone $statsBase)->count();
-        $totalIntervened = (clone $statsBase)->has('interventions')->count();
-        $tinggiCount = (clone $statsBase)->where('risk_level', 'TINGGI')->count();
-        $tinggiIntervened = (clone $statsBase)->where('risk_level', 'TINGGI')->has('interventions')->count();
+        $totalSummaries = EwsStudentSummary::count();
+        $highPrioritySummaries = EwsStudentSummary::where('prioritas_konseling', 'TINGGI')->count();
+        $inactiveCritical = EwsStudentSummary::where('inaktivitas_terlama_hari', '>', 14)->count();
 
         $stats = [
-            'total' => $totalCount,
-            'tinggi_count' => $tinggiCount,
-            'sedang_count' => (clone $statsBase)->where('risk_level', 'SEDANG')->count(),
-            'rendah_count' => (clone $statsBase)->where('risk_level', 'RENDAH')->count(),
-            'wa_sent_count' => (clone $statsBase)->where('status', 'sent')->count(),
-            'pending_count' => (clone $statsBase)->whereIn('status', ['pending', 'ready'])->count(),
-            'intervened_count' => $totalIntervened,
-            'unhandled_count' => max(0, $totalCount - $totalIntervened),
-            'tinggi_unhandled_count' => max(0, $tinggiCount - $tinggiIntervened),
-            'coverage_rate' => $totalCount > 0 ? round(($totalIntervened / $totalCount) * 100) : 100,
-            'tinggi_coverage_rate' => $tinggiCount > 0 ? round(($tinggiIntervened / $tinggiCount) * 100) : 100,
+            'total_alerts' => $totalAlerts,
+            'high_risk_alerts' => $highRiskAlerts,
+            'handled_alerts' => $handledAlerts,
+            'total_summaries' => $totalSummaries,
+            'high_priority_summaries' => $highPrioritySummaries,
+            'inactive_critical' => $inactiveCritical,
         ];
 
-        // Rombel Kelas & Breakdown Risiko per Kelas untuk Master Admin (Kepsek) & Filter BK
-        $classes = SchoolClass::with('homeroomTeacher')->orderBy('name')->get();
-        $classBreakdown = $classes->map(function ($c) {
-            $notifs = EwsNotification::where(function ($q) use ($c) {
-                $q->whereHas('student.enrollments', function ($sub) use ($c) {
-                    $sub->where('class_id', $c->id)->where('is_current', true);
-                })->orWhere('class_name', $c->name);
-            })->with('interventions')->get();
-
-            $total = $notifs->count();
-            $tinggi = $notifs->where('risk_level', 'TINGGI')->count();
-            $sedang = $notifs->where('risk_level', 'SEDANG')->count();
-            $rendah = $notifs->where('risk_level', 'RENDAH')->count();
-            $intervened = $notifs->filter(fn ($n) => $n->interventions->isNotEmpty())->count();
-
-            return [
-                'id' => $c->id,
-                'name' => $c->name,
-                'grade_level' => (int) $c->grade_level,
-                'homeroom_teacher' => $c->homeroomTeacher?->name ?? 'Belum ditentukan',
-                'total_at_risk' => $total,
-                'tinggi_count' => $tinggi,
-                'sedang_count' => $sedang,
-                'rendah_count' => $rendah,
-                'intervened_count' => $intervened,
-                'coverage_percent' => $total > 0 ? round(($intervened / $total) * 100) : 100,
-            ];
-        })->values();
-
         return Inertia::render('Dashboard/EwsMonitoring', [
-            'ewsNotifications' => $notifications,
+            'courseAlerts' => $courseAlerts,
+            'studentSummaries' => $studentSummaries,
             'stats' => $stats,
-            'classes' => $classes,
-            'classBreakdown' => $classBreakdown,
-            'homeroomClass' => $homeroomClass,
             'userRole' => $user->role,
-            'filters' => [
-                'risk_level' => $request->query('risk_level', 'ALL'),
-                'status' => $request->query('status', 'ALL'),
-                'search' => $request->query('search', ''),
-                'class_id' => $request->query('class_id', 'ALL'),
-            ],
         ]);
     }
 
     /**
-     * Simpan catatan tindak lanjut intervensi konseling / pendampingan siswa
+     * Catat Tindak Lanjut Konseling BK
      */
     public function storeIntervention(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'notification_id' => 'required|exists:ews_notifications,id',
-            'intervention_type' => 'required|string',
-            'action_notes' => 'required|string|min:5',
-            'student_progress' => 'nullable|string',
-            'follow_up_date' => 'nullable|date',
-            'bk_case_id' => 'nullable|exists:bk_cases,id',
+            'summary_id' => 'required|exists:ews_student_summaries,id',
+            'jenis_layanan' => 'required|in:konseling_individu,pemanggilan_siswa,home_visit,koordinasi_ortu',
+            'catatan_konseling' => 'required|string',
+            'rencana_tindak_lanjut' => 'required|string',
+            'evaluasi_perilaku' => 'nullable|in:membaik,tetap,memburuk',
+            'tanggal_monitoring_berikutnya' => 'nullable|date',
         ]);
 
-        EwsIntervention::create([
-            'notification_id' => $validated['notification_id'],
-            'counselor_id' => $request->user()->id,
-            'bk_case_id' => $validated['bk_case_id'] ?? null,
-            'intervention_type' => $validated['intervention_type'],
-            'action_notes' => $validated['action_notes'],
-            'student_progress' => $validated['student_progress'] ?? 'DALAM_PEMANTAUAN',
-            'follow_up_date' => $validated['follow_up_date'] ?? null,
+        $user = $request->user();
+
+        EwsCounselingJournal::create([
+            'summary_id' => $validated['summary_id'],
+            'guru_bk_id' => $user->id,
+            'jenis_layanan' => $validated['jenis_layanan'],
+            'catatan_konseling' => $validated['catatan_konseling'],
+            'rencana_tindak_lanjut' => $validated['rencana_tindak_lanjut'],
+            'evaluasi_perilaku' => $validated['evaluasi_perilaku'] ?? null,
+            'tanggal_monitoring_berikutnya' => $validated['tanggal_monitoring_berikutnya'] ?? null,
         ]);
 
-        return redirect()->back()->with('success', 'Catatan tindak lanjut berhasil disimpan.');
+        EwsStudentSummary::where('id', $validated['summary_id'])->update(['status_penanganan' => 'in_counseling']);
+
+        return redirect()->back()->with('success', 'Catatan konseling bimbingan berhasil disimpan.');
     }
 }

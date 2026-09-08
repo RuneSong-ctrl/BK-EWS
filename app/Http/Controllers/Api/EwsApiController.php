@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\EwsIntervention;
-use App\Models\EwsNotification;
+use App\Models\ClassEnrollment;
+use App\Models\CourseMapping;
+use App\Models\EwsCounselingJournal;
+use App\Models\EwsCourseAlert;
+use App\Models\EwsStudentSummary;
+use App\Models\SchoolClass;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -14,241 +18,280 @@ use Illuminate\Support\Facades\Validator;
 class EwsApiController extends Controller
 {
     /**
-     * GET /api/ews/notifications
-     * Mengambil daftar notifikasi EWS berfilter dan statistik ringkasan
+     * POST /api/ews/tier1/alerts
+     * Ingestion batch/single payload Tier 1 (Guru Mapel) dari pipeline Python/Moodle.
      */
-    public function index(Request $request): JsonResponse
+    public function storeTier1Alerts(Request $request): JsonResponse
     {
-        $query = EwsNotification::with(['student', 'interventions.counselor']);
+        $payload = $request->all();
+        $items = isset($payload['tier1_subject_teacher']) ? $payload['tier1_subject_teacher'] : (is_array($payload) && isset($payload[0]) ? $payload : [$payload]);
 
-        // Filter: Tingkat Risiko (TINGGI, SEDANG, RENDAH)
-        if ($request->filled('risk_level')) {
-            $query->where('risk_level', strtoupper($request->query('risk_level')));
+        $created = 0;
+        $updated = 0;
+
+        foreach ($items as $item) {
+            $idSiswa = $item['id_siswa'] ?? null;
+            if (!$idSiswa) continue;
+
+            $namaSiswa = $item['nama_siswa'] ?? "Siswa {$idSiswa}";
+            $kelasNama = $item['kelas'] ?? 'X-RPL-1';
+
+            $student = Student::firstOrCreate(
+                ['nis' => (string) $idSiswa],
+                [
+                    'nisn' => '008' . str_pad($idSiswa, 7, '0', STR_PAD_LEFT),
+                    'name' => $namaSiswa,
+                    'gender' => 'L',
+                    'status' => 'AKTIF',
+                ]
+            );
+
+            $m24 = $item['metrik_24_fitur_model'] ?? [];
+
+            $alert = EwsCourseAlert::updateOrCreate(
+                [
+                    'siswa_id' => $student->id,
+                    'kode_modul' => $item['mata_pelajaran']['kode_modul'] ?? 'AAA',
+                ],
+                [
+                    'nama_mapel' => $item['mata_pelajaran']['nama_mapel'] ?? 'Mata Pelajaran',
+                    'kategori_mapel' => $item['mata_pelajaran']['kategori'] ?? 'Kejuruan/Produktif',
+                    'guru_pengampu' => $item['mata_pelajaran']['guru_pengampu'] ?? 'Guru Mapel',
+                    'kkm' => (int) ($item['mata_pelajaran']['kkm'] ?? 75),
+                    'tingkat_risiko' => $item['analisis_risiko']['tingkat_risiko'] ?? 'RENDAH',
+                    'probabilitas_risiko' => (float) ($item['analisis_risiko']['probabilitas_risiko'] ?? 0.0),
+                    'durasi_belajar_jam' => (float) ($m24['engagement_dan_durasi']['course_duration_hours'] ?? 0.0),
+                    'lesson_attempts' => (int) ($m24['aktivitas_lesson']['lesson_attempts_count'] ?? 0),
+                    'rasio_ketuntasan_lesson' => (float) ($m24['aktivitas_lesson']['lesson_completion_ratio'] ?? 0.0),
+                    'nilai_rata_rata_lesson' => (float) ($m24['aktivitas_lesson']['lesson_avg_score'] ?? 0.0),
+                    'tugas_belum_dikumpul' => (int) ($m24['kepatuhan_tugas']['missing_assignments'] ?? 0),
+                    'tugas_terlambat' => (int) ($m24['kepatuhan_tugas']['late_submission_count'] ?? 0),
+                    'nilai_rata_rata_tugas' => (float) ($m24['akademik']['avg_score'] ?? 0.0),
+                    'metrik_24_fitur_model' => $m24,
+                    'faktor_pemicu' => $item['faktor_pemicu'] ?? [],
+                    'rekomendasi_tindakan' => $item['rekomendasi_tindakan'] ?? '',
+                    'status' => 'pending',
+                ]
+            );
+
+            if ($alert->wasRecentlyCreated) {
+                $created++;
+            } else {
+                $updated++;
+            }
         }
 
-        // Filter: Status Notifikasi (pending, ready, sent, failed)
+        return response()->json([
+            'success' => true,
+            'message' => "Tier 1 Alerts berhasil diproses: {$created} baru, {$updated} diperbarui.",
+            'counts' => ['created' => $created, 'updated' => $updated],
+        ]);
+    }
+
+    /**
+     * POST /api/ews/tier2/summaries
+     * Ingestion batch/single payload Tier 2 (Guru BK) dari pipeline Python.
+     */
+    public function storeTier2Summaries(Request $request): JsonResponse
+    {
+        $payload = $request->all();
+        $items = isset($payload['tier2_counselor_bk']) ? $payload['tier2_counselor_bk'] : (is_array($payload) && isset($payload[0]) ? $payload : [$payload]);
+
+        $created = 0;
+        $updated = 0;
+
+        foreach ($items as $item) {
+            $idSiswa = $item['id_siswa'] ?? null;
+            if (!$idSiswa) continue;
+
+            $student = Student::where('nis', (string) $idSiswa)->first();
+            if (!$student) {
+                $namaSiswa = $item['nama_siswa'] ?? "Siswa {$idSiswa}";
+                $student = Student::create([
+                    'nis' => (string) $idSiswa,
+                    'nisn' => '008' . str_pad($idSiswa, 7, '0', STR_PAD_LEFT),
+                    'name' => $namaSiswa,
+                    'gender' => 'L',
+                    'status' => 'AKTIF',
+                ]);
+            }
+
+            $rekap = $item['rekapitulasi_semester'] ?? [];
+
+            $summary = EwsStudentSummary::updateOrCreate(
+                ['siswa_id' => $student->id],
+                [
+                    'total_mapel_diambil' => (int) ($rekap['total_mapel_diambil'] ?? 0),
+                    'total_mapel_berisiko' => (int) ($rekap['total_mapel_berisiko'] ?? 0),
+                    'total_jam_belajar' => (float) ($rekap['total_jam_belajar'] ?? 0.0),
+                    'total_tugas_belum_dikumpul' => (int) ($rekap['total_tugas_belum_dikumpul'] ?? 0),
+                    'total_tugas_terlambat' => (int) ($rekap['total_tugas_terlambat'] ?? 0),
+                    'inaktivitas_terlama_hari' => (int) ($rekap['inaktivitas_terlama_hari'] ?? 0),
+                    'profil_karakter_belajar' => $item['profil_karakter_belajar'] ?? 'Normal',
+                    'prioritas_konseling' => $item['prioritas_konseling'] ?? 'RENDAH',
+                    'rekomendasi_tindakan' => $item['rekomendasi_tindakan'] ?? '',
+                    'rincian_per_mata_pelajaran' => $item['rincian_per_mata_pelajaran'] ?? [],
+                    'status_penanganan' => ($item['prioritas_konseling'] === 'TINGGI') ? 'in_counseling' : 'open',
+                ]
+            );
+
+            if ($summary->wasRecentlyCreated) {
+                $created++;
+            } else {
+                $updated++;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Tier 2 Summaries berhasil diproses: {$created} baru, {$updated} diperbarui.",
+            'counts' => ['created' => $created, 'updated' => $updated],
+        ]);
+    }
+
+    /**
+     * GET /api/ews/teacher/my-courses
+     * Mengambil daftar alert kursus untuk Guru Mata Pelajaran.
+     */
+    public function getTeacherAlerts(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $query = EwsCourseAlert::with('student');
+
+        // Filter modul / mapel
+        if ($request->filled('kode_modul')) {
+            $query->where('kode_modul', $request->query('kode_modul'));
+        }
+
+        // Filter tingkat risiko
+        if ($request->filled('tingkat_risiko')) {
+            $query->where('tingkat_risiko', strtoupper($request->query('tingkat_risiko')));
+        }
+
+        // Filter status tindakan
         if ($request->filled('status')) {
             $query->where('status', strtolower($request->query('status')));
         }
 
-        // Filter: Periode Akademik
-        if ($request->filled('academic_period')) {
-            $query->where('academic_period', $request->query('academic_period'));
-        }
-
-        // Search: Nama Siswa atau ID Moodle
-        if ($request->filled('search')) {
-            $search = $request->query('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('student_name', 'like', "%{$search}%")
-                  ->orWhere('moodle_student_id', 'like', "%{$search}%")
-                  ->orWhere('class_name', 'like', "%{$search}%");
-            });
-        }
-
-        // Sorting
-        $sortBy = $request->query('sort_by', 'risk_probability');
-        $sortOrder = $request->query('sort_order', 'desc');
-        $query->orderBy($sortBy, $sortOrder);
-
-        $perPage = (int) $request->query('per_page', 15);
-        $notifications = $query->paginate($perPage);
-
-        // Ringkasan Statistik
-        $stats = [
-            'total' => EwsNotification::count(),
-            'tinggi_count' => EwsNotification::where('risk_level', 'TINGGI')->count(),
-            'sedang_count' => EwsNotification::where('risk_level', 'SEDANG')->count(),
-            'rendah_count' => EwsNotification::where('risk_level', 'RENDAH')->count(),
-            'sent_count' => EwsNotification::where('status', 'sent')->count(),
-            'pending_count' => EwsNotification::whereIn('status', ['pending', 'ready'])->count(),
-        ];
+        $alerts = $query->orderBy('probabilitas_risiko', 'desc')->get();
 
         return response()->json([
             'success' => true,
-            'stats' => $stats,
-            'data' => $notifications,
+            'data' => $alerts,
         ]);
     }
 
     /**
-     * GET /api/ews/notifications/{id}
-     * Menampilkan detail lengkap 1 notifikasi EWS beserta intervensinya
+     * PATCH /api/ews/teacher/alerts/{id}/status
+     * Memperbarui status intervensi guru mapel (konfirmasi_tugas, remedial, selesai).
      */
-    public function show(int $id): JsonResponse
+    public function updateAlertStatus(Request $request, int $id): JsonResponse
     {
-        $notification = EwsNotification::with(['student', 'targetUser', 'interventions.counselor', 'interventions.bkCase'])
-            ->find($id);
-
-        if (!$notification) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Notifikasi EWS tidak ditemukan.',
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'data' => $notification,
-        ]);
-    }
-
-    /**
-     * POST /api/ews/notifications
-     * Menerima payload batch/single hasil deteksi model Moodle & prompt SLM
-     */
-    public function store(Request $request): JsonResponse
-    {
-        $items = $request->has('notifications') ? $request->input('notifications') : [$request->all()];
-
-        if (empty($items) || !is_array($items)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Payload notifikasi tidak valid.',
-            ], 422);
-        }
-
-        // Default Guru BK sebagai target
-        $defaultCounselor = User::where('role', 'guru_bk')->first();
-        $savedCount = 0;
-        $savedIds = [];
-
-        foreach ($items as $item) {
-            $validator = Validator::make($item, [
-                'moodle_student_id' => 'required',
-                'student_name' => 'required|string',
-                'course_code' => 'required|string',
-                'academic_period' => 'required|string',
-                'risk_level' => 'required|in:TINGGI,SEDANG,RENDAH,tinggi,sedang,rendah',
-                'risk_probability' => 'required|numeric',
-                'moodle_metrics' => 'required',
-                'risk_factors' => 'required',
-            ]);
-
-            if ($validator->fails()) {
-                continue;
-            }
-
-            // Cari keterkaitan dengan siswa lokal jika ada (via NIS atau nama)
-            $studentId = $item['student_id'] ?? null;
-            if (!$studentId && !empty($item['nis'])) {
-                $studentId = Student::where('nis', $item['nis'])->value('id');
-            }
-            if (!$studentId && !empty($item['student_name'])) {
-                $studentId = Student::where('name', $item['student_name'])->value('id');
-            }
-
-            $riskLevel = strtoupper($item['risk_level']);
-            $riskProb = (float) $item['risk_probability'];
-            $riskPercent = $item['risk_percentage'] ?? (round($riskProb * 100, 1) . '%');
-
-            $notification = EwsNotification::updateOrCreate(
-                [
-                    'moodle_student_id' => (string) $item['moodle_student_id'],
-                    'course_code' => $item['course_code'],
-                    'academic_period' => $item['academic_period'],
-                ],
-                [
-                    'student_id' => $studentId,
-                    'student_name' => $item['student_name'],
-                    'class_name' => $item['class_name'] ?? null,
-                    'risk_level' => $riskLevel,
-                    'risk_probability' => $riskProb,
-                    'risk_percentage' => $riskPercent,
-                    'decision_threshold' => $item['decision_threshold'] ?? 0.40,
-                    'intervention_urgency' => $item['intervention_urgency'] ?? null,
-                    'moodle_metrics' => is_array($item['moodle_metrics']) ? $item['moodle_metrics'] : json_decode($item['moodle_metrics'], true),
-                    'risk_factors' => is_array($item['risk_factors']) ? $item['risk_factors'] : json_decode($item['risk_factors'], true),
-                    'ai_narration' => $item['ai_narration'] ?? null,
-                    'wa_message' => $item['wa_message'] ?? null,
-                    'audience' => $item['audience'] ?? 'guru_bk',
-                    'target_user_id' => $item['target_user_id'] ?? $defaultCounselor?->id,
-                    'target_phone' => $item['target_phone'] ?? null,
-                    'status' => $item['status'] ?? 'pending',
-                ]
-            );
-
-            $savedCount++;
-            $savedIds[] = $notification->id;
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => "Berhasil memproses {$savedCount} notifikasi EWS.",
-            'saved_ids' => $savedIds,
-        ]);
-    }
-
-    /**
-     * PATCH /api/ews/notifications/{id}/status
-     * Memperbarui status pengiriman WA oleh worker Baileys
-     */
-    public function updateStatus(Request $request, int $id): JsonResponse
-    {
-        $notification = EwsNotification::find($id);
-
-        if (!$notification) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Notifikasi tidak ditemukan.',
-            ], 404);
-        }
+        $alert = EwsCourseAlert::findOrFail($id);
 
         $validated = $request->validate([
-            'status' => 'required|in:pending,generating,ready,sent,failed',
-            'error_message' => 'nullable|string',
-            'sent_at' => 'nullable|date',
+            'status' => 'required|in:pending,konfirmasi_tugas,remedial,selesai',
+            'catatan_guru_mapel' => 'nullable|string',
         ]);
 
-        $notification->status = $validated['status'];
-        if (isset($validated['error_message'])) {
-            $notification->error_message = $validated['error_message'];
-        }
-        if ($validated['status'] === 'sent') {
-            $notification->sent_at = $validated['sent_at'] ?? now();
-        }
-
-        $notification->save();
+        $alert->update($validated);
 
         return response()->json([
             'success' => true,
-            'message' => "Status notifikasi berhasil diperbarui menjadi {$validated['status']}.",
-            'data' => $notification,
+            'message' => 'Status tindak lanjut guru mapel berhasil diperbarui.',
+            'data' => $alert,
         ]);
     }
 
     /**
-     * POST /api/ews/interventions
-     * Mencatat tindakan intervensi konseling oleh Guru BK
+     * GET /api/ews/bk/triage
+     * Mengambil daftar triage klinis untuk Guru BK terurut prioritas.
      */
-    public function storeIntervention(Request $request): JsonResponse
+    public function getBkTriage(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'notification_id' => 'required|exists:ews_notifications,id',
-            'intervention_type' => 'required|in:KONSELING_INDIVIDU,PEMANGGILAN,KONFIRMASI_WALI,HOME_VISIT,LAINNYA',
-            'action_notes' => 'required|string|min:5',
-            'student_progress' => 'nullable|in:MEMBAIK,TETAP,MEMBURUK,DALAM_PEMANTAUAN',
-            'follow_up_date' => 'nullable|date',
-            'counselor_id' => 'nullable|exists:users,id',
-            'bk_case_id' => 'nullable|exists:bk_cases,id',
-        ]);
-
-        $counselorId = $validated['counselor_id'] ?? auth()->id() ?? User::where('role', 'guru_bk')->value('id');
-
-        $intervention = EwsIntervention::create([
-            'notification_id' => $validated['notification_id'],
-            'counselor_id' => $counselorId,
-            'bk_case_id' => $validated['bk_case_id'] ?? null,
-            'intervention_type' => $validated['intervention_type'],
-            'action_notes' => $validated['action_notes'],
-            'student_progress' => $validated['student_progress'] ?? 'DALAM_PEMANTAUAN',
-            'follow_up_date' => $validated['follow_up_date'] ?? null,
-        ]);
+        $summaries = EwsStudentSummary::with(['student', 'counselingJournals.counselor'])
+            ->orderByRaw("CASE 
+                WHEN prioritas_konseling = 'TINGGI' THEN 1 
+                WHEN prioritas_konseling = 'SEDANG' THEN 2 
+                ELSE 3 END")
+            ->orderBy('inaktivitas_terlama_hari', 'desc')
+            ->get();
 
         return response()->json([
             'success' => true,
-            'message' => 'Intervensi konseling berhasil dicatat.',
-            'data' => $intervention->load(['counselor', 'notification']),
-        ], 201);
+            'data' => $summaries,
+            'stats' => [
+                'total' => $summaries->count(),
+                'tinggi' => $summaries->where('prioritas_konseling', 'TINGGI')->count(),
+                'sedang' => $summaries->where('prioritas_konseling', 'SEDANG')->count(),
+                'rendah' => $summaries->where('prioritas_konseling', 'RENDAH')->count(),
+                'inaktif_kritis' => $summaries->where('inaktivitas_terlama_hari', '>', 14)->count(),
+            ],
+        ]);
+    }
+
+    /**
+     * POST /api/ews/counseling/record
+     * Menyimpan sesi jurnal bimbingan konseling Guru BK.
+     */
+    public function storeCounselingRecord(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'summary_id' => 'required|exists:ews_student_summaries,id',
+            'jenis_layanan' => 'required|in:konseling_individu,pemanggilan_siswa,home_visit,koordinasi_ortu',
+            'catatan_konseling' => 'required|string',
+            'rencana_tindak_lanjut' => 'required|string',
+            'evaluasi_perilaku' => 'nullable|in:membaik,tetap,memburuk',
+            'tanggal_monitoring_berikutnya' => 'nullable|date',
+        ]);
+
+        $user = $request->user();
+        $journal = EwsCounselingJournal::create([
+            'summary_id' => $validated['summary_id'],
+            'guru_bk_id' => $user ? $user->id : (User::where('role', 'guru_bk')->value('id') ?? 1),
+            'jenis_layanan' => $validated['jenis_layanan'],
+            'catatan_konseling' => $validated['catatan_konseling'],
+            'rencana_tindak_lanjut' => $validated['rencana_tindak_lanjut'],
+            'evaluasi_perilaku' => $validated['evaluasi_perilaku'] ?? null,
+            'tanggal_monitoring_berikutnya' => $validated['tanggal_monitoring_berikutnya'] ?? null,
+        ]);
+
+        // Update status penanganan di student summary
+        EwsStudentSummary::where('id', $validated['summary_id'])->update(['status_penanganan' => 'in_counseling']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Jurnal bimbingan konseling berhasil disimpan.',
+            'data' => $journal,
+        ]);
+    }
+
+    /**
+     * GET /api/ews/kepsek/overview
+     * Agregasi eksekutif untuk Kepala Sekolah.
+     */
+    public function getKepsekOverview(): JsonResponse
+    {
+        $totalStudents = EwsStudentSummary::count();
+        $highRisk = EwsStudentSummary::where('prioritas_konseling', 'TINGGI')->count();
+        $mediumRisk = EwsStudentSummary::where('prioritas_konseling', 'SEDANG')->count();
+        $lowRisk = EwsStudentSummary::where('prioritas_konseling', 'RENDAH')->count();
+
+        $totalAlerts = EwsCourseAlert::count();
+        $handledAlerts = EwsCourseAlert::whereIn('status', ['konfirmasi_tugas', 'remedial', 'selesai'])->count();
+        $coverageRate = $totalAlerts > 0 ? round(($handledAlerts / $totalAlerts) * 100, 1) : 0.0;
+
+        return response()->json([
+            'success' => true,
+            'kpi' => [
+                'total_students' => $totalStudents,
+                'high_risk' => $highRisk,
+                'medium_risk' => $mediumRisk,
+                'low_risk' => $lowRisk,
+                'total_alerts' => $totalAlerts,
+                'handled_alerts' => $handledAlerts,
+                'coverage_rate' => $coverageRate,
+            ],
+        ]);
     }
 }

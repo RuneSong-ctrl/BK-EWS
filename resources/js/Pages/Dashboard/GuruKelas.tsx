@@ -1,1271 +1,1179 @@
 import * as React from "react"
-import {
-  IconGroup,
-  IconTrendUp,
-  IconAlert,
-  IconCheck,
-  IconChevronRight,
-  IconChevronDown,
-  IconBook,
-  IconSave,
-  IconGraduationCap,
-  IconArrowUpRight,
-  IconAi,
-  IconMagicWand,
-  IconCalendarCheck,
-  IconLoader,
-} from "@/components/ui/storage-icon"
-import { Link, router } from "@inertiajs/react"
 import { AppLayout } from "@/Layouts/AppLayout"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { EwsStatusBadge, type EwsStatus } from "@/components/ews/EwsStatusBadge"
-import { PillarIndicators, type PillarStatuses } from "@/components/ews/PillarIndicators"
-import { LinearScale } from "@/components/forms/LinearScale"
-import { StudentAutocomplete, type StudentOption } from "@/components/forms/StudentAutocomplete"
-import { AiStructuringModal, type AiDraftResult, type AiStructuredResult } from "@/components/ews/AiStructuringModal"
-import { QuickAttendanceModal } from "@/components/forms/QuickAttendanceModal"
-import { QuickAcademicModal } from "@/components/forms/QuickAcademicModal"
-import { ObservationSuccessModal, type SavedObservationDetail } from "@/components/ews/ObservationSuccessModal"
-import { DatePickerInput, formatLocalDateToYMD } from "@/components/ui/date-picker-input"
-import { toast } from "@/hooks/use-toast"
+import { router } from "@inertiajs/react"
+import {
+  IconAlert,
+  IconAlertSign,
+  IconCheck,
+  IconCheckCircle,
+  IconEye,
+  IconBook,
+  IconSpreadsheet,
+  IconTrendUp,
+  IconAi,
+  IconClose,
+  IconSave,
+  IconChevronRight,
+  IconFilter,
+  IconUser,
+  IconUsers,
+  IconArrowLeft,
+  IconArrowRight,
+} from "@/components/ui/storage-icon"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 
-interface StudentRow {
+interface CourseItem {
   id: number
-  name: string
-  nisn: string
-  gender?: string
-  class_name: string
-  avg_score: number | null
-  score_trend: "Naik" | "Turun" | "Stabil" | "-"
-  attendance_rate: number | null
-  alpa_count: number
-  attendances?: Array<{
-    date: string
-    status: "HADIR" | "SAKIT" | "IZIN" | "ALPA" | "TERLAMBAT"
-    late_minutes?: number
-    notes?: string
-  }>
-  academic_records?: Array<{
+  code_module: string
+  nama_mapel: string
+  kategori_mapel: string
+  nama_guru_mapel: string
+  no_wa_guru?: string
+  kkm: number
+}
+
+interface AlertItem {
+  id: number
+  siswa_id: number
+  kode_modul: string
+  nama_mapel: string
+  kategori_mapel: string
+  guru_pengampu: string
+  kkm: number
+  tingkat_risiko: "TINGGI" | "SEDANG" | "RENDAH"
+  probabilitas_risiko: number
+  durasi_belajar_jam: number
+  lesson_attempts: number
+  rasio_ketuntasan_lesson: number
+  nilai_rata_rata_lesson: number
+  tugas_belum_dikumpul: number
+  tugas_terlambat: number
+  nilai_rata_rata_tugas: number
+  metrik_24_fitur_model: {
+    engagement_dan_durasi?: {
+      total_clicks?: number
+      active_days?: number
+      days_inactive?: number
+      is_inactive_gt_5d?: number
+      is_inactive_gt_14d?: number
+      unique_sites_accessed?: number
+      forum_clicks?: number
+      homepage_clicks?: number
+      course_duration_hours?: number
+    }
+    kepatuhan_tugas?: {
+      missing_assignments?: number
+      late_submission_count?: number
+      avg_submission_gap?: number
+      procrastination_count?: number
+    }
+    aktivitas_lesson?: {
+      lesson_attempts_count?: number
+      lesson_completion_ratio?: number
+      lesson_avg_score?: number
+      lesson_time_spent_min?: number
+    }
+    akademik?: {
+      avg_score?: number
+      min_score?: number
+      max_score?: number
+      score_rel_to_module?: number
+      failing_tasks_count?: number
+    }
+    konteks_siswa?: {
+      studied_credits?: number
+      num_of_prev_attempts?: number
+    }
+  }
+  faktor_pemicu?: string[]
+  rekomendasi_tindakan: string
+  status: "pending" | "konfirmasi_tugas" | "remedial" | "selesai"
+  catatan_guru_mapel?: string
+  student?: {
     id: number
-    subject_id: number
-    assessment_type: string
-    period: string
-    score: number
-  }>
-  pillars: PillarStatuses
-  ews_status: EwsStatus
+    nis: string
+    nisn: string
+    name: string
+  }
 }
 
 interface GuruKelasProps {
-  schoolClass?: {
-    id: number
-    name: string
-    grade_level: number
-    academic_year: string
-  } | null
-  students?: StudentRow[]
+  courses?: CourseItem[]
+  activeCourse?: CourseItem
+  selectedModule?: string
+  courseAlerts?: AlertItem[]
   stats?: {
     total_students: number
-    normal_count: number
-    berisiko_count: number
-    waspada_count: number
-    kritis_count: number
-    data_belum_lengkap_count: number
+    high_risk_count: number
+    medium_risk_count: number
+    low_risk_count: number
+    avg_duration_hours: number
+    total_missing_tasks: number
+    handled_count: number
   }
-  subjects?: {
-    id: number
-    code: string
-    name: string
-    passing_grade?: number
-  }[]
+  teacherName?: string
 }
 
+interface DOMAIN_SLIDE_ITEM {
+  key: "engagement" | "tugas" | "lesson" | "akademik" | "konteks"
+  number: number
+  title: string
+  shortTitle: string
+  count: number
+  description: string
+}
+
+const DOMAIN_SLIDES: DOMAIN_SLIDE_ITEM[] = [
+  {
+    key: "engagement",
+    number: 1,
+    title: "Keaktifan & Durasi Belajar",
+    shortTitle: "Keaktifan & Durasi",
+    count: 9,
+    description: "Evaluasi intensitas klik, hari aktif/inaktif, dan akumulasi jam belajar pada modul ini di LMS Moodle.",
+  },
+  {
+    key: "tugas",
+    number: 2,
+    title: "Kepatuhan Tugas & Asesmen",
+    shortTitle: "Kepatuhan Tugas",
+    count: 4,
+    description: "Monitoring keterlambatan pengumpulan, tugas belum diserahkan, dan prokrastinasi menjelang deadline.",
+  },
+  {
+    key: "lesson",
+    number: 3,
+    title: "Aktivitas Interaktif Lesson",
+    shortTitle: "Aktivitas Lesson",
+    count: 4,
+    description: "Tingkat penuntasan materi interaktif, jumlah percobaan berulang, dan pemahaman konsep modul lesson.",
+  },
+  {
+    key: "akademik",
+    number: 4,
+    title: "Performa & Historis Akademik",
+    shortTitle: "Performa Akademik",
+    count: 5,
+    description: "Analisis nilai rata-rata tugas asesmen, nilai terendah, deviasi kelas, dan pemenuhan standar KKM.",
+  },
+  {
+    key: "konteks",
+    number: 5,
+    title: "Konteks Siswa & Beban Belajar",
+    shortTitle: "Konteks Siswa",
+    count: 2,
+    description: "Riwayat pengulangan modul pada semester lampau dan total beban jam pembelajaran terdaftar.",
+  },
+]
+
 export default function GuruKelas({
-  schoolClass,
-  students: initialStudents = [],
-  stats,
-  subjects = [],
+  activeCourse,
+  courses = [],
+  courseAlerts = [],
+  selectedModule = "AAA",
+  stats = {
+    total_students: 0,
+    high_risk_count: 0,
+    medium_risk_count: 0,
+    low_risk_count: 0,
+    avg_duration_hours: 0,
+    total_missing_tasks: 0,
+    handled_count: 0,
+  },
+  teacherName,
 }: GuruKelasProps) {
-  const studentList = initialStudents
-  const className = schoolClass?.name || "Kelas Binaan"
+  const [selectedAlert, setSelectedAlert] = React.useState<AlertItem | null>(null)
+  const [currentSlideIndex, setCurrentSlideIndex] = React.useState<number>(0)
 
+  // Modal Action State
+  const [actionModalAlert, setActionModalAlert] = React.useState<AlertItem | null>(null)
+  const [actionStatus, setActionStatus] = React.useState<"pending" | "konfirmasi_tugas" | "remedial" | "selesai">("konfirmasi_tugas")
+  const [actionNotes, setActionNotes] = React.useState("")
+  const [isSubmittingAction, setIsSubmittingAction] = React.useState(false)
 
-  const [selectedStudent, setSelectedStudent] = React.useState<StudentOption | null>(
-    studentList.length > 0
-      ? {
-        id: studentList[0].id,
-        name: studentList[0].name,
-        nisn: studentList[0].nisn,
-        class_name: studentList[0].class_name || className,
-        ews_status: studentList[0].ews_status,
-      }
-      : null
-  )
-
-  // Keep selectedStudent in sync with refreshed studentList props
-  React.useEffect(() => {
-    if (selectedStudent && studentList.length > 0) {
-      const updated = studentList.find((s) => s.id === selectedStudent.id)
-      if (updated) {
-        setSelectedStudent({
-          id: updated.id,
-          name: updated.name,
-          nisn: updated.nisn,
-          class_name: updated.class_name || className,
-          ews_status: updated.ews_status,
-        })
-      }
-    } else if (!selectedStudent && studentList.length > 0) {
-      setSelectedStudent({
-        id: studentList[0].id,
-        name: studentList[0].name,
-        nisn: studentList[0].nisn,
-        class_name: studentList[0].class_name || className,
-        ews_status: studentList[0].ews_status,
-      })
-    }
-  }, [studentList])
-
-  const [observationDate, setObservationDate] = React.useState(formatLocalDateToYMD(new Date()))
-  const [participationScore, setParticipationScore] = React.useState(3)
-  const [homeworkScore, setHomeworkScore] = React.useState(3)
-  const [quizScore, setQuizScore] = React.useState(3)
-  const [rawText, setRawText] = React.useState("")
-
-  // AI Auto-Complete Modal State
-  const [isAiModalOpen, setIsAiModalOpen] = React.useState(false)
-  const [isAttendanceModalOpen, setIsAttendanceModalOpen] = React.useState(false)
-  const [isAcademicModalOpen, setIsAcademicModalOpen] = React.useState(false)
-  const [savedObservationDetail, setSavedObservationDetail] = React.useState<SavedObservationDetail | null>(null)
-
-  // Table Filter & Segment Tab
-  const [searchQuery, setSearchQuery] = React.useState("")
+  // Filter Bar State
+  const [riskFilter, setRiskFilter] = React.useState<string>("ALL")
   const [statusFilter, setStatusFilter] = React.useState<string>("ALL")
-  const [activeTab, setActiveTab] = React.useState<"ALL" | "ATENSI" | "PRESENSI_RENDAH" | "NILAI_TURUN">("ALL")
+  const [searchQuery, setSearchQuery] = React.useState<string>("")
 
-  const studentAutocompleteOptions: StudentOption[] = studentList.map((s) => ({
-    id: s.id,
-    name: s.name,
-    nisn: s.nisn,
-    class_name: s.class_name || className,
-    ews_status: s.ews_status,
-  }))
-
-  const handleStructureWithAi = () => {
-    if (!selectedStudent) {
-      toast({
-        title: "Pilih Siswa Terlebih Dahulu",
-        description: "Silakan pilih nama siswa yang akan dicatat pengamatannya.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setIsAiModalOpen(true)
+  const handleModuleChange = (codeModule: string) => {
+    router.get(
+      "/guru-kelas/dashboard",
+      { module: codeModule },
+      { preserveState: true, preserveScroll: true }
+    )
   }
 
-  const handleApplyAiDraft = (draft: AiDraftResult) => {
-    if (draft.generated_narrative) {
-      setRawText(draft.generated_narrative)
-    }
-
-    toast({
-      title: "Catatan AI Berhasil Dipasang",
-      description: "Draf catatan pengamatan telah disalin ke formulir. Silakan sesuaikan jika diperlukan.",
-    })
+  const openActionModal = (alert: AlertItem) => {
+    setActionModalAlert(alert)
+    setActionStatus(alert.status || "konfirmasi_tugas")
+    setActionNotes(alert.catatan_guru_mapel || "")
   }
 
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const submitAction = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!actionModalAlert) return
 
-  const handleManualSave = () => {
-    if (!selectedStudent) {
-      toast({
-        title: "Pilih Siswa Terlebih Dahulu",
-        description: "Silakan pilih nama siswa yang akan diobservasi.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setIsSubmitting(true)
-    const currentStudent = selectedStudent
-    const currentText = rawText.trim()
-    const currentScores = {
-      participation: participationScore,
-      homework: homeworkScore,
-      quiz: quizScore,
-    }
-    const currentDate = observationDate
-
-    // Calculate smart category & severity based on linear scales
-    const isPositive = currentScores.participation >= 4 && currentScores.homework >= 4 && currentScores.quiz >= 4
-    const isSevere = currentScores.participation <= 1 || currentScores.homework <= 1
-    const category = isPositive ? "PERILAKU_POSITIF" : "TIDAK_FOKUS"
-    const severity = isSevere ? "SEDANG" : "RINGAN"
-    const finalNarrative = currentText || "Pengamatan rutin kelas oleh wali kelas."
-
-    router.post(
-      "/guru-kelas/observations",
+    setIsSubmittingAction(true)
+    router.patch(
+      `/guru-kelas/alerts/${actionModalAlert.id}/status`,
       {
-        student_id: currentStudent.id,
-        date: currentDate,
-        category: category,
-        severity: severity,
-        raw_text: finalNarrative,
-        narrative: finalNarrative,
-        ai_structured_summary: finalNarrative.length > 200 ? finalNarrative.substring(0, 197) + "..." : finalNarrative,
-        scores: currentScores,
+        status: actionStatus,
+        catatan_guru_mapel: actionNotes,
       },
       {
         preserveScroll: true,
         onSuccess: () => {
-          setSavedObservationDetail({
-            student_id: currentStudent.id,
-            student_name: currentStudent.name,
-            nisn: currentStudent.nisn,
-            class_name: currentStudent.class_name || className,
-            date: currentDate,
-            category: category,
-            severity: severity,
-            narrative: finalNarrative,
-            scores: currentScores,
-          })
-          toast({
-            title: "Observasi Berhasil Disimpan",
-            description: `Catatan pengamatan untuk ${currentStudent.name} telah tersimpan dan skor EWS dihitung ulang.`,
-          })
-          setRawText("")
+          setIsSubmittingAction(false)
+          setActionModalAlert(null)
         },
         onError: () => {
-          toast({
-            title: "Gagal Menyimpan Data",
-            description: "Pastikan seluruh isian formulir telah diisi dengan benar.",
-            variant: "destructive",
-          })
+          setIsSubmittingAction(false)
         },
         onFinish: () => {
-          setIsSubmitting(false)
+          setIsSubmittingAction(false)
         },
       }
     )
   }
 
-  // Action handler to filter student roster to Atensi and smooth scroll down
-  const handleFilterAtensi = React.useCallback(() => {
-    setActiveTab("ATENSI")
-    setStatusFilter("ALL")
-    setSearchQuery("")
-    setTimeout(() => {
-      const el = document.getElementById("rekap")
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" })
+  // Filtered Alerts
+  const filteredAlerts = React.useMemo(() => {
+    return (Array.isArray(courseAlerts) ? courseAlerts : []).filter((alert) => {
+      if (riskFilter !== "ALL" && alert.tingkat_risiko !== riskFilter) {
+        return false
       }
-    }, 50)
-  }, [])
-
-  // Memoized Filter students based on search, dropdown, and active tab
-  const filteredStudents = React.useMemo(() => {
-    const query = searchQuery.trim().toLowerCase()
-    return studentList.filter((s) => {
-      const matchesSearch =
-        query === "" ||
-        s.name.toLowerCase().includes(query) ||
-        (s.nisn && s.nisn.toLowerCase().includes(query))
-
-      const matchesDropdown =
-        statusFilter === "ALL" ? true : s.ews_status === statusFilter
-
-      let matchesTab = true
-      if (activeTab === "ATENSI") {
-        matchesTab = s.ews_status === "KRITIS" || s.ews_status === "WASPADA" || s.ews_status === "BERISIKO"
-      } else if (activeTab === "PRESENSI_RENDAH") {
-        matchesTab = Number(s.attendance_rate || 100) < 85
-      } else if (activeTab === "NILAI_TURUN") {
-        matchesTab = s.score_trend === "Turun"
+      if (statusFilter !== "ALL" && alert.status !== statusFilter) {
+        return false
       }
-
-      return matchesSearch && matchesDropdown && matchesTab
+      if (searchQuery.trim() !== "") {
+        const q = searchQuery.toLowerCase()
+        const nameMatch = (alert.student?.name || "").toLowerCase().includes(q)
+        const nisMatch = (alert.student?.nis || "").toLowerCase().includes(q)
+        if (!nameMatch && !nisMatch) return false
+      }
+      return true
     })
-  }, [studentList, searchQuery, statusFilter, activeTab])
-
-  // Memoized aggregated statistics for zero re-render lag
-  const {
-    totalCount,
-    normalCount,
-    berisikoCount,
-    waspadaCount,
-    kritisCount,
-    atensiCount,
-    normalPct,
-    berisikoPct,
-    waspadaPct,
-    kritisPct,
-    atensiStudents,
-    lowAttendanceCount,
-    hasAttendanceData,
-    avgAttDisplay,
-    avgAttNum,
-    classAvgScore,
-    scoreDropCount,
-    stableScoreCount,
-    studentsWithScore,
-  } = React.useMemo(() => {
-    const total = stats?.total_students || studentList.length || 0
-    const normal = stats?.normal_count || studentList.filter((s) => s.ews_status === "NORMAL").length || 0
-    const berisiko = stats?.berisiko_count || studentList.filter((s) => s.ews_status === "BERISIKO").length || 0
-    const waspada = stats?.waspada_count || studentList.filter((s) => s.ews_status === "WASPADA").length || 0
-    const kritis = stats?.kritis_count || studentList.filter((s) => s.ews_status === "KRITIS").length || 0
-    const atensi = kritis + waspada + berisiko
-
-    const normPct = total > 0 ? Math.round((normal / total) * 100) : 0
-    const berPct = total > 0 ? Math.round((berisiko / total) * 100) : 0
-    const wasPct = total > 0 ? Math.round((waspada / total) * 100) : 0
-    const kriPct = total > 0 ? Math.round((kritis / total) * 100) : 0
-
-    const atensiList = studentList.filter(
-      (s) => s.ews_status === "KRITIS" || s.ews_status === "WASPADA" || s.ews_status === "BERISIKO"
-    )
-
-    const studentsWithAtt = studentList.filter((s) => s.attendance_rate !== null && s.attendance_rate !== undefined)
-    const hasAtt = studentsWithAtt.length > 0
-    const attNum = hasAtt
-      ? Math.round(
-        studentsWithAtt.reduce((acc, curr) => acc + (Number(curr.attendance_rate) || 0), 0) /
-        studentsWithAtt.length
-      )
-      : null
-    const attDisplay = hasAtt ? `${attNum}%` : "-"
-    const lowAttCount = studentList.filter((s) => s.attendance_rate !== null && Number(s.attendance_rate) < 85).length
-
-    const withScore = studentList.filter((s) => s.avg_score !== null && s.avg_score !== undefined)
-    const avgScore =
-      withScore.length > 0
-        ? (
-          withScore.reduce((acc, curr) => acc + (Number(curr.avg_score) || 0), 0) /
-          withScore.length
-        ).toFixed(1)
-        : "-"
-    const dropCount = studentList.filter((s) => s.score_trend === "Turun").length
-    const stableCount = studentList.filter((s) => s.score_trend === "Stabil" || s.score_trend === "Naik").length
-
-    return {
-      totalCount: total,
-      normalCount: normal,
-      berisikoCount: berisiko,
-      waspadaCount: waspada,
-      kritisCount: kritis,
-      atensiCount: atensi,
-      normalPct: normPct,
-      berisikoPct: berPct,
-      waspadaPct: wasPct,
-      kritisPct: kriPct,
-      atensiStudents: atensiList,
-      lowAttendanceCount: lowAttCount,
-      hasAttendanceData: hasAtt,
-      avgAttDisplay: attDisplay,
-      avgAttNum: attNum,
-      classAvgScore: avgScore,
-      scoreDropCount: dropCount,
-      stableScoreCount: stableCount,
-      studentsWithScore: withScore,
-    }
-  }, [stats, studentList])
-
+  }, [courseAlerts, riskFilter, statusFilter, searchQuery])
 
   return (
     <AppLayout
       currentRole="guru_kelas"
       activeMenu="dashboard"
-      title={`Dashboard Wali Kelas  ${className}`}
-      subtitle="Pemantauan perkembangan siswa, presensi harian, nilai akademik, dan catatan jurnal observasi"
+      title="Guru Mata Pelajaran — Tier 1 Deteksi Belajar"
+      subtitle="Monitoring kepatuhan belajar, lesson interaktif, dan asesmen tugas per mata pelajaran Moodle"
     >
-      {/* Top Quick Action Bar */}
-      <div className="p-5 sm:p-6 rounded-3xl neo-card bg-[#EEF2F7] border border-white/85 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)] flex flex-col lg:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5 w-full lg:w-auto">
-          <div className="w-12 h-12 rounded-2xl neo-btn text-blue-700 flex items-center justify-center shrink-0 shadow-xs border border-white/90">
-            <IconBook className="w-6 h-6" />
-          </div>
-          <div>
-            <h3 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
-              Aksi Cepat Wali Kelas {className}
-            </h3>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Input presensi harian, rekap nilai ujian/tugas, dan buat catatan pengamatan siswa
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2.5 w-full lg:w-auto flex-wrap sm:flex-nowrap shrink-0">
-          <button
-            type="button"
-            onClick={() => setIsAttendanceModalOpen(true)}
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl neo-btn text-emerald-800 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-white/90 cursor-pointer transition-all shadow-2xs whitespace-nowrap"
-          >
-            <IconCalendarCheck className="w-4 h-4 text-emerald-700" />
-            <span>Input Presensi</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsAcademicModalOpen(true)}
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl neo-btn text-indigo-800 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 border border-white/90 cursor-pointer transition-all shadow-2xs whitespace-nowrap"
-          >
-            <IconGraduationCap className="w-4 h-4 text-indigo-700" />
-            <span>Input Nilai Akademik</span>
-          </button>
-          <a
-            href="#observasi"
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl neo-btn-primary font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs whitespace-nowrap"
-          >
-            <IconChevronDown className="w-4 h-4 text-white" />
-            <span>Catat Jurnal Siswa</span>
-          </a>
-        </div>
-      </div>
-
-      {/* Ambient EWS Moodle Radar Quick Banner for Homeroom Teacher */}
-      <div className="p-4 sm:p-5 rounded-3xl neo-card bg-[#EEF2F7] border border-white/85 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)] relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/6 rounded-full blur-3xl pointer-events-none" />
-        <div className="flex items-center gap-3.5 relative z-10">
-          <div className="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-200/80 text-blue-700 flex items-center justify-center shrink-0 shadow-2xs">
-            <IconMagicWand className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs sm:text-sm font-bold text-slate-900">
-                Radar Early Warning System (EWS) • LMS Moodle Kelas {className}
-              </span>
-              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">
-                Deteksi Otomatis AI
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Pantau siswa di kelas Anda yang memiliki catatan inaktif di e-learning, tugas tertinggal, atau skor kuis rendah untuk pendampingan santai.
-            </p>
-          </div>
-        </div>
-
-        <Link
-          href="/ews"
-          className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95 shrink-0"
-        >
-          <span>Buka Radar EWS Kelas Saya</span>
-          <IconChevronRight className="w-4 h-4 text-white" />
-        </Link>
-      </div>
-
-      {/* 4-Card Operational Bento Grid for Guru Kelas */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-5 sm:gap-6 items-stretch">
-        {/* ROW 1 - LEFT: Hero Ringkasan Kondisi Kelas (8 Cols) */}
-        <div
-          className="md:col-span-8 p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] relative overflow-hidden border border-white/80 flex flex-col justify-between space-y-4 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)]"
-          style={{
-            background: "radial-gradient(circle at 92% -8%, rgba(37, 99, 235, 0.08) 0%, rgba(238, 242, 247, 0) 48%), #EEF2F7",
-          }}
-        >
-          <div className="flex items-start justify-between gap-4 relative z-10">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-blue-600 ring-3 ring-blue-500/20" />
-                  <span className="text-xs font-bold text-slate-800">Kelas {className}</span>
-                </div>
-                <span className="text-xs font-mono font-semibold text-slate-500">TP {schoolClass?.academic_year || "2026/2027"}</span>
+      <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 space-y-8">
+        
+        {/* Top Header Card: Course Identity & Course Switcher */}
+        <div className="p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] border border-white/80 space-y-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-3 py-1 rounded-xl text-[11px] font-extrabold font-mono tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-2xs">
+                  TIER 1 &bull; GURU MATA PELAJARAN
+                </span>
+                <span className="text-xs text-slate-500 font-bold">
+                  Pengampu: {teacherName || activeCourse?.nama_guru_mapel || "Pendidik Terdaftar"}
+                </span>
               </div>
-              <h2 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
-                Pusat Kendali &amp; Deteksi Dini Wali Kelas
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                {activeCourse?.nama_mapel || "Pemrograman Web dan Perangkat Bergerak"}
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 max-w-3xl leading-relaxed">
+                Evaluasi otomatis performa belajar siswa pada mata pelajaran ini berdasarkan model Machine Learning 24 fitur (durasi jam belajar, aktivitas interaktif Lesson, kepatuhan tugas asesmen, dan historis nilai LMS Moodle).
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2.5 shrink-0 bg-white/80 p-2.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+              <div className="px-3 py-1.5 text-xs font-bold text-slate-600 uppercase tracking-wider">
+                KKM: <span className="font-mono text-slate-900 font-extrabold text-sm">{activeCourse?.kkm || 75}</span>
+              </div>
+              <div className="h-5 w-px bg-slate-200" />
+              <div className="px-3 py-1.5 text-xs font-bold text-indigo-700 bg-indigo-50/60 rounded-xl border border-indigo-200/60 font-mono">
+                {activeCourse?.code_module || selectedModule} &bull; {activeCourse?.kategori_mapel || "Kejuruan"}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pilihan Mata Pelajaran: Responsif Card Grid (Tanpa Horizontal Scroll) */}
+        <div className="space-y-3.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <IconBook className="w-4 h-4 text-indigo-600" />
+              <h2 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">
+                Pilih Mata Pelajaran Terpantau ({courses.length} Mapel)
               </h2>
             </div>
-
-            <div className="w-12 h-12 rounded-2xl neo-btn text-blue-600 flex items-center justify-center shrink-0 shadow-xs border border-white/90">
-              <IconGroup className="w-6 h-6" />
-            </div>
-          </div>
-
-          <div className="space-y-4 relative z-10">
-            <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
-              <span className="text-5xl sm:text-6xl font-extrabold font-number text-slate-900 tracking-tight">
-                {totalCount}
-              </span>
-              <div className="space-y-0.5">
-                <span className="text-sm sm:text-base font-extrabold text-slate-800 block">
-                  Siswa Terdaftar di Kelas {className}
-                </span>
-                <span className="text-xs text-slate-500 font-medium block">
-                  {atensiCount > 0 ? (
-                    <>
-                      <strong className="font-number font-bold text-rose-700">{atensiCount}</strong> Siswa Perlu Atensi Khusus • <strong className="font-number font-bold text-emerald-700">{normalCount}</strong> Siswa Kondisi Aman
-                    </>
-                  ) : (
-                    "Seluruh siswa saat ini berada dalam kondisi aman & kondusif"
-                  )}
-                </span>
-              </div>
-            </div>
-
-            {/* Smart Inset Panel: Watchlist Siswa Prioritas & Agenda Kelas */}
-            <div className="p-4 rounded-2xl neo-inset bg-[#E7EDF4] space-y-3.5 border border-slate-300/40">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-700 border-b border-slate-300/40 pb-2">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-indigo-600 ring-3 ring-indigo-500/20" />
-                  <span>Siswa Perlu Perhatian &amp; Pemantauan Khusus</span>
-                </div>
-                <span className="font-semibold text-slate-500">
-                  <strong className="font-number font-bold">{atensiStudents.length}</strong> Dari {totalCount} Siswa
-                </span>
-              </div>
-
-              {atensiStudents.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {atensiStudents.slice(0, 4).map((s) => (
-                    <Link
-                      key={s.id}
-                      href={`/students/${s.id}`}
-                      className="p-2.5 rounded-xl neo-card-subtle bg-white/90 hover:bg-white border border-slate-200/80 flex items-center justify-between gap-2.5 transition-all shadow-2xs hover:shadow-xs group/card"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div
-                          className={cn(
-                            "w-8 h-8 rounded-xl font-number font-extrabold flex items-center justify-center shrink-0 text-xs",
-                            s.ews_status === "KRITIS"
-                              ? "bg-rose-100 text-rose-800 border border-rose-200"
-                              : s.ews_status === "WASPADA"
-                              ? "bg-orange-100 text-orange-800 border border-orange-200"
-                              : "bg-amber-100 text-amber-800 border border-amber-200"
-                          )}
-                        >
-                          {s.name.charAt(0)}
-                        </div>
-                        <div className="min-w-0">
-                          <h4 className="text-xs font-extrabold text-slate-900 truncate group-hover/card:text-blue-700 transition-colors">
-                            {s.name}
-                          </h4>
-                          <span className="text-[10px] text-slate-500 font-medium block truncate">
-                            NISN: <span className="font-number font-bold text-slate-700">{s.nisn || "-"}</span>
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <span
-                          className={cn(
-                            "px-2 py-0.5 rounded-lg text-[10px] font-bold border",
-                            s.ews_status === "KRITIS"
-                              ? "bg-rose-50 text-rose-700 border-rose-200"
-                              : s.ews_status === "WASPADA"
-                              ? "bg-orange-50 text-orange-700 border-orange-200"
-                              : "bg-amber-50 text-amber-700 border-amber-200"
-                          )}
-                        >
-                          {s.ews_status}
-                        </span>
-                        <IconChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover/card:text-slate-700 group-hover/card:translate-x-0.5 transition-transform" />
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-4 rounded-xl neo-card-subtle bg-white/90 border border-slate-200/80 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                    <IconCheck className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h5 className="text-xs font-bold text-slate-800">Iklim Kelas Kondusif &amp; Terjaga</h5>
-                    <p className="text-[11px] text-slate-500">Seluruh siswa berada dalam zona hijau tanpa indikasi risiko aktif.</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Action Agenda Footer */}
-              <div className="pt-2 flex items-center justify-between text-xs text-slate-500 font-medium border-t border-slate-300/30">
-                <div className="flex items-center gap-3">
-                  <span>Presensi: <strong className="text-slate-800 font-number">{avgAttDisplay}</strong></span>
-                  <span>•</span>
-                  <span>Rata Nilai: <strong className="text-slate-800 font-number">{classAvgScore}</strong></span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleFilterAtensi}
-                  className="font-bold text-blue-700 hover:text-blue-900 inline-flex items-center gap-1 cursor-pointer transition-colors"
-                >
-                  <span>Filter Tabel Siswa</span>
-                  <IconChevronRight className="w-3 h-3" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ROW 1 - RIGHT: Tingkat Kehadiran Kelas (4 Cols) */}
-        <div
-          className="md:col-span-4 p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] relative overflow-hidden border border-white/80 flex flex-col justify-between space-y-4 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)]"
-          style={{
-            background: "radial-gradient(circle at 88% 45%, rgba(16, 185, 129, 0.08) 0%, rgba(238, 242, 247, 0) 45%), #EEF2F7",
-          }}
-        >
-          <div className="flex items-start justify-between gap-4 relative z-10">
-            <div>
-              <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-emerald-800 block">
-                Tingkat Kehadiran Kelas
-              </span>
-              <span className="text-xs text-slate-500 font-medium mt-0.5 block">
-                Rekap Presensi 30 Hari Terakhir
-              </span>
-            </div>
-            <div className="w-12 h-12 rounded-2xl neo-btn text-emerald-600 flex items-center justify-center shrink-0 shadow-xs border border-white/90">
-              <IconTrendUp className="w-6 h-6" />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between gap-4 py-1 relative z-10">
-            <div className="space-y-1">
-              <div className="flex items-baseline gap-2">
-                <span className={cn(
-                  "text-4xl sm:text-5xl font-extrabold tracking-tight",
-                  hasAttendanceData ? "text-emerald-600" : "text-slate-400 font-mono"
-                )}>
-                  {avgAttDisplay}
-                </span>
-
-              </div>
-              <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                {hasAttendanceData
-                  ? "Persentase kehadiran seluruh siswa kelas dalam 30 hari terakhir."
-                  : "Belum ada catatan presensi 30 hari terakhir. Silakan catat presensi."}
-              </p>
-            </div>
-
-            {/* SVG Radial Progress Gauge */}
-            <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
-              <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                <path
-                  className="text-slate-200"
-                  strokeWidth="3.5"
-                  stroke="currentColor"
-                  fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-                {hasAttendanceData && (
-                  <path
-                    className="text-emerald-600"
-                    strokeDasharray={`${avgAttNum || 0}, 100`}
-                    strokeWidth="3.5"
-                    strokeLinecap="round"
-                    stroke="currentColor"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                )}
-              </svg>
-              {hasAttendanceData ? (
-                <IconCheck className="w-5 h-5 text-emerald-600 absolute" />
-              ) : (
-                <IconCalendarCheck className="w-5 h-5 text-slate-400 absolute" />
-              )}
-            </div>
-          </div>
-
-          <div className="pt-3 border-t border-slate-200/80 relative z-10 flex items-center justify-between gap-2">
-            <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-xs text-slate-700">
-              <span
-                className={cn(
-                  "w-2 h-2 rounded-full shrink-0",
-                  !hasAttendanceData
-                    ? "bg-slate-400 ring-4 ring-slate-400/15"
-                    : lowAttendanceCount > 0
-                    ? "bg-rose-500 ring-4 ring-rose-500/15"
-                    : "bg-emerald-500 ring-4 ring-emerald-500/15"
-                )}
-              />
-              <span>
-                {!hasAttendanceData ? (
-                  <span className="font-semibold text-slate-500">Belum Ada Rekap Presensi</span>
-                ) : lowAttendanceCount > 0 ? (
-                  <>
-                    <strong className="font-number font-extrabold text-slate-900">{lowAttendanceCount}</strong> Siswa Presensi &lt; 85%
-                  </>
-                ) : (
-                  <span className="font-semibold text-slate-800">Seluruh Siswa Tertib Hadir</span>
-                )}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsAttendanceModalOpen(true)}
-              className="px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-emerald-700 bg-white/90 hover:bg-white border border-slate-200/80 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
-            >
-              Catat Presensi
-            </button>
-          </div>
-
-        </div>
-
-        {/* ROW 2 - LEFT: Siswa Perlu Perhatian (6 Cols) */}
-        <div
-          className="md:col-span-6 p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] relative overflow-hidden border border-white/80 flex flex-col justify-between space-y-4 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)]"
-          style={{
-            background: "radial-gradient(circle at 12% -12%, rgba(245, 158, 11, 0.08) 0%, rgba(238, 242, 247, 0) 45%), #EEF2F7",
-          }}
-        >
-          <div className="flex items-start justify-between gap-4 relative z-10">
-            <div>
-              <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-800 block">
-                Pemantauan Perilaku Siswa (PR)
-              </span>
-              <span className="text-xs text-slate-500 font-medium mt-0.5 block">
-                Catatan Observasi &amp; Sikap Belajar di Kelas
-              </span>
-            </div>
-            <div className="w-12 h-12 rounded-2xl neo-btn text-amber-600 flex items-center justify-center shrink-0 shadow-xs border border-white/90">
-              <IconAlert className="w-6 h-6" />
-            </div>
-          </div>
-
-          <div className="space-y-3 relative z-10">
-            <div className="flex items-baseline gap-2.5">
-              <span className="text-4xl sm:text-5xl font-extrabold font-number text-amber-600 tracking-tight">
-                {atensiCount}
-              </span>
-              <span className="text-sm sm:text-base font-semibold text-slate-700">
-                Siswa Perlu Perhatian Guru
-              </span>
-            </div>
-
-            {/* Quick Chips of atensi students */}
-            {atensiStudents.length > 0 ? (
-              <div className="flex flex-wrap items-center gap-2 pt-1">
-                {atensiStudents.slice(0, 3).map((s) => (
-                  <Link
-                    key={s.id}
-                    href={`/students/${s.id}`}
-                    className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-white/90 hover:bg-white border border-slate-200/80 text-xs font-bold text-slate-800 transition-all shadow-2xs hover:shadow-xs group/item"
-                  >
-                    <span
-                      className={cn(
-                        "w-2 h-2 rounded-full shrink-0",
-                        s.ews_status === "KRITIS"
-                          ? "bg-rose-500 ring-3 ring-rose-500/20"
-                          : s.ews_status === "WASPADA"
-                            ? "bg-orange-500 ring-3 ring-orange-500/20"
-                            : "bg-amber-400 ring-3 ring-amber-400/20"
-                      )}
-                    />
-                    <span>{s.name}</span>
-                    <IconChevronRight className="w-3 h-3 text-slate-400 group-hover/item:text-slate-700 group-hover/item:translate-x-0.5 transition-transform" />
-                  </Link>
-                ))}
-                {atensiStudents.length > 3 && (
-                  <button
-                    type="button"
-                    onClick={handleFilterAtensi}
-                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800 px-2 py-1 cursor-pointer font-number"
-                  >
-                    +{atensiStudents.length - 3} Siswa Lain &rarr;
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="inline-flex items-center gap-2 text-xs font-medium text-emerald-800 bg-white/90 px-3 py-1.5 rounded-xl border border-emerald-200/80 shadow-2xs">
-                <IconCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Kondisi Baik: Seluruh siswa kelas aktif dan tidak ada kendala perilaku menonjol.</span>
-              </div>
-            )}
-          </div>
-
-          <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs font-semibold relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 text-xs font-semibold text-slate-700 shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-amber-500 ring-4 ring-amber-500/15 shrink-0" />
-              <span>Perlu Observasi Khusus</span>
-            </div>
-            <span className="text-xs font-semibold text-slate-500">
-              <span className="text-rose-600 font-bold font-number">{kritisCount}</span> Kritis • <span className="text-amber-600 font-bold font-number">{waspadaCount}</span> Waspada
+            <span className="text-xs text-slate-400 font-medium hidden sm:inline">
+              Klik kartu mapel untuk berganti pantauan modul Moodle
             </span>
           </div>
-        </div>
 
-        {/* ROW 2 - RIGHT: Perkembangan Nilai Akademik (6 Cols) */}
-        <div
-          className="md:col-span-6 p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] relative overflow-hidden border border-white/80 flex flex-col justify-between space-y-4 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)]"
-          style={{
-            background: "radial-gradient(circle at 90% 105%, rgba(59, 130, 246, 0.08) 0%, rgba(238, 242, 247, 0) 48%), #EEF2F7",
-          }}
-        >
-          <div className="flex items-start justify-between gap-4 relative z-10">
-            <div>
-              <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-blue-800 block">
-                Perkembangan Nilai Akademik (AK)
-              </span>
-              <span className="text-xs text-slate-500 font-medium mt-0.5 block">
-                Rata-rata Nilai Ulangan &amp; Tugas Kelas
-              </span>
-            </div>
-            <div className="w-12 h-12 rounded-2xl neo-btn text-blue-600 flex items-center justify-center shrink-0 shadow-xs border border-white/90">
-              <IconGraduationCap className="w-6 h-6" />
-            </div>
-          </div>
-
-          <div className="space-y-2 relative z-10">
-            <div className="flex items-baseline gap-2.5">
-              <span className="text-4xl sm:text-5xl font-extrabold font-number text-blue-600 tracking-tight">
-                {classAvgScore}
-              </span>
-              <span className="text-sm sm:text-base font-semibold text-slate-700">
-                Rata-rata Nilai ({studentsWithScore.length} Siswa Terdata)
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 leading-relaxed font-medium">
-              {stableScoreCount} siswa nilai tuntas/stabil, {scoreDropCount} siswa mengalami penurunan nilai.
-            </p>
-          </div>
-
-          <div className="flex items-center justify-between pt-3 border-t border-slate-200/80 text-xs font-semibold relative z-10 gap-2">
-            <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-xs text-slate-700">
-              <span
-                className={cn(
-                  "w-2 h-2 rounded-full shrink-0",
-                  scoreDropCount > 0
-                    ? "bg-amber-500 ring-4 ring-amber-500/15"
-                    : "bg-blue-500 ring-4 ring-blue-500/15"
-                )}
-              />
-              <span>
-                {scoreDropCount > 0 ? (
-                  <>
-                    <strong className="font-number font-extrabold text-slate-900">{scoreDropCount}</strong> Siswa Perlu Remedial
-                  </>
-                ) : (
-                  <span className="font-semibold text-slate-800">Nilai Kelas Terpantau Tuntas</span>
-                )}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setIsAcademicModalOpen(true)}
-                className="px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-blue-700 bg-white/90 hover:bg-white border border-slate-200/80 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
-              >
-                Catat Nilai
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("NILAI_TURUN")}
-                className="text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 cursor-pointer text-xs px-2 py-1 hover:bg-white rounded-lg transition-colors"
-              >
-                <span>Filter</span>
-                <IconArrowUpRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Action Panel: Balanced 2-Column Desktop Grid */}
-      <section
-        id="observasi"
-        className="p-6 sm:p-8 rounded-3xl neo-card bg-[#EEF2F7] border border-white/85 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)] space-y-6 scroll-mt-24"
-      >
-        {/* Header with Date Picker */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl neo-btn text-blue-600 flex items-center justify-center shrink-0 shadow-xs border border-white/90">
-              <IconAi className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2.5">
-                <h2 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
-                  Pencatatan Jurnal Observasi Siswa
-                </h2>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-white/90 border border-slate-200/80 shadow-2xs text-xs font-bold text-blue-700">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600 ring-2 ring-blue-500/20" />
-                  <span>Asisten AI</span>
-                </div>
-              </div>
-              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Catat kejadian atau perilaku siswa di kelas untuk memperbarui indikator peringatan dini (EWS)
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="text-xs sm:text-sm font-bold text-slate-600">Tanggal:</span>
-            <DatePickerInput
-              value={observationDate}
-              onChange={setObservationDate}
-              size="md"
-            />
-          </div>
-        </div>
-
-        {/* 2-COLUMN BALANCED FORM LAYOUT */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left Column: Student Selector & Narrative Textarea */}
-          <div className="lg:col-span-7 space-y-4">
-            {/* STEP 1: Search NISN or Student Name */}
-            <div className="space-y-1.5">
-              <Label className="text-xs sm:text-sm font-bold text-slate-800 block">
-                1. Pilih Nama Siswa:
-              </Label>
-              <StudentAutocomplete
-                students={studentAutocompleteOptions}
-                selectedStudent={selectedStudent}
-                onSelect={setSelectedStudent}
-                placeholder="Ketik nama siswa atau NISN..."
-              />
-            </div>
-
-            {/* STEP 2: Free Narrative Textarea with AI Button */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="rawText" className="text-xs sm:text-sm font-bold text-slate-800">
-                  2. Catatan Pengamatan Guru:
-                </Label>
-                <span className="text-xs text-slate-500">
-                  Perilaku / kejadian yang diamati di kelas
-                </span>
-              </div>
-
-              {/* Relative Container for Textarea with AI Button in Bottom Right */}
-              <div className="relative rounded-2xl neo-inset bg-[#E7EDF4] p-1 transition-all">
-                <Textarea
-                  id="rawText"
-                  rows={5}
-                  value={rawText}
-                  onChange={(e) => setRawText(e.target.value)}
-                  placeholder="Tuliskan catatan pengamatan... Contoh: Siswa terlihat sering melamun dan kurang fokus saat jam pelajaran. Tugas kelompok tidak dikerjakan secara aktif."
-                  className="w-full p-4 pb-16 text-sm text-slate-800 placeholder:text-slate-400 leading-relaxed border-0 bg-transparent focus:ring-0 focus:outline-none resize-y min-h-[160px]"
-                />
-
-                {/* AI Drafting Button */}
-                <div className="absolute right-3 bottom-3 flex items-center gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={handleStructureWithAi}
-                    className="neo-btn-primary text-white text-xs sm:text-sm font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
-                  >
-                    <IconMagicWand className="w-4 h-4 text-white" />
-                    <span>Bantu Susun Catatan dengan AI</span>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Parameters & Save Action */}
-          <div className="lg:col-span-5 space-y-4">
-            <div className="p-6 rounded-2xl neo-inset bg-[#E7EDF4] space-y-4 border border-slate-300/40">
-              <Label className="text-xs sm:text-sm font-bold text-slate-800 block border-b border-slate-300/60 pb-2">
-                3. Skala Indikator Pengamatan (1 - 5):
-              </Label>
-
-              {/* Scale 1: Keaktifan */}
-              <LinearScale
-                label="Keaktifan & Keterlibatan di Kelas"
-                description="Keaktifan bertanya, merespon guru, dan kerja kelompok"
-                min={1}
-                max={5}
-                value={participationScore}
-                onChange={setParticipationScore}
-                minLabel="1 (Pasif / Melamun)"
-                midLabel="3 (Cukup Aktif)"
-                maxLabel="5 (Sangat Aktif)"
-              />
-
-              {/* Scale 2: Ketertiban */}
-              <LinearScale
-                label="Ketertiban & Kedisiplinan Tugas"
-                description="Kesiapan buku/alat tulis dan ketepatan mengumpulkan tugas"
-                min={1}
-                max={5}
-                value={homeworkScore}
-                onChange={setHomeworkScore}
-                minLabel="1 (Kurang Tertib)"
-                midLabel="3 (Cukup Tertib)"
-                maxLabel="5 (Sangat Disiplin)"
-              />
-
-              {/* Scale 3: Fokus */}
-              <LinearScale
-                label="Fokus & Konsentrasi Belajar"
-                description="Kemampuan memperhatikan materi dan menyerap penjelasan"
-                min={1}
-                max={5}
-                value={quizScore > 5 ? Math.round(quizScore / 20) : (quizScore || 3)}
-                onChange={setQuizScore}
-                minLabel="1 (Mudah Teralih)"
-                midLabel="3 (Cukup Fokus)"
-                maxLabel="5 (Sangat Fokus)"
-              />
-            </div>
-
-            {/* STEP 4: Action Button */}
-            <div className="p-4 rounded-2xl neo-card-subtle bg-[#EEF2F7] border border-white/90 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <p className="text-xs text-slate-600 leading-snug">
-                Catatan akan langsung memperbarui Pilar Perilaku (PR) siswa.
-              </p>
-
-              <Button
-                type="button"
-                onClick={handleManualSave}
-                disabled={isSubmitting}
-                className="w-full sm:w-auto h-10 px-5 neo-btn-primary disabled:opacity-60 text-white font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 cursor-pointer shrink-0 shadow-xs transition-all active:scale-[0.98]"
-              >
-                {isSubmitting ? (
-                  <IconLoader className="w-4 h-4 text-white animate-spin" />
-                ) : (
-                  <IconSave className="w-4 h-4 text-white" />
-                )}
-                <span>{isSubmitting ? "Menyimpan Catatan..." : "Simpan Catatan Observasi"}</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Roster Table Section */}
-      <section
-        id="rekap"
-        className="p-6 sm:p-8 rounded-3xl neo-card space-y-4 scroll-mt-24 border border-white/85 shadow-[5px_5px_12px_rgba(166,178,196,0.38),-5px_-5px_12px_rgba(255,255,255,0.95)]"
-      >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/60 pb-3">
-          <div>
-            <h2 className="text-sm sm:text-base lg:text-lg font-bold text-slate-900 tracking-tight">
-              Daftar Rekap Siswa &amp; Status 4 Pilar EWS
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              Data nilai, presensi, dan status pemantauan seluruh siswa kelas {className}.
-            </p>
-          </div>
-
-          {/* Table Filters */}
-          <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
-            <input
-              type="text"
-              placeholder="Cari nama atau NISN..."
-              aria-label="Cari siswa di kelas berdasarkan nama atau NISN"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-10 px-3.5 rounded-xl neo-inset bg-[#EEF2F7] text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 w-full sm:w-48 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-            />
-
-            <select
-              value={statusFilter}
-              aria-label="Filter status risiko siswa EWS"
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-10 px-3.5 rounded-xl neo-inset bg-[#EEF2F7] text-xs sm:text-sm font-semibold text-slate-700 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 shrink-0"
-            >
-              <option value="ALL">Semua Status</option>
-              <option value="NORMAL">Normal</option>
-              <option value="BERISIKO">Berisiko</option>
-              <option value="WASPADA">Waspada</option>
-              <option value="KRITIS">Kritis</option>
-              <option value="DATA_BELUM_LENGKAP">Data Belum Lengkap</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Quick Filter Segment Tabs */}
-        <div
-          role="tablist"
-          aria-label="Filter Tab Status Siswa"
-          className="flex items-center gap-1.5 p-1 rounded-2xl neo-inset bg-[#E7EDF4] overflow-x-auto"
-        >
-          {(
-            [
-              { id: "ALL", label: "Semua Siswa", count: studentList.length, badgeColor: "bg-white text-slate-700 border border-slate-200" },
-              { id: "ATENSI", label: "Perlu Atensi", count: atensiCount, badgeColor: "bg-amber-100 text-amber-800" },
-              { id: "PRESENSI_RENDAH", label: "Presensi < 85%", count: lowAttendanceCount, badgeColor: "bg-rose-100 text-rose-800" },
-              { id: "NILAI_TURUN", label: "Tren Nilai Turun", count: scoreDropCount, badgeColor: "bg-orange-100 text-orange-800" },
-            ] as const
-          ).map((tab) => {
-            const isActive = activeTab === tab.id
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={cn(
-                  "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 select-none",
-                  "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none active:scale-95",
-                  isActive
-                    ? "neo-btn-primary text-white shadow-xs"
-                    : "neo-btn bg-[#EEF2F7] text-slate-700 hover:text-slate-900 hover:bg-white border border-white/80"
-                )}
-              >
-                <span>{tab.label}</span>
-                <span
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-3.5">
+            {(Array.isArray(courses) ? courses : []).map((course) => {
+              const isActive = selectedModule === course.code_module
+              return (
+                <button
+                  key={course.id}
+                  type="button"
+                  onClick={() => handleModuleChange(course.code_module)}
                   className={cn(
-                    "px-1.5 py-0.2 rounded-md text-[10px] font-mono font-extrabold",
+                    "p-3.5 rounded-2xl text-left transition-all duration-200 cursor-pointer relative overflow-hidden flex items-center justify-between gap-3 group",
                     isActive
-                      ? "bg-white/20 text-white"
-                      : tab.badgeColor || "bg-white text-slate-600 border border-slate-200"
+                      ? "bg-white border-2 border-indigo-600 shadow-md ring-4 ring-indigo-500/10"
+                      : "bg-white/80 hover:bg-white border border-slate-200/90 hover:border-indigo-300 hover:shadow-xs"
                   )}
                 >
-                  {tab.count}
-                </span>
-              </button>
-            )
-          })}
+                  <div className="flex items-center gap-3 min-w-0">
+                    {/* Compact Code Badge */}
+                    <div
+                      className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center font-mono font-black text-xs shrink-0 transition-colors shadow-2xs",
+                        isActive
+                          ? "bg-indigo-600 text-white"
+                          : "bg-slate-100 text-slate-700 group-hover:bg-indigo-50 group-hover:text-indigo-700 border border-slate-200/70"
+                      )}
+                    >
+                      {course.code_module}
+                    </div>
+
+                    {/* Course Details */}
+                    <div className="min-w-0">
+                      <h3
+                        className={cn(
+                          "text-xs sm:text-sm font-bold truncate transition-colors leading-tight",
+                          isActive ? "text-slate-900 font-extrabold" : "text-slate-700 group-hover:text-indigo-600"
+                        )}
+                        title={course.nama_mapel}
+                      >
+                        {course.nama_mapel}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-400 font-medium">
+                        <span className="truncate max-w-[100px]">{course.kategori_mapel || "Kejuruan"}</span>
+                        <span>&bull;</span>
+                        <span className="font-mono font-bold text-slate-600">KKM {course.kkm || 75}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Active Indicator / Selection Affordance */}
+                  <div className="shrink-0">
+                    {isActive ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap">
+                        <IconCheck className="w-3 h-3 text-indigo-600" />
+                        <span className="hidden sm:inline">Dipantau</span>
+                      </span>
+                    ) : (
+                      <span className="w-6 h-6 rounded-lg bg-slate-100/80 group-hover:bg-indigo-50 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 transition-colors">
+                        <IconChevronRight className="w-3 h-3" />
+                      </span>
+                    )}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
-        {/* Table Container */}
-        <div className="overflow-x-auto rounded-2xl border border-slate-200/80 neo-card-subtle bg-white">
-          <table className="w-full text-xs sm:text-sm text-left">
-            <thead className="bg-[#F0F3F8] text-slate-600 font-bold uppercase tracking-wider text-xs border-b border-slate-200">
-              <tr>
-                <th className="py-3.5 px-4 sticky left-0 bg-[#F0F3F8] z-10 shadow-[1px_0_0_0_#e2e8f0]">Nama Siswa</th>
-                <th className="py-3.5 px-3">NISN</th>
-                <th className="py-3.5 px-3">Rata Nilai</th>
-                <th className="py-3.5 px-3">% Kehadiran</th>
-                <th className="py-3.5 px-3">4 Pilar EWS</th>
-                <th className="py-3.5 px-3">Status EWS</th>
-                <th className="py-3.5 px-4 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredStudents.length > 0 ? (
-                filteredStudents.map((student) => (
-                  <tr
-                    key={student.id}
-                    className="hover:bg-blue-50/40 transition-colors group"
-                  >
-                    <td className="py-4 px-4 sticky left-0 bg-white group-hover:bg-[#F3F7FC] z-10 shadow-[1px_0_0_0_#e2e8f0] transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center group-hover:border-blue-300 shrink-0">
-                          {student.name.charAt(0)}
-                        </div>
-                        <div>
-                          <span className="font-bold text-sm sm:text-base text-slate-900 block group-hover:text-blue-700 whitespace-nowrap">
-                            {student.name}
+        {/* 4 Bento KPI Cards (Neumorphic with Varied Ambient Silhouette Glow) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+          {/* Card 1: Risiko Tinggi */}
+          <div
+            className="p-6 sm:p-7 rounded-3xl neo-card relative overflow-hidden border border-white/80 flex flex-col justify-between min-h-[155px] space-y-4"
+            style={{
+              background:
+                "radial-gradient(circle at 90% 10%, rgba(225, 29, 72, 0.08) 0%, rgba(238, 242, 247, 0) 48%), #EEF2F7",
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Risiko Tinggi (Merah)
+              </span>
+              <div className="w-9 h-9 rounded-2xl bg-white border border-rose-200/80 flex items-center justify-center text-rose-600 shadow-2xs">
+                <IconAlert className="w-4 h-4" />
+              </div>
+            </div>
+            <div>
+              <div className="text-3xl font-black text-rose-600 font-mono tracking-tight">
+                {stats.high_risk_count} <span className="text-xs font-semibold text-slate-500 font-sans">Siswa</span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Probabilitas kegagalan &ge; 70% di LMS Moodle
+              </p>
+            </div>
+            <div className="flex items-center gap-1 text-[11px] font-extrabold text-rose-700">
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+              <span>Prioritas intervensi &amp; konfirmasi</span>
+            </div>
+          </div>
+
+          {/* Card 2: Durasi Belajar Rata-rata */}
+          <div
+            className="p-6 sm:p-7 rounded-3xl neo-card relative overflow-hidden border border-white/80 flex flex-col justify-between min-h-[155px] space-y-4"
+            style={{
+              background:
+                "radial-gradient(circle at 10% 90%, rgba(59, 130, 246, 0.08) 0%, rgba(238, 242, 247, 0) 48%), #EEF2F7",
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Rata-rata Waktu Belajar
+              </span>
+              <div className="w-9 h-9 rounded-2xl bg-white border border-blue-200/80 flex items-center justify-center text-blue-600 shadow-2xs">
+                <IconTrendUp className="w-4 h-4" />
+              </div>
+            </div>
+            <div>
+              <div className="text-3xl font-black text-slate-900 font-mono tracking-tight">
+                {stats.avg_duration_hours} <span className="text-xs font-semibold text-slate-500 font-sans">Jam</span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Akumulasi durasi interaksi materi modul
+              </p>
+            </div>
+            <div className="text-[11px] font-bold text-blue-700">
+              Standar minimum: 12 jam/semester
+            </div>
+          </div>
+
+          {/* Card 3: Tugas Belum Dikumpul */}
+          <div
+            className="p-6 sm:p-7 rounded-3xl neo-card relative overflow-hidden border border-white/80 flex flex-col justify-between min-h-[155px] space-y-4"
+            style={{
+              background:
+                "radial-gradient(circle at 90% 90%, rgba(245, 158, 11, 0.08) 0%, rgba(238, 242, 247, 0) 48%), #EEF2F7",
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Tugas Belum Dikumpul
+              </span>
+              <div className="w-9 h-9 rounded-2xl bg-white border border-amber-200/80 flex items-center justify-center text-amber-600 shadow-2xs">
+                <IconSpreadsheet className="w-4 h-4" />
+              </div>
+            </div>
+            <div>
+              <div className="text-3xl font-black text-amber-600 font-mono tracking-tight">
+                {stats.total_missing_tasks} <span className="text-xs font-semibold text-slate-500 font-sans">Tugas</span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Tugas melewati batas deadline tanpa submission
+              </p>
+            </div>
+            <div className="text-[11px] font-bold text-amber-700">
+              Perlu konfirmasi tagihan di kelas
+            </div>
+          </div>
+
+          {/* Card 4: Tertangani */}
+          <div
+            className="p-6 sm:p-7 rounded-3xl neo-card relative overflow-hidden border border-white/80 flex flex-col justify-between min-h-[155px] space-y-4"
+            style={{
+              background:
+                "radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.08) 0%, rgba(238, 242, 247, 0) 48%), #EEF2F7",
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Telah Ditindaklanjuti
+              </span>
+              <div className="w-9 h-9 rounded-2xl bg-white border border-emerald-200/80 flex items-center justify-center text-emerald-600 shadow-2xs">
+                <IconCheckCircle className="w-4 h-4" />
+              </div>
+            </div>
+            <div>
+              <div className="text-3xl font-black text-emerald-600 font-mono tracking-tight">
+                {stats.handled_count} <span className="text-xs font-semibold text-slate-500 font-sans">Siswa</span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Telah diberi catatan, konfirmasi, atau remedial
+              </p>
+            </div>
+            <div className="text-[11px] font-bold text-emerald-700">
+              {stats.total_students > 0
+                ? `${Math.round((stats.handled_count / stats.total_students) * 100)}% progress respon guru`
+                : "100% terkendali"}
+            </div>
+          </div>
+        </div>
+
+        {/* Filter & Search Bar */}
+        <div className="p-4 sm:p-5 rounded-2xl neo-card bg-[#EEF2F7] border border-white/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 mr-1">
+              <IconFilter className="w-3.5 h-3.5 text-slate-500" />
+              <span>Filter:</span>
+            </span>
+
+            {/* Risk Filter */}
+            <div className="inline-flex rounded-xl bg-white p-1 border border-slate-200 shadow-2xs">
+              {(["ALL", "TINGGI", "SEDANG", "RENDAH"] as const).map((lvl) => (
+                <button
+                  key={lvl}
+                  type="button"
+                  onClick={() => setRiskFilter(lvl)}
+                  className={cn(
+                    "px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer",
+                    riskFilter === lvl
+                      ? "bg-slate-900 text-white shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  )}
+                >
+                  {lvl === "ALL" ? "Semua Risiko" : lvl}
+                </button>
+              ))}
+            </div>
+
+            {/* Status Filter */}
+            <div className="inline-flex rounded-xl bg-white p-1 border border-slate-200 shadow-2xs">
+              {(["ALL", "pending", "konfirmasi_tugas", "remedial", "selesai"] as const).map((st) => (
+                <button
+                  key={st}
+                  type="button"
+                  onClick={() => setStatusFilter(st)}
+                  className={cn(
+                    "px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer capitalize",
+                    statusFilter === st
+                      ? "bg-indigo-600 text-white shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  )}
+                >
+                  {st === "ALL" ? "Semua Status" : st.replace("_", " ")}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Search */}
+          <div className="relative w-full sm:w-64">
+            <input
+              type="text"
+              placeholder="Cari siswa atau NIS..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-9 px-3 text-xs rounded-xl neo-inset bg-white border border-slate-200 focus:outline-none focus:border-indigo-500 text-slate-800 placeholder:text-slate-400 font-medium"
+            />
+          </div>
+        </div>
+
+        {/* Main Table: Siswa Terdeteksi Berisiko pada Mata Pelajaran */}
+        <div className="rounded-3xl neo-card bg-[#EEF2F7] border border-white/80 overflow-hidden shadow-xs">
+          <div className="p-6 sm:p-7 border-b border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 className="text-lg font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                <span>Daftar Siswa Terdeteksi Model EWS Moodle</span>
+                <span className="px-2.5 py-0.5 rounded-lg text-xs font-mono font-bold bg-white text-slate-700 border border-slate-200 shadow-2xs">
+                  {filteredAlerts.length} Siswa
+                </span>
+              </h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Data real-time hasil inferensi model ML terhadap log LMS Moodle modul <span className="font-mono font-bold text-slate-700">{selectedModule}</span>.
+              </p>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-white/60 border-b border-slate-200/80 text-slate-500 text-xs font-bold uppercase tracking-wider">
+                <tr>
+                  <th className="py-4 px-6">Siswa</th>
+                  <th className="py-4 px-6 text-center">Tingkat Risiko</th>
+                  <th className="py-4 px-4 text-center">Durasi Jam</th>
+                  <th className="py-4 px-4 text-center">Lesson Attempts</th>
+                  <th className="py-4 px-4 text-center">Tugas Bolong</th>
+                  <th className="py-4 px-6">Status Tindakan Guru</th>
+                  <th className="py-4 px-6 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200/60 text-slate-700">
+                {filteredAlerts.map((alert) => {
+                  const studentName = alert.student?.name || `Siswa ${alert.siswa_id}`
+                  const riskPercentage = Math.round(alert.probabilitas_risiko * 100)
+
+                  return (
+                    <tr key={alert.id} className="hover:bg-white/50 transition-colors">
+                      <td className="py-4 px-6">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedAlert(alert)}
+                          className="text-left group cursor-pointer"
+                        >
+                          <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors flex items-center gap-1.5">
+                            <span>{studentName}</span>
+                            <IconEye className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-indigo-500 transition-opacity" />
+                          </div>
+                          <span className="text-xs text-slate-400 font-mono">
+                            NIS: {alert.student?.nis || alert.siswa_id}
                           </span>
-                          <span className="text-xs text-slate-500 font-mono">
-                            {student.class_name}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
+                        </button>
+                      </td>
 
-                    <td className="py-4 px-3 font-mono text-xs sm:text-sm text-slate-600 whitespace-nowrap">
-                      {student.nisn}
-                    </td>
-
-
-                    <td className="py-4 px-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-extrabold font-number text-xs sm:text-sm text-slate-900">
-                          {student.avg_score !== null && student.avg_score !== undefined ? student.avg_score : "-"}
+                      <td className="py-4 px-6 text-center whitespace-nowrap">
+                        <span
+                          className={cn(
+                            "inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-extrabold border shadow-2xs whitespace-nowrap",
+                            alert.tingkat_risiko === "TINGGI"
+                              ? "bg-rose-50 text-rose-700 border-rose-200"
+                              : alert.tingkat_risiko === "SEDANG"
+                              ? "bg-amber-50 text-amber-700 border-amber-200"
+                              : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                          )}
+                        >
+                          <span>{alert.tingkat_risiko}</span>
+                          <span className="font-mono text-[11px] opacity-80">({riskPercentage}%)</span>
                         </span>
-                        {student.score_trend !== "-" && (
-                          <span
-                            className={cn(
-                              "text-xs font-bold px-1.5 py-0.5 rounded",
-                              student.score_trend === "Naik" || student.score_trend === "Stabil"
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                : student.score_trend === "Turun"
-                                  ? "bg-rose-50 text-rose-700 border border-rose-200"
-                                  : "bg-slate-100 text-slate-600"
-                            )}
+                      </td>
+
+                      <td className="py-4 px-4 text-center font-mono font-bold text-slate-800 whitespace-nowrap">
+                        {alert.durasi_belajar_jam} jam
+                      </td>
+
+                      <td className="py-4 px-4 text-center whitespace-nowrap">
+                        <div className="font-mono font-bold text-slate-800">
+                          {alert.lesson_attempts}x
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-semibold">
+                          Skor: {alert.nilai_rata_rata_lesson}
+                        </span>
+                      </td>
+
+                      <td className="py-4 px-4 text-center whitespace-nowrap">
+                        {alert.tugas_belum_dikumpul > 0 ? (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-extrabold bg-rose-50 text-rose-700 border border-rose-200 font-mono whitespace-nowrap">
+                            {alert.tugas_belum_dikumpul} tugas
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center text-xs text-emerald-600 font-bold justify-center gap-1 whitespace-nowrap">
+                            <IconCheck className="w-3.5 h-3.5" /> Lengkap
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="py-4 px-6 whitespace-nowrap">
+                        {alert.status === "pending" && (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-slate-600 border border-slate-200 shadow-2xs whitespace-nowrap">
+                            Menunggu Respon
+                          </span>
+                        )}
+                        {alert.status === "konfirmasi_tugas" && (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs whitespace-nowrap">
+                            Konfirmasi Tugas
+                          </span>
+                        )}
+                        {alert.status === "remedial" && (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200 shadow-2xs whitespace-nowrap">
+                            Program Remedial
+                          </span>
+                        )}
+                        {alert.status === "selesai" && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs whitespace-nowrap">
+                            <IconCheck className="w-3 h-3 shrink-0" /> Selesai Ditangani
+                          </span>
+                        )}
+                        {alert.catatan_guru_mapel && (
+                          <p className="text-[11px] text-slate-500 italic mt-1 truncate max-w-xs" title={alert.catatan_guru_mapel}>
+                            &ldquo;{alert.catatan_guru_mapel}&rdquo;
+                          </p>
+                        )}
+                      </td>
+
+                      <td className="py-4 px-6 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openActionModal(alert)}
+                            className="px-3.5 py-1.5 rounded-xl neo-btn bg-white hover:bg-slate-50 text-indigo-700 border border-indigo-200/80 text-xs font-bold shadow-2xs active:scale-95 cursor-pointer"
                           >
-                            {student.score_trend}
-                          </span>
-                        )}
+                            Tindakan
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedAlert(alert)}
+                            className="p-2 rounded-xl neo-btn bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 text-xs shadow-2xs active:scale-95 cursor-pointer"
+                            title="Lihat Rincian 24 Indikator Moodle"
+                          >
+                            <IconEye className="w-4 h-4 text-slate-600" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+                {filteredAlerts.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="text-center py-16 text-slate-400">
+                      <div className="flex flex-col items-center justify-center space-y-2">
+                        <IconCheckCircle className="w-8 h-8 text-emerald-500/70" />
+                        <span className="font-bold text-sm text-slate-600">Tidak ada siswa berisiko pada filter ini</span>
+                        <span className="text-xs text-slate-400">Seluruh siswa aktif terpantau aman dan memenuhi KKM.</span>
                       </div>
-                    </td>
-
-                    <td className="py-4 px-3 whitespace-nowrap">
-                      <div>
-                        <span className="font-extrabold font-number text-xs sm:text-sm text-slate-900">
-                          {student.attendance_rate !== null && student.attendance_rate !== undefined ? `${student.attendance_rate}%` : "-"}
-                        </span>
-                        {student.alpa_count > 0 && (
-                          <span className="block text-xs text-rose-600 font-bold font-number">
-                            {student.alpa_count}x Alpa
-                          </span>
-                        )}
-                      </div>
-                    </td>
-
-                    <td className="py-4 px-3 whitespace-nowrap">
-                      <PillarIndicators pillars={student.pillars} />
-                    </td>
-
-                    <td className="py-4 px-3 whitespace-nowrap">
-                      <EwsStatusBadge status={student.ews_status} size="sm" />
-                    </td>
-
-                    <td className="py-4 px-4 text-right whitespace-nowrap">
-                      <Link
-                        href={`/students/${student.id}`}
-                        className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-800 p-2 rounded-xl hover:bg-blue-50 transition-colors"
-                      >
-                        <span>Detail</span>
-                        <IconChevronRight className="w-4 h-4" />
-                      </Link>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7} className="py-8 text-center text-xs sm:text-sm text-slate-400">
-                    Tidak ada siswa yang sesuai dengan kriteria filter.
-                  </td>
-                </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      {/* SHADCN DIALOG 1: Rincian Diagnosa 24 Fitur AI Moodle */}
+      <Dialog open={!!selectedAlert} onOpenChange={(open) => !open && setSelectedAlert(null)}>
+        <DialogContent className="max-w-5xl 2xl:max-w-6xl w-[95vw] max-h-[92vh] overflow-y-auto bg-[#EEF2F7] border border-white/90 shadow-2xl rounded-3xl p-6 sm:p-8 space-y-6">
+          {selectedAlert && (
+            <>
+              <DialogHeader className="border-b border-slate-200/60 pb-4">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold font-mono uppercase bg-indigo-50 text-indigo-700 border border-indigo-200">
+                    DIAGNOSIS 24 INDIKATOR MOODLE
+                  </span>
+                  <span className="text-xs text-slate-400 font-mono">
+                    Modul: {selectedAlert.kode_modul} &bull; {selectedAlert.nama_mapel}
+                  </span>
+                </div>
+                <DialogTitle className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight mt-1">
+                  {selectedAlert.student?.name || `Siswa ${selectedAlert.siswa_id}`}
+                </DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm text-slate-500">
+                  NIS: {selectedAlert.student?.nis || selectedAlert.siswa_id} &bull; Tingkat Risiko:{" "}
+                  <span className="font-extrabold text-rose-600">
+                    {selectedAlert.tingkat_risiko} ({Math.round(selectedAlert.probabilitas_risiko * 100)}%)
+                  </span>
+                </DialogDescription>
+              </DialogHeader>
+
+              {/* Rekomendasi Tindakan AI */}
+              <div className="p-5 rounded-2xl neo-card bg-white border border-slate-200/80 space-y-2.5">
+                <div className="flex items-center gap-2 text-indigo-700 text-xs font-extrabold uppercase tracking-wider">
+                  <IconAi className="w-4 h-4" />
+                  <span>Rekomendasi Tindakan Guru Mapel</span>
+                </div>
+                <p className="text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
+                  {selectedAlert.rekomendasi_tindakan}
+                </p>
+                {Array.isArray(selectedAlert.faktor_pemicu) && selectedAlert.faktor_pemicu.length > 0 && (
+                  <div className="pt-2 border-t border-slate-100">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase">Faktor Pemicu Utama:</span>
+                    <ul className="text-xs text-slate-600 space-y-1 list-disc pl-4 pt-1">
+                      {selectedAlert.faktor_pemicu.map((p, idx) => (
+                        <li key={idx}>{p}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              {/* Slide Stepper Header (Single Navigation Control in Footer) */}
+              <div className="p-5 rounded-2xl neo-card bg-white border border-slate-200/80 space-y-4 shadow-2xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <span className="px-3 py-1 rounded-xl bg-indigo-600 text-white font-mono font-bold text-xs shadow-2xs whitespace-nowrap">
+                      Slide {currentSlideIndex + 1} dari {DOMAIN_SLIDES.length}
+                    </span>
+                    <h3 className="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight">
+                      {DOMAIN_SLIDES[currentSlideIndex].title}
+                    </h3>
+                    <span className="text-xs text-indigo-700 font-bold bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200/60 whitespace-nowrap">
+                      {DOMAIN_SLIDES[currentSlideIndex].count} Indikator Terukur
+                    </span>
+                  </div>
+                  <span className="text-xs text-slate-400 font-medium hidden sm:inline">
+                    Pilih tab domain di bawah untuk navigasi langsung
+                  </span>
+                </div>
+
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  {DOMAIN_SLIDES[currentSlideIndex].description}
+                </p>
+
+                {/* 5-Domain Stepper Tabs (Untruncated, Spacious & Responsive) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 pt-1">
+                  {DOMAIN_SLIDES.map((slide, idx) => {
+                    const isActive = currentSlideIndex === idx
+                    return (
+                      <button
+                        key={slide.key}
+                        type="button"
+                        onClick={() => setCurrentSlideIndex(idx)}
+                        className={cn(
+                          "p-3 rounded-2xl text-left transition-all cursor-pointer flex flex-col justify-between gap-1.5 group",
+                          isActive
+                            ? "bg-indigo-600 text-white shadow-md ring-2 ring-indigo-400/40"
+                            : "bg-[#EEF2F7] hover:bg-white text-slate-700 border border-slate-200/80 hover:border-slate-300 shadow-2xs hover:shadow-xs"
+                        )}
+                      >
+                        <div className="flex items-center justify-between gap-1">
+                          <span
+                            className={cn(
+                              "px-2 py-0.5 rounded-md text-[10px] font-black font-mono",
+                              isActive ? "bg-white/20 text-white" : "bg-white text-slate-600 border border-slate-200"
+                            )}
+                          >
+                            Domain {slide.number}
+                          </span>
+                          <span
+                            className={cn(
+                              "text-[10px] font-bold font-mono",
+                              isActive ? "text-indigo-100" : "text-slate-400"
+                            )}
+                          >
+                            {slide.count} Fitur
+                          </span>
+                        </div>
+                        <span
+                          className={cn(
+                            "text-xs font-bold leading-snug",
+                            isActive ? "text-white font-extrabold" : "text-slate-800 group-hover:text-indigo-600"
+                          )}
+                        >
+                          {slide.title}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* SLIDE 1: Keaktifan & Durasi (9 Fitur) */}
+              {currentSlideIndex === 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-3.5">
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Total Klik Log</span>
+                    <div className="text-xl font-black text-slate-900 font-mono mt-0.5">
+                      {selectedAlert.metrik_24_fitur_model?.engagement_dan_durasi?.total_clicks ?? "-"}
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-medium">Interaksi e-learning</span>
+                  </div>
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Hari Aktif Belajar</span>
+                    <div className="text-xl font-black text-slate-900 font-mono mt-0.5">
+                      {selectedAlert.metrik_24_fitur_model?.engagement_dan_durasi?.active_days ?? "-"} hari
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-medium">Semester aktif</span>
+                  </div>
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Hari Inaktif Terakhir</span>
+                    <div className="text-xl font-black text-slate-900 font-mono mt-0.5">
+                      {selectedAlert.metrik_24_fitur_model?.engagement_dan_durasi?.days_inactive ?? "-"} hari
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-medium">Sejak akses terakhir</span>
+                  </div>
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Durasi Jam Belajar</span>
+                    <div className="text-xl font-black text-indigo-600 font-mono mt-0.5">
+                      {selectedAlert.durasi_belajar_jam} jam
+                    </div>
+                    <span className="text-[10px] text-indigo-600 font-bold">Total durasi materi</span>
+                  </div>
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Status Inaktif Kritis</span>
+                    <div className="text-xl font-black text-slate-900 font-mono mt-0.5">
+                      {selectedAlert.metrik_24_fitur_model?.engagement_dan_durasi?.is_inactive_gt_14d ? (
+                        <span className="text-rose-600 font-bold">Ya (&gt;14 Hari)</span>
+                      ) : (
+                        <span className="text-emerald-600 font-bold">Aman (&le;14 Hari)</span>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-medium">Batas waspada sekolah</span>
+                  </div>
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Modul Unik Diakses</span>
+                    <div className="text-xl font-black text-slate-900 font-mono mt-0.5">
+                      {selectedAlert.metrik_24_fitur_model?.engagement_dan_durasi?.unique_sites_accessed ?? "-"} modul
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-medium">Variasi resource</span>
+                  </div>
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Klik Diskusi Forum</span>
+                    <div className="text-xl font-black text-slate-900 font-mono mt-0.5">
+                      {selectedAlert.metrik_24_fitur_model?.engagement_dan_durasi?.forum_clicks ?? 0} klik
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-medium">Interaksi tanya-jawab</span>
+                  </div>
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Klik Beranda Modul</span>
+                    <div className="text-xl font-black text-slate-900 font-mono mt-0.5">
+                      {selectedAlert.metrik_24_fitur_model?.engagement_dan_durasi?.homepage_clicks ?? 0} klik
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-medium">Akses beranda mapel</span>
+                  </div>
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Inaktif &gt; 5 Hari</span>
+                    <div className="text-xl font-black text-slate-900 font-mono mt-0.5">
+                      {selectedAlert.metrik_24_fitur_model?.engagement_dan_durasi?.is_inactive_gt_5d ? (
+                        <span className="text-amber-600 font-bold">Ya</span>
+                      ) : (
+                        <span className="text-emerald-600 font-bold">Tidak</span>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-medium">Early alert 5 hari</span>
+                  </div>
+                </div>
               )}
-            </tbody>
-          </table>
-        </div>
 
-        {/* Legend for 4 Pillars */}
-        <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-2 border-t border-slate-200/60 select-none">
-          <span className="font-bold text-slate-700">Keterangan Pilar EWS:</span>
-          <span><strong className="font-mono text-slate-700">AK</strong> = Akademik</span>
-          <span><strong className="font-mono text-slate-700">KH</strong> = Kehadiran</span>
-          <span><strong className="font-mono text-slate-700">PR</strong> = Observasi Perilaku</span>
-          <span><strong className="font-mono text-slate-700">BK</strong> = Bimbingan Konseling</span>
-        </div>
-      </section>
+              {/* SLIDE 2: Kepatuhan Tugas (4 Fitur) */}
+              {currentSlideIndex === 1 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Tugas Belum Dikumpul</span>
+                    <div className="text-2xl font-black text-rose-600 font-mono mt-1">
+                      {selectedAlert.metrik_24_fitur_model?.kepatuhan_tugas?.missing_assignments ?? selectedAlert.tugas_belum_dikumpul} tugas
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">Tugas yang melewati batas waktu tanpa berkas submission.</p>
+                  </div>
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Tugas Terlambat</span>
+                    <div className="text-2xl font-black text-amber-600 font-mono mt-1">
+                      {selectedAlert.metrik_24_fitur_model?.kepatuhan_tugas?.late_submission_count ?? selectedAlert.tugas_terlambat} kali
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">Pengumpulan yang melebihi batas due date modul.</p>
+                  </div>
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Rata-rata Gap Deadline</span>
+                    <div className="text-2xl font-black text-slate-900 font-mono mt-1">
+                      {selectedAlert.metrik_24_fitur_model?.kepatuhan_tugas?.avg_submission_gap ?? 0} hari
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">Selisih waktu penyerahan berkas terhadap tenggat tugas.</p>
+                  </div>
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Submit Menit Terakhir</span>
+                    <div className="text-2xl font-black text-slate-900 font-mono mt-1">
+                      {selectedAlert.metrik_24_fitur_model?.kepatuhan_tugas?.procrastination_count ?? 0} kali
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">Pola prokrastinasi pengumpulan &lt; 30 menit sebelum deadline.</p>
+                  </div>
+                </div>
+              )}
 
-      {/* AI Drafting & Auto-Complete Studio Modal */}
-      <AiStructuringModal
-        isOpen={isAiModalOpen}
-        onClose={() => setIsAiModalOpen(false)}
-        onApplyToForm={handleApplyAiDraft}
-        studentName={selectedStudent?.name || "Siswa"}
-        initialRawText={rawText}
-      />
+              {/* SLIDE 3: Aktivitas Lesson (4 Fitur) */}
+              {currentSlideIndex === 2 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Percobaan Lesson</span>
+                    <div className="text-2xl font-black text-slate-900 font-mono mt-1">
+                      {selectedAlert.lesson_attempts} kali
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">Frekuensi pengulangan membaca modul materi bertingkat.</p>
+                  </div>
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Rasio Ketuntasan Lesson</span>
+                    <div className="text-2xl font-black text-indigo-600 font-mono mt-1">
+                      {Math.round(selectedAlert.rasio_ketuntasan_lesson * 100)}%
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">Persentase halaman interaktif yang telah diselesaikan.</p>
+                  </div>
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Waktu di Modul Lesson</span>
+                    <div className="text-2xl font-black text-slate-900 font-mono mt-1">
+                      {selectedAlert.metrik_24_fitur_model?.aktivitas_lesson?.lesson_time_spent_min ?? 0} menit
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">Akumulasi durasi fokus membaca materi interaktif.</p>
+                  </div>
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Nilai Pemahaman Lesson</span>
+                    <div className="text-2xl font-black text-slate-900 font-mono mt-1">
+                      {selectedAlert.nilai_rata_rata_lesson}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">Rata-rata skor kuis kecil di akhir tiap bab materi.</p>
+                  </div>
+                </div>
+              )}
 
-      {/* Daily Class Bulk Attendance Modal */}
-      <QuickAttendanceModal
-        isOpen={isAttendanceModalOpen}
-        onClose={() => setIsAttendanceModalOpen(false)}
-        classNameTitle={className}
-        students={studentList}
-      />
+              {/* SLIDE 4: Performa Akademik (5 Fitur) */}
+              {currentSlideIndex === 3 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Nilai Rata-rata Tugas</span>
+                    <div className="text-2xl font-black text-slate-900 font-mono mt-1">
+                      {selectedAlert.metrik_24_fitur_model?.akademik?.avg_score ?? selectedAlert.nilai_rata_rata_tugas}
+                    </div>
+                    <span className="text-[10px] text-slate-400 block mt-1">Skor tugas siswa</span>
+                  </div>
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Nilai Terendah</span>
+                    <div className="text-2xl font-black text-slate-900 font-mono mt-1">
+                      {selectedAlert.metrik_24_fitur_model?.akademik?.min_score ?? "-"}
+                    </div>
+                    <span className="text-[10px] text-slate-400 block mt-1">Titik terendah asesmen</span>
+                  </div>
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Deviasi vs Kelas</span>
+                    <div className="text-2xl font-black text-slate-900 font-mono mt-1">
+                      {selectedAlert.metrik_24_fitur_model?.akademik?.score_rel_to_module ?? "-"}
+                    </div>
+                    <span className="text-[10px] text-slate-400 block mt-1">Posisi relatif modul</span>
+                  </div>
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Tugas di Bawah KKM</span>
+                    <div className="text-2xl font-black text-rose-600 font-mono mt-1">
+                      {selectedAlert.metrik_24_fitur_model?.akademik?.failing_tasks_count ?? 0} tugas
+                    </div>
+                    <span className="text-[10px] text-rose-600 font-bold block mt-1">Butuh remedial</span>
+                  </div>
+                  <div className="p-4 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Standar KKM Modul</span>
+                    <div className="text-2xl font-black text-slate-900 font-mono mt-1">
+                      {selectedAlert.kkm || 75}
+                    </div>
+                    <span className="text-[10px] text-slate-400 block mt-1">Ambang batas tuntas</span>
+                  </div>
+                </div>
+              )}
 
-      {/* Class Bulk Academic Scores Modal */}
-      <QuickAcademicModal
-        isOpen={isAcademicModalOpen}
-        onClose={() => setIsAcademicModalOpen(false)}
-        classNameTitle={className}
-        students={studentList}
-        subjects={subjects}
-      />
+              {/* SLIDE 5: Konteks Siswa & Beban Belajar (2 Fitur) */}
+              {currentSlideIndex === 4 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-5 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Riwayat Mengulang Modul</span>
+                    <div className="text-2xl font-black text-slate-900 font-mono mt-1">
+                      {selectedAlert.metrik_24_fitur_model?.konteks_siswa?.num_of_prev_attempts ?? 0} kali
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">Apakah siswa pernah mengambil modul ini di semester sebelumnya.</p>
+                  </div>
+                  <div className="p-5 rounded-2xl neo-card bg-white border border-slate-200">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">Beban Jam Belajar / SKS</span>
+                    <div className="text-2xl font-black text-slate-900 font-mono mt-1">
+                      {selectedAlert.metrik_24_fitur_model?.konteks_siswa?.studied_credits ?? 60} jam
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">Total beban kurikulum yang diambil pada semester aktif.</p>
+                  </div>
+                </div>
+              )}
 
-      {/* Observation Save Success Confirmation Modal */}
-      <ObservationSuccessModal
-        isOpen={Boolean(savedObservationDetail)}
-        onClose={() => setSavedObservationDetail(null)}
-        onAddAnother={() => {
-          setSavedObservationDetail(null)
-          setRawText("")
-          const formEl = document.getElementById("observasi")
-          if (formEl) formEl.scrollIntoView({ behavior: "smooth" })
-        }}
-        detail={savedObservationDetail}
-      />
+              {/* Dialog Footer: Navigasi Slide Bersatu & Aksi Tindak Lanjut */}
+              <DialogFooter className="pt-4 border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentSlideIndex((prev) => Math.max(0, prev - 1))}
+                    disabled={currentSlideIndex === 0}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl neo-btn bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold border border-slate-200/80 disabled:opacity-40 disabled:pointer-events-none cursor-pointer active:scale-95 transition-all shadow-2xs"
+                  >
+                    <IconArrowLeft className="w-3.5 h-3.5" />
+                    <span>Sebelumnya</span>
+                  </button>
+                  {currentSlideIndex < DOMAIN_SLIDES.length - 1 ? (
+                    <button
+                      type="button"
+                      onClick={() => setCurrentSlideIndex((prev) => Math.min(DOMAIN_SLIDES.length - 1, prev + 1))}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl neo-btn-primary text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all"
+                    >
+                      <span>Berikutnya (Slide {currentSlideIndex + 2})</span>
+                      <IconArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  ) : (
+                    <span className="text-xs font-bold text-emerald-600 inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 rounded-xl border border-emerald-200 whitespace-nowrap">
+                      <IconCheck className="w-3.5 h-3.5 text-emerald-600" /> 24 Indikator Lengkap
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectedAlert) {
+                        openActionModal(selectedAlert)
+                      }
+                    }}
+                    className="px-4 py-2 rounded-xl neo-btn bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold border border-indigo-200 cursor-pointer shadow-2xs active:scale-95 transition-all"
+                  >
+                    Tindak Lanjut Siswa
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAlert(null)}
+                    className="px-4 py-2 rounded-xl neo-btn bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold border border-slate-200/80 cursor-pointer shadow-2xs active:scale-95 transition-all"
+                  >
+                    Tutup Rincian
+                  </button>
+                </div>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* SHADCN DIALOG 2: Form Tindak Lanjut Guru Mapel */}
+      <Dialog open={!!actionModalAlert} onOpenChange={(open) => !open && setActionModalAlert(null)}>
+        <DialogContent className="max-w-md bg-[#EEF2F7] border border-white/90 shadow-2xl rounded-3xl p-6 sm:p-8 space-y-5">
+          {actionModalAlert && (
+            <>
+              <DialogHeader className="border-b border-slate-200/60 pb-3.5">
+                <span className="text-[11px] font-extrabold font-mono text-indigo-600 uppercase tracking-wider">
+                  AKSI TIER 1 GURU MAPEL
+                </span>
+                <DialogTitle className="text-lg font-extrabold text-slate-900 tracking-tight mt-0.5">
+                  Tindak Lanjut Alert Belajar Siswa
+                </DialogTitle>
+                <DialogDescription className="text-xs text-slate-500">
+                  {actionModalAlert.student?.name || `Siswa ${actionModalAlert.siswa_id}`} &bull; Modul {actionModalAlert.kode_modul}
+                </DialogDescription>
+              </DialogHeader>
+
+              <form onSubmit={submitAction} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Pilih Status Tindakan
+                  </label>
+                  <select
+                    value={actionStatus}
+                    onChange={(e) => setActionStatus(e.target.value as any)}
+                    className="w-full h-10 px-3.5 rounded-xl bg-white border border-slate-200 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none font-medium shadow-2xs"
+                  >
+                    <option value="konfirmasi_tugas">Konfirmasi Tugas di Kelas</option>
+                    <option value="remedial">Jadwalkan Program Remedial</option>
+                    <option value="selesai">Tandai Sudah Selesai Ditangani</option>
+                    <option value="pending">Kembalikan ke Pending</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Catatan Guru Mapel
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={actionNotes}
+                    onChange={(e) => setActionNotes(e.target.value)}
+                    placeholder="Contoh: Siswa sudah diingatkan di kelas untuk mengumpulkan kuis susulan modul AAA sebelum hari Jumat."
+                    className="w-full p-3 rounded-xl bg-white border border-slate-200 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none shadow-2xs"
+                  />
+                </div>
+
+                <DialogFooter className="pt-3 border-t border-slate-200/60 flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setActionModalAlert(null)}
+                    className="px-4 py-2.5 rounded-xl neo-btn bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold border border-slate-200/80 cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingAction}
+                    className="px-5 py-2.5 rounded-xl neo-btn-primary text-white text-xs font-bold shadow-xs disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                  >
+                    <IconSave className="w-3.5 h-3.5" />
+                    <span>{isSubmittingAction ? "Menyimpan..." : "Simpan Tindakan"}</span>
+                  </button>
+                </DialogFooter>
+              </form>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </AppLayout>
   )
 }

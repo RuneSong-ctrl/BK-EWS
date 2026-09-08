@@ -7,270 +7,164 @@
 ---
 
 ## DAFTAR ISI
-1. [Ringkasan Eksekutif](#1-ringkasan-eksekutif)
-2. [Riwayat Commit Git](#2-riwayat-commit-git)
+1. [Ringkasan Arsitektur 2-Tier & 4 Peran Pengguna](#1-ringkasan-arsitektur-2-tier--4-peran-pengguna)
+2. [Penghapusan Observasi Manual Lama](#2-penghapusan-observasi-manual-lama)
 3. [Perubahan Database, Migrasi, & Seeder](#3-perubahan-database-migrasi--seeder)
 4. [Perubahan Backend & REST API](#4-perubahan-backend--rest-api)
 5. [Perubahan Frontend & Antarmuka Multirole](#5-perubahan-frontend--antarmuka-multirole)
-6. [Kontrak Data API & Integrasi Engine AI / Worker VPS](#6-kontrak-data-api--integrasi-engine-ai--worker-vps)
+6. [Pemetaan 24 Indikator Moodle (5 Domain)](#6-pemetaan-24-indikator-moodle-5-domain)
 7. [Daftar Kredensial Akun Pengujian](#7-daftar-kredensial-akun-pengujian)
 8. [Petunjuk Pengujian & Verifikasi](#8-petunjuk-pengujian--verifikasi)
 
 ---
 
-## 1. Ringkasan Eksekutif
+## 1. Ringkasan Arsitektur 2-Tier & 4 Peran Pengguna
 
-Modul **Early Warning System (EWS) LMS Moodle & AI Qwen** telah diimplementasikan secara penuh ke dalam ekosistem **E-Jurnal STIKMAS** (berbasis Laravel 12 + Inertia.js + React 19 + Tailwind CSS v4 + SQLite).
+Sistem EWS resmi dimigrasi dari sistem notifikasi tunggal flat menjadi **Arsitektur EWS 2-Tier Berbasis Log LMS Moodle** ("Sebelum ke BK, ke Guru Mapel dahulu"):
 
-Modul ini menjembatani hasil inferensi *machine learning* perilaku belajar daring siswa dari LMS Moodle dengan tindakan nyata di sekolah melalui arsitektur visualisasi berjenjang (*tiered multirole*):
-- **Kepala Sekolah (Master Admin / Executive View)**: Pengawasan holistik seluruh rombel sekolah, pemantauan kepatuhan intervensi BK/Wali Kelas, matriks risiko per rombel kelas (*Class Risk Breakdown*), dan lembar pengesahan cetak PDF resmi.
-- **Guru BK (Clinical Counselor View)**: Triage klinis kasus urgent (Waspada/Kritis), antrean notifikasi WhatsApp wali murid, dan form 5-tab pencatatan bimbingan konseling.
-- **Wali Kelas / Guru Kelas (Homeroom Micro View)**: Pemantauan otomatis terisolasi hanya pada siswa di rombel kelas binaannya (*role-based auto-scoping*), pendampingan belajar santai di kelas, dan rujukan kasus (*referral*) ke Guru BK.
+```
+                         [ Moodle LMS ]
+                               |
+                   [ Ingestion & Feature Eng ]
+                               |
+                    [ Model EWS (24 Fitur) ]
+                               |
+              +----------------+----------------+
+              |                                 |
+              v                                 v
+   [ Tier 1: Per-Mata Pelajaran ]     [ Tier 2: Lintas Mapel ]
+   Target: Guru Mapel                 Target: Guru BK
+   Aksi: Remedial / Konfirmasi        Aksi: Konseling / Koordinasi Ortu
+```
 
-Total berkas terdampak: **26 files** (3.628 penambahan baris kode baru).
+### 4 Peran Terdedikasi:
+1. **Administrator (Operator IT / Tim Teknis)**:
+   - Mengatur koneksi REST API Moodle (URL & Token Web Service).
+   - Menjalankan sinkronisasi on-demand via tombol *"Tarik & Sinkronkan Data Moodle Sekarang"*.
+   - Mengelola kamus pemetaan mata pelajaran `course_mapping.csv` (upload CSV baru & inline edit guru, no WA, KKM).
+2. **Guru Mata Pelajaran (Tier 1)**:
+   - Memantau siswa yang terdeteksi berisiko pada mata pelajaran yang diampu.
+   - Mengakses metrik durasi jam belajar kursus, modul lesson interaktif, dan kepatuhan tugas.
+   - Memberikan tindakan: *Konfirmasi Tugas*, *Program Remedial*, atau *Tandai Selesai*.
+3. **Guru Bimbingan Konseling (Tier 2)**:
+   - Triage klinis 3 tingkat (*Prioritas Tinggi $\ge 2$ mapel*, *Inaktif Kritis $> 14$ hari*, *Kendala 1 mapel*).
+   - Mendiagnosis profil karakter belajar (*Prokrastinasi Sistemik*, dll.).
+   - Melihat matriks komparasi seluruh modul yang diambil siswa.
+   - Mencatat sesi bimbingan resmi pada Form Jurnal Konseling BK.
+4. **Kepala Sekolah (Master / Eksekutif)**:
+   - Memantau radar risiko makro sekolah dan peta risiko rombel kelas (*Class Risk Breakdown*).
+   - Memantau *Intervention Coverage Rate* (persentase penanganan oleh guru dan BK).
+   - Mencetak laporan pengesahan resmi berformat PDF.
 
 ---
 
-## 2. Riwayat Commit Git
+## 2. Penghapusan Observasi Manual Lama
 
-Semua perubahan tercatat rapi pada branch `dev/rama`:
-
-| Commit Hash | Tipe | Deskripsi Perubahan |
-| :--- | :--- | :--- |
-| `aa71d30` | `feat` | Implementasi EWS database migrations (`ews_notifications`, `ews_interventions`), Eloquent models, seeder data riil 5 siswa, dan endpoint REST API controller. |
-| `66848e3` | `feat` | Implementasi halaman dashboard monitoring EWS (`/ews`), modal detail siswa 5-tab, badge status EWS, serta banner shortcut pada dashboard guru. |
-| `9fe7a1c` | `fix` | Perbaikan tabrakan nama prop notifikasi lonceng global (`ewsNotifications`) dan pengamanan fungsi `filter` pada `AppLayout.tsx`. |
-| `37554d7` | `feat` | Implementasi visualisasi berjenjang (*Tiered Multirole*) untuk Kepsek, BK, dan Wali Kelas, penghapusan efek *glow/emboss* pada modal (*zero AI slop*), dan banner Kepsek. |
-| `8c216c6` | `fix` | Perapian layout action bar tombol atas pada dashboard Guru Kelas, Guru BK, dan Kepsek agar tidak terpotong / *wrapping* ke baris kedua. |
-| `0668943` | `merge`| Penggabungan commit `c3ee46c` dari `origin/main` (fitur Cetak Laporan PDF resmi Kepsek, penyempurnaan form LinearScale, akun seeder simpel, dan null-safety data). |
-| `e0ae97f` | `test` | Penambahan skrip pengujian otomatis integrasi peran (`test_roles.php`) dan pengujian endpoint REST API (`test_api.php`). |
+Sesuai arahan strategis, seluruh form pencatatan observasi harian manual guru kelas dan slider skala 1-5 **DIHAPUS TOTAL**:
+- ❌ Dihapus: Form input catatan perilaku harian guru kelas.
+- ❌ Dihapus: Slider linear scale 1-5 dan modal AI structuring teks manual.
+- ❌ Dihapus: Form quick attendance manual harian.
+- ✅ Digantikan: **Dashboard Monitoring Kursus Moodle (Tier 1)** yang otomatis terisi dari hasil inferensi model Machine Learning.
 
 ---
 
 ## 3. Perubahan Database, Migrasi, & Seeder
 
-### A. Migration: `database/migrations/2026_09_08_000000_create_ews_notifications_and_interventions_tables.php`
-1. **Tabel `ews_notifications`**:
-   - `id`: Primary key.
-   - `siswa_id`: Foreign key ke `students.id` (cascade delete).
-   - `kode_kursus`: Kode mata pelajaran Moodle (contoh: `FIS-10-1`, `KIM-10-1`).
-   - `periode`: Semester/periode berjalan (contoh: `2026/2027-Ganjil`).
-   - `kategori_risiko`: Enum (`TINGGI`, `SEDANG`, `RENDAH`).
-   - `skor_risiko`: Float probabilitas kegagalan (0.00 – 1.00).
-   - `skor_persen`: String persen untuk tampilan cepat (contoh: `"78.5%"`).
-   - `metrik_perilaku`: Tipe JSON, menyimpan 8 fitur metrik LMS Moodle:
-     - `days_inactive`: Jumlah hari tidak login/membuka kursus.
-     - `total_clicks`: Total aktivitas klik log belajar siswa.
-     - `assignments_submitted`: Jumlah tugas yang berhasil dikumpulkan.
-     - `assignments_late`: Jumlah tugas yang dikumpulkan terlambat.
-     - `assignments_missed`: Jumlah tugas yang bolong/tidak dikumpulkan.
-     - `quizzes_taken`: Jumlah kuis yang dikerjakan.
-     - `quiz_avg_score`: Rata-rata nilai kuis online Moodle.
-     - `forum_posts`: Jumlah partisipasi diskusi forum LMS.
-   - `faktor_pemicu`: Tipe JSON Array, poin temuan anomali (misal: "Inaktif 18 hari berturut-turut", "3 tugas belum dikumpulkan").
-   - `narasi_ai`: Text rekomendasi deskriptif dari model SLM Qwen.
-   - `audience`: Target pengguna (`guru_bk`, `guru_kelas`, `all`).
-   - `guru_target_id`: ID guru tertentu (nullable).
-   - `status`: Enum alur proses (`pending`, `generating`, `ready`, `sent`, `failed`).
-   - `error_message`: Catatan kendala jika proses gagal (nullable).
-   - `sent_at`: Timestamp pengiriman pesan WhatsApp.
-   - `timestamps`: `created_at` & `updated_at`.
-   - Indexing: `['siswa_id', 'periode']`, `['status']`, `['kategori_risiko']`.
+### A. Migrasi Baru: `database/migrations/2026_09_08_000000_create_ews_2tier_and_admin_tables.php`
+1. **Tabel `course_mappings`**:
+   - `code_module` (string 20, unique)
+   - `nama_mapel`, `kategori_mapel`, `nama_guru_mapel`, `no_wa_guru`, `kkm`
+2. **Tabel `moodle_sync_logs`**:
+   - `triggered_by`, `sync_type` (`manual`/`cron`), `status` (`running`/`success`/`failed`), `students_processed`, `message`, `started_at`, `completed_at`
+3. **Tabel `ews_course_alerts` (Tier 1)**:
+   - `siswa_id`, `kode_modul`, `nama_mapel`, `kategori_mapel`, `guru_pengampu`, `kkm`
+   - `tingkat_risiko` (`TINGGI`/`SEDANG`/`RENDAH`), `probabilitas_risiko`
+   - `durasi_belajar_jam`, `lesson_attempts`, `rasio_ketuntasan_lesson`, `nilai_rata_rata_lesson`, `tugas_belum_dikumpul`, `tugas_terlambat`, `nilai_rata_rata_tugas`
+   - `metrik_24_fitur_model` (JSON), `faktor_pemicu` (JSON), `rekomendasi_tindakan`
+   - `status` (`pending`/`konfirmasi_tugas`/`remedial`/`selesai`), `catatan_guru_mapel`
+4. **Tabel `ews_student_summaries` (Tier 2)**:
+   - `siswa_id`, `total_mapel_diambil`, `total_mapel_berisiko`, `total_jam_belajar`, `total_tugas_belum_dikumpul`, `total_tugas_terlambat`, `inaktivitas_terlama_hari`
+   - `profil_karakter_belajar`, `prioritas_konseling`, `rekomendasi_tindakan`, `rincian_per_mata_pelajaran` (JSON), `status_penanganan`
+5. **Tabel `ews_counseling_journals`**:
+   - `summary_id`, `guru_bk_id`, `jenis_layanan`, `catatan_konseling`, `rencana_tindak_lanjut`, `evaluasi_perilaku`, `tanggal_monitoring_berikutnya`
+6. **Role `admin`**:
+   - Ditambahkan pada enum tabel `users`: `['admin', 'guru_kelas', 'guru_bk', 'kepsek']`.
 
-2. **Tabel `ews_interventions`**:
-   - `id`: Primary key.
-   - `notification_id`: Foreign key ke `ews_notifications.id` (cascade delete).
-   - `guru_id`: Foreign key ke `users.id` (pencatat tindakan).
-   - `jenis`: Enum tindakan (`KONSELING_INDIVIDU`, `PEMANGGILAN`, `HOME_VISIT`, `KONFIRMASI_WALI`, `SUPERVISI_KEPSEK`, `DISPOSISI_KEPSEK`, `LAINNYA`).
-   - `catatan`: Catatan hasil pendampingan / disposisi arahan.
-   - `status_siswa`: Evaluasi kondisi pasca-tindakan (`membaik`, `tetap`, `memburuk`).
-   - `tanggal_tindak_lanjut`: Tanggal jadwal monitoring berikutnya.
-   - `timestamps`: `created_at` & `updated_at`.
-
-### B. Seeder Data:
-1. **`database/seeders/EwsNotificationSeeder.php`**:
-   - Memuat 5 data riil siswa dari pipeline validasi Fase 1 (Siti Rahmawati, Muhammad Farhan, Ahmad Fauzan, Dewi Lestari, Budi Santoso) dengan 8 metrik perilaku LMS Moodle lengkap, faktor pemicu, narasi SLM Qwen, dan draf pesan WhatsApp.
-2. **`database/seeders/BkEwsDatabaseSeeder.php`**:
-   - Akun pendidik diperbarui ke format email demo yang praktis:
-     - `guru1@gmail.com` (Pak Budi Santoso - Wali Kelas 10-MIPA-1)
-     - `guru2@gmail.com` (Bu Siti Aminah - Wali Kelas 10-MIPA-2)
-     - `bk@gmail.com` (Bu Rahmawati - Guru BK Sekolah)
-     - `kepsek@gmail.com` (Drs. H. Hartono - Kepala Sekolah)
-     - Password universal: `password`.
+### B. Seeder Baru:
+- **`CourseMappingSeeder.php`**: Mengimpor 7 mapel kurikulum aktif dari `course_mapping.csv`.
+- **`Ews2TierSeeder.php`**: Mengimpor data inferensi riil dari `sample_output.json` v2.1.0 (6 Tier 1 alerts, 3 Tier 2 summaries, 1 Jurnal Konseling).
 
 ---
 
 ## 4. Perubahan Backend & REST API
 
-### A. Eloquent Models
-1. **`app/Models/EwsNotification.php`**:
-   - Casts: `metrik_perilaku` => `array`, `faktor_pemicu` => `array`, `skor_risiko` => `float`, `sent_at` => `datetime`.
-   - Relasi: `belongsTo(Student::class, 'siswa_id')`, `hasMany(EwsIntervention::class, 'notification_id')`, `belongsTo(User::class, 'guru_target_id')`.
-2. **`app/Models/EwsIntervention.php`**:
-   - Casts: `tanggal_tindak_lanjut` => `date`.
-   - Relasi: `belongsTo(EwsNotification::class, 'notification_id')`, `belongsTo(User::class, 'guru_id')`.
-3. **`app/Models/Student.php`**:
-   - Ditambahkan relasi: `hasMany(EwsNotification::class, 'siswa_id')`.
-
-### B. Controller & Routing
-1. **`app/Http/Controllers/EwsMonitoringController.php`**:
-   - `index(Request $request)`:
-     - **Auto-Scoping Data**:
-       - Jika `kepsek`: Menampilkan seluruh data sekolah, menghitung KPI eksekutif (Indeks Risiko, Rasio Penanganan *Coverage %*, Kepatuhan WA), dan menghasilkan agregasi risiko per rombel (`classBreakdown`).
-       - Jika `guru_bk`: Menampilkan seluruh data sekolah untuk kebutuhan triage klinis, filter tingkat risiko, dan monitoring antrean WA ortu.
-       - Jika `guru_kelas`: Menemukan kelas binaan guru (`SchoolClass::where('homeroom_teacher_id', $user->id)`), lalu membatasi query hanya pada murid di kelas tersebut.
-     - Prop Inertia yang dikirimkan dinamai `ewsNotifications` untuk mencegah tabrakan dengan lonceng notifikasi global.
-   - `storeIntervention(Request $request)`:
-     - Menerima input catatan intervensi/bimbingan dari form modal.
-     - Menyimpan ke tabel `ews_interventions` dan memperbarui status notifikasi menjadi `sent` jika sebelumnya berstatus `ready`.
-2. **`app/Http/Controllers/Api/EwsApiController.php`**:
-   - `POST /api/ews/notifications`: Menerima batch JSON dari worker eksternal VPS / pipeline Python.
-   - `PUT /api/ews/notifications/{id}`: Memperbarui status pengiriman pesan WA (`sent`/`failed`).
-   - `GET /api/ews/notifications`: Mengambil daftar notifikasi aktif (bisa difilter status & level).
-   - `GET /api/ews/notifications/{id}`: Mengambil detail satu notifikasi beserta riwayat intervensi.
-   - `POST /api/ews/interventions`: Endpoint API untuk mencatat intervensi secara *programmatic*.
-3. **`routes/web.php`**:
-   - `GET /ews` $\rightarrow$ `EwsMonitoringController@index` (Middleware: `auth`, role: `guru_bk`, `guru_kelas`, `kepsek`).
-   - `POST /ews/interventions` $\rightarrow$ `EwsMonitoringController@storeIntervention`.
+1. **`AdminDashboardController.php`**: Agregasi data integrasi Moodle, KPI kran data, dan tabel pemetaan kursus.
+2. **`MoodleSyncController.php`**: Endpoint `syncNow()` on-demand dan `testConnection()` uji koneksi server Moodle.
+3. **`CourseMappingController.php`**: Endpoint edit inline, upload file CSV, dan stream unduh CSV.
+4. **`EwsApiController.php`**:
+   - Ingestion: `POST /api/ews/tier1/alerts` dan `POST /api/ews/tier2/summaries`.
+   - Guru Mapel: `GET /api/ews/teacher/my-courses` dan `PATCH /api/ews/teacher/alerts/{id}/status`.
+   - Guru BK: `GET /api/ews/bk/triage` dan `POST /api/ews/counseling/record`.
+   - Kepsek: `GET /api/ews/kepsek/overview`.
+5. **`DashboardController.php`**: Role dispatcher otomatis mengarahkan admin ke `/admin/dashboard`.
 
 ---
 
 ## 5. Perubahan Frontend & Antarmuka Multirole
 
-### A. Halaman Utama EWS: `resources/js/Pages/Dashboard/EwsMonitoring.tsx`
-- **Header Dinamis**: Judul, sub-judul, dan tombol kembali otomatis mengenali peran (`/kepsek/dashboard`, `/guru-bk/dashboard`, atau `/guru-kelas/dashboard`).
-- **4 Bento Stat Cards Berjenjang**:
-  - Kepsek: Indeks Risiko Sekolah, Kasus Kritis Belum Tertangani, Persentase Penanganan (*Intervention Coverage Rate*), dan Kepatuhan Notifikasi WA.
-  - Guru BK: Total Siswa Berisiko Sekolah, Prioritas Kritis Urgent, Kasus Risiko Sedang, Peringatan WA Terkirim.
-  - Guru Kelas: Siswa Berisiko di Kelas Binaan, Butuh Pendampingan Segera, Kasus Selesai Didampingi, Notifikasi Orang Tua.
-- **Peta Risiko per Rombel Kelas (*Class Risk Breakdown Grid*) Khusus Kepsek**:
-  - Menampilkan kartu rombel interaktif (10-MIPA-1, 10-MIPA-2, dst.) lengkap dengan nama wali kelas, jumlah risiko TINGGI/SEDANG/RENDAH, progress penanganan, dan filter 1-klik.
-- **Tabel Data Terpadu**:
-  - Kolom adaptif per peran (misal: Kepsek melihat nama Wali Kelas pengampu dan status penanganan).
-  - Badge urgensi: `KRITIS` (merah lembut), `WASPADA` (oranye lembut), `BERISIKO` (kuning lembut), `NORMAL` (hijau lembut).
-  - Tombol aksi kontekstual: Kepsek (*Review & Supervisi*), Guru BK (*Analisis & Intervensi*), Wali Kelas (*Bimbingan / Rujuk*).
-
-### B. Modal Analisis & Tindak Lanjut: `resources/js/components/ews/EwsDetailModal.tsx`
-- **Clean Aesthetic (Zero AI Slop)**: Menghapus bayangan ganda/glow neon berlebih, diganti dengan kartu bersih `bg-white border border-slate-200 shadow-2xl rounded-3xl`.
-- **Sistem 5 Tab Komprehensif**:
-  1. *Rekomendasi AI*: Menampilkan penjelasan SLM Qwen dan saran pendekatan spesifik.
-  2. *8 Metrik Perilaku Moodle*: Grid visual pemantauan hari inaktif, total klik, tugas bolong, keterlambatan, nilai kuis, dan posting forum.
-  3. *Faktor Pemicu Risiko*: Poin-poin temuan anomali rule-based.
-  4. *Draf Pesan WhatsApp*: Teks pesan WA lengkap dengan tombol 1-klik Salin Teks.
-  5. *Form Tindak Lanjut & Riwayat*:
-     - Menampilkan riwayat intervensi terdahulu (nama konselor, jenis tindakan, catatan, dan tanggal).
-     - Form pencatatan intervensi baru yang otomatis menyesuaikan peran:
-       - Wali Kelas: Konfirmasi di Kelas, Bimbingan Belajar, Rujuk ke Guru BK.
-       - Guru BK: Konseling Individu, Pemanggilan Formal, Home Visit.
-       - Kepsek: Arahan Supervisi & Disposisi Penanganan Kasus.
-
-### C. Layout & Integrasi Dashboard Pendidik
-1. **`resources/js/Pages/Dashboard/GuruKelas.tsx`**:
-   - Menghilangkan tombol duplikat pada bar *Aksi Cepat Wali Kelas*.
-   - Mengunci 3 tombol inti (`Input Presensi`, `Input Nilai Akademik`, `Catat Jurnal Siswa`) dengan `whitespace-nowrap` dan `shrink-0` sehingga tidak terpotong ke baris kedua pada resolusi laptop/desktop.
-   - Menambahkan banner khusus *Ambient EWS Moodle Radar Quick Banner* dengan tombol CTA kontras: `Buka Radar EWS Kelas Saya`.
-2. **`resources/js/Pages/Dashboard/GuruBk.tsx`**:
-   - Merapikan action bar dan ambient banner *Peringatan Dini LMS Moodle & WhatsApp Notifier*.
-   - Mengganti checkbox emoji menjadi icon Lucide yang elegan.
-3. **`resources/js/Pages/Dashboard/Kepsek.tsx`**:
-   - Menambahkan *Executive Master Radar EWS Banner* dengan tombol CTA `Buka Radar EWS Eksekutif`.
-   - Mengintegrasikan tombol **"Cetak / Unduh PDF"** berdampingan dengan anchor pills tanpa terjadi konflik visual.
-4. **`resources/js/Layouts/AppLayout.tsx`**:
-   - Menambahkan penjagaan tipe data array `Array.isArray(notifications)` agar lonceng notifikasi global tidak crash saat memproses prop dari rute lain.
+1. **`AppLayout.tsx`**: Dukungan peran `admin` dengan badge tema emerald (*Administrator IT*), ikon server, dan link `/admin/dashboard`.
+2. **`Admin.tsx` (Dashboard Admin)**:
+   - Tombol utama *"Tarik & Sinkronkan Data Moodle Sekarang"* dengan animasi loading & auto-refresh.
+   - 4 Bento KPI cards (Status Server Moodle, Waktu Sinkronisasi Terakhir, Kamus Mapel, Siswa Terpantau).
+   - Tabel pemetaan modul + Modal Edit Cepat + Modal Unggah CSV.
+   - Tabel riwayat audit sinkronisasi log Moodle.
+3. **`GuruKelas.tsx` (Dashboard Guru Mapel Tier 1)**:
+   - Pill tabs pemilih mata pelajaran yang diampu (`AAA`, `BBB`, `CCC`, dll.).
+   - 4 Bento KPI kursus (Siswa Risiko Tinggi, Tugas Bolong, Rata-rata Durasi Jam, Status Penanganan).
+   - Tabel alert siswa berisiko + Modal Tindakan (*Konfirmasi Tugas / Remedial / Selesai*).
+   - Modal Rincian 24 Indikator Moodle (5 domain).
+4. **`GuruBk.tsx` (Dashboard Guru BK Tier 2)**:
+   - Triage 3 tingkat (*Prioritas Tinggi $\ge 2$ mapel*, *Inaktif Kritis $> 14$ hari*, *Kendala 1 mapel*).
+   - Tabel holistik karakter belajar siswa (*Prokrastinasi Sistemik*, dll.).
+   - Modal Matriks Komparasi seluruh mata pelajaran yang diambil siswa.
+   - Modal Form Jurnal Konseling resmi (Layanan individu, panggilan ortu, home visit).
+5. **`EwsMonitoring.tsx`**: Radar EWS terpadu menampilkan perbandingan Tier 1 dan Tier 2.
 
 ---
 
-## 6. Kontrak Data API & Integrasi Engine AI / Worker VPS
+## 6. Pemetaan 24 Indikator Moodle (5 Domain)
 
-Bagi worker Python / Node.js di VPS atau pipeline model machine learning:
-
-### Endpoint Pengiriman Batch Notifikasi:
-`POST /api/ews/notifications`  
-`Content-Type: application/json`
-
-**Contoh Payload Request:**
-```json
-{
-  "notifications": [
-    {
-      "siswa_id": 1,
-      "kode_kursus": "FIS-10-1",
-      "periode": "2026/2027-Ganjil",
-      "kategori_risiko": "TINGGI",
-      "skor_risiko": 0.88,
-      "skor_persen": "88.0%",
-      "metrik_perilaku": {
-        "days_inactive": 18,
-        "total_clicks": 35,
-        "assignments_submitted": 1,
-        "assignments_late": 2,
-        "assignments_missed": 3,
-        "quizzes_taken": 1,
-        "quiz_avg_score": 45.0,
-        "forum_posts": 0
-      },
-      "faktor_pemicu": [
-        "Inaktif di LMS selama 18 hari berturut-turut",
-        "3 tugas utama tidak dikumpulkan",
-        "Rata-rata kuis di bawah standar (45.0)"
-      ],
-      "narasi_ai": "Siswa menunjukkan penurunan drastis pada keaktifan e-learning sejak pertengahan semester. Disarankan segera dijadwalkan sesi bimbingan tatap muka.",
-      "audience": "guru_bk",
-      "status": "ready"
-    }
-  ]
-}
-```
-
-### Endpoint Update Status WhatsApp:
-`PUT /api/ews/notifications/{id}`  
-```json
-{
-  "status": "sent",
-  "sent_at": "2026-09-08 10:30:00"
-}
-```
+Disimpan utuh di kolom JSON `metrik_24_fitur_model`:
+1. **`engagement_dan_durasi`** (9 fitur): `total_clicks`, `active_days`, `days_inactive`, `is_inactive_gt_5d`, `is_inactive_gt_14d`, `clicks_per_active_day`, `clicks_last_14d_ratio`, `unique_sites_accessed`, `course_duration_hours`.
+2. **`kepatuhan_tugas`** (4 fitur): `missing_assignments`, `late_submission_count`, `avg_submission_gap`, `procrastination_count`.
+3. **`aktivitas_lesson`** (4 fitur): `lesson_attempts_count`, `lesson_time_spent_min`, `lesson_completion_ratio`, `lesson_avg_score`.
+4. **`akademik`** (5 fitur): `avg_score`, `min_score`, `score_rel_to_module`, `failing_tasks_count`, `grade_trend`.
+5. **`konteks_siswa`** (2 fitur): `num_of_prev_attempts`, `studied_credits`.
 
 ---
 
 ## 7. Daftar Kredensial Akun Pengujian
 
-Semua akun menggunakan kata sandi: `password`
+Semua akun menggunakan kata sandi: **`password`**
 
-| Peran Pengguna | Email Akun | Nama Lengkap | Lingkup Data EWS yang Tampil |
-| :--- | :--- | :--- | :--- |
-| **Kepala Sekolah** | `kepsek@gmail.com` | Drs. H. Hartono, M.Pd. | Seluruh sekolah, Peta Risiko Kelas, Lembar Cetak PDF, Disposisi Arahan |
-| **Guru BK (Konselor)**| `bk@gmail.com` | Rahmawati, S.Pd., M.Psi. | Seluruh sekolah, Triage Klinis, Form 5-Tab Konseling, Antrean WA |
-| **Wali Kelas 10-MIPA-1**| `guru1@gmail.com` | Budi Santoso, S.Pd. | Terisolasi hanya siswa 10-MIPA-1 (Siti Rahmawati, Ahmad Fauzan, Budi Santoso) |
-| **Wali Kelas 10-MIPA-2**| `guru2@gmail.com` | Siti Aminah, S.Pd. | Terisolasi hanya siswa 10-MIPA-2 (Muhammad Farhan, Dewi Lestari) |
+| Peran | Alamat Email | Halaman Dashboard |
+| :--- | :--- | :--- |
+| **Administrator** | `admin@gmail.com` | `/admin/dashboard` |
+| **Guru Mata Pelajaran** | `guru1@gmail.com` | `/guru-kelas/dashboard` |
+| **Guru BK** | `bk@gmail.com` | `/guru-bk/dashboard` |
+| **Kepala Sekolah** | `kepsek@gmail.com` | `/kepsek/dashboard` |
 
 ---
 
 ## 8. Petunjuk Pengujian & Verifikasi
 
-1. **Jalankan Aplikasi Lokal**:
-   ```bash
-   # Terminal 1: Laravel Backend
-   php artisan serve
-   
-   # Terminal 2: Vite Dev Server
-   npm run dev
-   ```
+```bash
+# 1. Jalankan Migrasi & Database Seeder Bersih
+php artisan migrate:fresh --seed
 
-2. **Kompilasi Uji Produksi (Clean Build)**:
-   ```bash
-   npm run build
-   # Hasil: ✓ built in 700-800ms tanpa error
-   ```
+# 2. Jalankan Build Frontend React Vite
+npm run build
 
-3. **Uji Otomatis Scoping Hak Akses Multirole**:
-   ```bash
-   php scratch/test_roles.php
-   # Hasil: Memverifikasi otomatis isolasi data kelas untuk Wali Kelas dan hak akses master untuk Kepsek/BK.
-   ```
-
-4. **Uji Otomatis REST API**:
-   ```bash
-   php scratch/test_api.php
-   # Hasil: Memverifikasi response code 200/201 pada endpoint notifikasi & intervensi.
-   ```
+# 3. Jalankan Skrip Verifikasi Database
+php tests/test_2tier_system.php
+```

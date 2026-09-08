@@ -52,6 +52,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Shortcut Redirects ke Sub-dashboard resmi
+    Route::get('/dashboard/admin', fn () => redirect()->route('admin.dashboard'));
     Route::get('/dashboard/guru-kelas', fn () => redirect()->route('guru-kelas.dashboard'));
     Route::get('/dashboard/guru-bk', fn () => redirect()->route('guru-bk.dashboard'));
     Route::get('/dashboard/kepsek', fn () => redirect()->route('kepsek.dashboard'));
@@ -62,10 +63,22 @@ Route::middleware(['auth'])->group(function () {
         ->name('students.ai-advice')
         ->middleware('throttle:15,1');
 
-    // Radar EWS Moodle & Notifikasi AI (Multirole: Guru BK, Guru Kelas/Wali Kelas, Kepsek)
-    Route::middleware(['role:guru_bk,guru_kelas,kepsek'])->group(function () {
+    // Radar EWS Moodle & Notifikasi AI (Multirole)
+    Route::middleware(['role:admin,guru_bk,guru_kelas,kepsek'])->group(function () {
         Route::get('/ews', [EwsMonitoringController::class, 'index'])->name('ews.index');
         Route::post('/ews/interventions', [EwsMonitoringController::class, 'storeIntervention'])->name('ews.interventions.store');
+    });
+
+    // ==========================================
+    // Modul: Administrator (Role: admin)
+    // ==========================================
+    Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::post('/moodle/sync', [\App\Http\Controllers\Admin\MoodleSyncController::class, 'syncNow'])->name('moodle.sync');
+        Route::post('/moodle/test-connection', [\App\Http\Controllers\Admin\MoodleSyncController::class, 'testConnection'])->name('moodle.test');
+        Route::put('/course-mapping/{id}', [\App\Http\Controllers\Admin\CourseMappingController::class, 'update'])->name('course-mapping.update');
+        Route::post('/course-mapping/upload', [\App\Http\Controllers\Admin\CourseMappingController::class, 'uploadCsv'])->name('course-mapping.upload');
+        Route::get('/course-mapping/download', [\App\Http\Controllers\Admin\CourseMappingController::class, 'downloadCsv'])->name('course-mapping.download');
     });
 
     // Internal AI Structuring Helper APIs (Wajib terautentikasi & rate-limited)
@@ -88,6 +101,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/attendance/bulk', [GuruKelas\AttendanceController::class, 'storeBulk'])->name('attendance.bulk');
         Route::post('/academics', [GuruKelas\AcademicController::class, 'store'])->name('academics.store');
         Route::post('/academics/bulk', [GuruKelas\AcademicController::class, 'storeBulk'])->name('academics.bulk');
+        Route::patch('/alerts/{id}/status', [GuruKelas\DashboardController::class, 'updateAlertStatus'])->name('alerts.update-status');
     });
 
     // ==========================================
@@ -109,13 +123,22 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // ==========================================
-// 3. EWS Moodle & WA Notification APIs
+// 3. EWS Moodle 2-Tier APIs
 // ==========================================
 Route::prefix('api/ews')->name('api.ews.')->group(function () {
-    Route::get('/notifications', [EwsApiController::class, 'index'])->name('notifications.index');
-    Route::get('/notifications/{id}', [EwsApiController::class, 'show'])->name('notifications.show');
-    Route::post('/notifications', [EwsApiController::class, 'store'])->name('notifications.store');
-    Route::patch('/notifications/{id}/status', [EwsApiController::class, 'updateStatus'])->name('notifications.update-status');
-    Route::post('/interventions', [EwsApiController::class, 'storeIntervention'])->name('interventions.store');
+    // Ingestion dari Pipeline Python / Moodle LMS
+    Route::post('/tier1/alerts', [EwsApiController::class, 'storeTier1Alerts'])->name('tier1.alerts');
+    Route::post('/tier2/summaries', [EwsApiController::class, 'storeTier2Summaries'])->name('tier2.summaries');
+
+    // Guru Mapel Endpoints
+    Route::get('/teacher/my-courses', [EwsApiController::class, 'getTeacherAlerts'])->name('teacher.alerts');
+    Route::patch('/teacher/alerts/{id}/status', [EwsApiController::class, 'updateAlertStatus'])->name('teacher.alerts.status');
+
+    // Guru BK Endpoints
+    Route::get('/bk/triage', [EwsApiController::class, 'getBkTriage'])->name('bk.triage');
+    Route::post('/counseling/record', [EwsApiController::class, 'storeCounselingRecord'])->name('counseling.record');
+
+    // Kepsek Overview
+    Route::get('/kepsek/overview', [EwsApiController::class, 'getKepsekOverview'])->name('kepsek.overview');
 });
 

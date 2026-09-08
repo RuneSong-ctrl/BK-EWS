@@ -23,6 +23,10 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+
         if ($user->isGuruKelas()) {
             return redirect()->route('guru-kelas.dashboard');
         }

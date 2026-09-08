@@ -1,192 +1,171 @@
-# Tahapan Kerja Orang 2 — Step by Step
+# Tahapan Kerja Orang 2 — Berbasis Arsitektur EWS 2-Tier Moodle
 
-## Jangan Mulai dari VPS
+> **Source of Truth**: [RANCANGAN_SISTEM_EWS_MOODLE.md](file:///c:/Users/ramad/Documents/PROJECT/Model-BK-Ews/RANCANGAN_SISTEM_EWS_MOODLE.md)  
+> **Keputusan Strategis**: Observasi manual guru dan BK resmi **DIHAPUS**. Seluruh sistem berfokus penuh pada **EWS Otomatis 2-Tier** (Tier 1 Guru Mapel dan Tier 2 Guru BK).
 
-Setup VPS itu langkah **tengah**, bukan awal. Kalau kamu langsung setup llama-server dan Baileys tapi belum tahu apakah pipeline model → JSON → prompt berjalan benar, kamu bakal bolak-balik debug di environment yang jauh lebih susah (SSH, limited resource, no IDE).
+---
 
-**Urutan yang benar:**
+## Ringkasan Alur Kerja Pengembang 2
 
 ```
-Lokal dulu → Laravel dulu → VPS terakhir
+Fase 1: Validasi Model 2-Tier Lokal (SELESAI ✅)
+   │
+   ▼
+Fase 2: Setup Database & REST API 2-Tier di Laravel (FOKUS SEKARANG)
+   │
+   ▼
+Fase 3: Antarmuka Web Dashboard Multirole (Guru Mapel, BK, Kepsek)
+   │
+   ▼
+Fase 4: Setup Worker VPS (Pipeline ML ➔ LLM Qwen ➔ Laravel API)
+   │
+   ▼
+Fase 5: Integrasi Notifikasi WhatsApp (Baileys) & Uji Go-Live
 ```
 
 ---
 
-## Fase 1: Validasi Pipeline Model (Lokal, Hari Ini)
+## Fase 1: Validasi Pipeline Model 2-Tier (Lokal) — ✅ SELESAI
 
-**Tujuan:** Pastikan `.pkl` bisa di-load, inferensi jalan, JSON keluar benar, prompt LLM terbentuk.
+**Status**: Selesai dan diverifikasi pada [test_pipeline.py](file:///c:/Users/ramad/Documents/PROJECT/Model-BK-Ews/test_pipeline.py).
 
-**Yang dikerjakan:** Buat 1 file Python di repo `Model-BK-Ews`:
-
-- [ ] Buat file `test_pipeline.py`
-- [ ] Load `ews_moodle_model.pkl` dengan `joblib`
-- [ ] Siapkan sample data 3-5 siswa (hardcode atau ambil dari CSV)
-- [ ] Jalankan `model.predict_proba()` → pastikan output probabilitas masuk akal
-- [ ] Jalankan `generate_ews_json()` → pastikan JSON terbentuk dengan benar
-- [ ] Jalankan `create_slm_prompt()` → pastikan prompt terbentuk
-- [ ] Jalankan `generate_wa_notification()` → pastikan template statis terbentuk
-- [ ] Simpan output JSON ke file `sample_output.json` sebagai referensi kontrak data
-
-**Deliverable:** File `sample_output.json` yang berisi contoh payload risiko siswa — ini jadi **kontrak data** antara model dan notifier.
-
-**Waktu:** ~1-2 jam
+- [x] Memuat model terkalibrasi (`CalibratedClassifierCV`) 24 fitur dari `ews_moodle_model.pkl`.
+- [x] Mengintegrasikan kamus data kurikulum [course_mapping.csv](file:///c:/Users/ramad/Documents/PROJECT/Model-BK-Ews/course_mapping.csv).
+- [x] Validasi inferensi probabilitas risiko pada sampel siswa multikursus.
+- [x] Validasi pembentukan payload **Tier 1 (Guru Mata Pelajaran)**.
+- [x] Validasi pembentukan payload **Tier 2 (Guru Bimbingan Konseling)**.
+- [x] Menghasilkan kontrak data resmi di [sample_output.json](file:///c:/Users/ramad/Documents/PROJECT/Model-BK-Ews/sample_output.json).
 
 ---
 
-## Fase 2: Setup Database & API di Laravel (Lokal)
+## Fase 2: Setup Database & API 2-Tier di Laravel (Lokal)
 
-**Tujuan:** Siapkan fondasi di dashboard BK-EWS untuk menerima dan menampilkan data EWS.
+**Tujuan**: Menyiapkan struktur tabel baru yang bersih, menghapus tabel observasi manual lama, dan mengimplementasikan endpoint penerima data 2-Tier.
 
-### 2a. Migration: Tabel Notifikasi
+### 2a. Migration: 3 Tabel Inti EWS 2-Tier
 
-- [ ] Buat migration Laravel untuk tabel `ews_notifications`:
-
+#### 1. Tabel `ews_course_alerts` (Tier 1 — Guru Mata Pelajaran)
+Menampung alert per siswa per mata pelajaran:
 ```php
-Schema::create('ews_notifications', function (Blueprint $table) {
+Schema::create('ews_course_alerts', function (Blueprint $table) {
     $table->id();
-    $table->unsignedBigInteger('siswa_id');       // ID siswa di sistem
-    $table->string('kode_kursus');                 // code_module
-    $table->string('periode');                     // code_presentation / semester
-    $table->enum('kategori_risiko', ['TINGGI', 'SEDANG', 'RENDAH']);
-    $table->float('skor_risiko');                  // 0.0 - 1.0
-    $table->string('skor_persen');                 // "71.9%"
-    $table->json('metrik_perilaku');               // 8 fitur Moodle
-    $table->json('faktor_pemicu');                 // array string alasan
-    $table->text('narasi_ai')->nullable();         // hasil generate LLM
-    $table->string('audience')->default('guru_bk');
-    $table->unsignedBigInteger('guru_target_id')->nullable();
-    $table->enum('status', ['pending', 'generating', 'ready', 'sent', 'failed'])
+    $table->unsignedBigInteger('siswa_id');            // Foreign key ke students.id
+    $table->string('kode_modul', 20);                  // AAA, BBB, CCC
+    $table->string('nama_mapel');                      // Dari course_mapping
+    $table->string('kategori_mapel');                  // Kejuruan / Umum
+    $table->string('guru_pengampu');                   // Nama guru mapel
+    $table->integer('kkm')->default(75);
+    $table->enum('tingkat_risiko', ['TINGGI', 'SEDANG', 'RENDAH']);
+    $table->float('probabilitas_risiko', 5, 3);        // Contoh: 0.947
+    $table->float('durasi_belajar_jam', 6, 1);         // Contoh: 4.5
+    $table->integer('lesson_attempts')->default(0);
+    $table->float('rasio_ketuntasan_lesson', 4, 2)->default(0.0);
+    $table->float('nilai_rata_rata_lesson', 5, 1)->default(0.0);
+    $table->integer('tugas_belum_dikumpul')->default(0);
+    $table->integer('tugas_terlambat')->default(0);
+    $table->float('nilai_rata_rata_tugas', 5, 1)->default(0.0);
+    $table->json('faktor_pemicu');                     // List alasan pemicu risiko
+    $table->string('rekomendasi_tindakan');
+    $table->enum('status', ['pending', 'konfirmasi_tugas', 'remedial', 'selesai'])
           ->default('pending');
-    $table->text('error_message')->nullable();
-    $table->timestamp('sent_at')->nullable();
+    $table->text('catatan_guru_mapel')->nullable();
     $table->timestamps();
 
-    $table->index(['siswa_id', 'periode']);
-    $table->index(['status']);
-    $table->index(['kategori_risiko']);
+    $table->index(['siswa_id', 'kode_modul']);
+    $table->index(['tingkat_risiko', 'status']);
 });
 ```
 
-### 2b. Migration: Tabel Tindak Lanjut Konseling
-
-- [ ] Buat migration untuk tabel `ews_interventions`:
-
+#### 2. Tabel `ews_student_summaries` (Tier 2 — Guru Bimbingan Konseling)
+Menampung rekapitulasi holistik karakter belajar per siswa lintas mata pelajaran:
 ```php
-Schema::create('ews_interventions', function (Blueprint $table) {
+Schema::create('ews_student_summaries', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('notification_id')
-          ->constrained('ews_notifications')
+    $table->unsignedBigInteger('siswa_id');            // Foreign key ke students.id
+    $table->integer('total_mapel_diambil');
+    $table->integer('total_mapel_berisiko');
+    $table->float('total_jam_belajar', 6, 1);
+    $table->integer('total_tugas_belum_dikumpul');
+    $table->integer('inaktivitas_terlama_hari');
+    $table->string('profil_karakter_belajar');          // Contoh: "Prokrastinasi Sistemik"
+    $table->enum('prioritas_konseling', ['TINGGI', 'SEDANG', 'RENDAH']);
+    $table->string('rekomendasi_tindakan');
+    $table->json('rincian_per_mata_pelajaran');        // Matriks performa semua mapel
+    $table->enum('status_penanganan', ['open', 'in_counseling', 'resolved'])
+          ->default('open');
+    $table->timestamps();
+
+    $table->index(['siswa_id', 'prioritas_konseling']);
+    $table->index('prioritas_konseling');
+});
+```
+
+#### 3. Tabel `ews_counseling_journals` (Jurnal Tindak Lanjut Konseling BK)
+Mencatat sesi bimbingan individual dan komunikasi orang tua:
+```php
+Schema::create('ews_counseling_journals', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('summary_id')
+          ->constrained('ews_student_summaries')
           ->cascadeOnDelete();
-    $table->unsignedBigInteger('guru_id');         // Guru yang menangani
-    $table->enum('jenis', ['konseling', 'pemanggilan', 'home_visit', 'lainnya']);
-    $table->text('catatan');                        // Hasil sesi
-    $table->enum('status_siswa', ['membaik', 'tetap', 'memburuk'])->nullable();
-    $table->date('tanggal_tindak_lanjut')->nullable(); // Jadwal follow-up
+    $table->unsignedBigInteger('guru_bk_id');          // Konselor yang menangani
+    $table->enum('jenis_layanan', ['konseling_individu', 'pemanggilan_siswa', 'home_visit', 'koordinasi_ortu']);
+    $table->text('catatan_konseling');                  // Temuan hasil bimbingan
+    $table->text('rencana_tindak_lanjut');
+    $table->enum('evaluasi_perilaku', ['membaik', 'tetap', 'memburuk'])->nullable();
+    $table->date('tanggal_monitoring_berikutnya')->nullable();
     $table->timestamps();
 });
 ```
 
-### 2c. API Endpoint
-
-- [ ] Buat endpoint untuk **menerima** hasil dari VPS notifier:
+### 2b. REST API Endpoints
 
 ```
-POST /api/ews/notifications        → Simpan batch notifikasi baru
-PUT  /api/ews/notifications/{id}   → Update status (sent/failed)
+// Ingestion dari Worker VPS / Python Pipeline:
+POST /api/ews/tier1/alerts        → Simpan batch alert per mata pelajaran
+POST /api/ews/tier2/summaries     → Simpan batch rekapitulasi karakter belajar BK
+
+// Konsumsi Frontend Dashboard:
+GET  /api/ews/teacher/my-courses  → Data alert khusus guru mapel yang login
+GET  /api/ews/bk/triage           → Daftar siswa berisiko terurut prioritas
+GET  /api/ews/bk/student/{id}     → Detail riwayat matriks siswa
+POST /api/ews/counseling/record   → Simpan jurnal konseling BK
 ```
 
-- [ ] Buat endpoint untuk **dashboard frontend**:
-
-```
-GET  /api/ews/notifications         → Daftar siswa berisiko (paginated, filter by status/level)
-GET  /api/ews/notifications/{id}    → Detail 1 notifikasi + narasi AI
-POST /api/ews/interventions         → Catat tindak lanjut
-```
-
-**Deliverable:** Database schema ready, API endpoints jalan (test pakai Postman/curl).
-
-**Waktu:** ~3-4 jam
+### 2c. Seeder Data dari `sample_output.json`
+- [ ] Buat `Ews2TierSeeder.php` yang langsung membaca [sample_output.json](file:///c:/Users/ramad/Documents/PROJECT/Model-BK-Ews/sample_output.json) sehingga dashboard langsung memiliki data pengujian riil.
 
 ---
 
-## Fase 3: Halaman Dashboard EWS (Frontend React)
+## Fase 3: Web Dashboard Multirole (React / Inertia)
 
-**Tujuan:** Tampilkan data notifikasi di dashboard BK-EWS.
-
-- [ ] Buat halaman `/ews` di React (Inertia):
-  - Tabel siswa berisiko: nama, kelas, level risiko, skor, status notifikasi
-  - Filter by: kategori risiko, status, periode
-  - Sort by: skor risiko (desc), tanggal
-- [ ] Buat halaman `/ews/{id}` — detail kasus:
-  - Narasi AI (full text)
-  - Metrik perilaku Moodle (tabel/chart)
-  - Faktor pemicu (bullet list)
-  - Form tindak lanjut (textarea catatan + dropdown jenis + submit)
-- [ ] Buat badge/counter di sidebar: "🔴 3 siswa berisiko tinggi"
-
-> [!TIP]
-> Untuk fase ini, **seed data dummy** pakai output `sample_output.json` dari Fase 1. Kamu tidak perlu VPS atau LLM untuk mengerjakan frontend.
-
-**Deliverable:** Halaman dashboard EWS berfungsi dengan data seeder.
-
-**Waktu:** ~4-6 jam
+- [ ] **Antarmuka Guru Mata Pelajaran**:
+  - Filter mapel yang diampu guru login.
+  - Kartu metrik: Jumlah siswa berisiko, rata-rata durasi belajar kursus.
+  - Tabel monitoring siswa: durasi jam, lesson attempts, tugas bolong, dan tombol aksi (*Remedial / Konfirmasi*).
+- [ ] **Antarmuka Guru Bimbingan Konseling (BK)**:
+  - Triage klinis terurut: Prioritas Tinggi ($\ge 2$ mapel merah), Inaktif Kritis ($> 14$ hari), Kendala Spesifik 1 Mapel.
+  - Kartu diagnosis karakter belajar (*Prokrastinasi Sistemik*, dll.).
+  - Matriks performa semua mapel per siswa.
+  - Form jurnal konseling & jadwal tindak lanjut.
+- [ ] **Antarmuka Kepala Sekolah**:
+  - Peta risiko kelas (*Class Risk Breakdown*).
+  - Indeks risiko sekolah & rasio penanganan (*Intervention Coverage Rate*).
+  - Ekspor/Cetak Laporan PDF Resmi.
 
 ---
 
-## Fase 4: Setup VPS (LLM + Notifier)
+## Fase 4: Setup Worker VPS (Pipeline ML ➔ LLM ➔ API)
 
-**Tujuan:** Pasang llama-server dan ews-notifier di VPS.
-
-Baru sekarang kamu sentuh VPS:
-
-- [ ] Install llama-server
-- [ ] Download `qwen2.5-0.5b-instruct-q4_k_m.gguf` (~400MB)
-- [ ] Test llama-server bisa generate teks dari prompt EWS
-- [ ] Buat `ews-notifier` (Node.js):
-  - [ ] Endpoint `POST /generate` — terima JSON risiko, panggil llama-server, return narasi
-  - [ ] Endpoint `POST /notify` — kirim WA via Baileys
-  - [ ] Logic: generate narasi → kirim ke Laravel API (simpan ke DB) → kirim WA → update status
-- [ ] Test end-to-end: kirim JSON sample → dapat narasi → tersimpan di DB Laravel
-
-**Deliverable:** VPS bisa menerima JSON, generate narasi, dan simpan ke DB dashboard.
-
-**Waktu:** ~4-6 jam
+- [ ] Script Python di VPS yang mengeksekusi ETL cut-off day 60 Moodle secara berkala (cron mingguan).
+- [ ] Eksekusi `test_pipeline.py` versi produksi untuk menghasilkan output Tier 1 dan Tier 2.
+- [ ] (Opsional) Generator narasi pesan WhatsApp menggunakan local LLM (Qwen2.5-0.5B via `llama-server`).
+- [ ] POST hasil ke endpoint REST API Laravel.
 
 ---
 
-## Fase 5: Integrasi Baileys & Go-Live
+## Fase 5: Integrasi WhatsApp (Baileys) & Go-Live
 
-**Tujuan:** Kirim WA asli ke guru.
-
-- [ ] Siapkan nomor WA dedicated (SIM khusus)
-- [ ] Setup Baileys di ews-notifier:
-  - `syncFullHistory: false` (hemat RAM)
-  - Auth state disimpan ke disk
-  - Serialisasi pengiriman (jeda 3-8 detik)
-- [ ] Scan QR sekali dari VPS
-- [ ] Test kirim 1 pesan ke nomor sendiri
-- [ ] Test kirim batch (5 pesan) dengan jeda
-- [ ] Hubungkan ke cron/scheduler Laravel untuk trigger otomatis
-
-**Deliverable:** Sistem EWS end-to-end berjalan: Moodle → Model → LLM → DB → WA → Dashboard.
-
-**Waktu:** ~3-4 jam
-
----
-
-## Ringkasan Timeline
-
-```
-Hari 1:  Fase 1 (test model lokal)           → 1-2 jam
-         Fase 2 (migration + API Laravel)     → 3-4 jam
-
-Hari 2:  Fase 3 (frontend dashboard EWS)     → 4-6 jam
-
-Hari 3:  Fase 4 (VPS: llama-server + notifier) → 4-6 jam
-
-Hari 4:  Fase 5 (Baileys + integrasi penuh)  → 3-4 jam
-         Testing & debugging                  → 2-3 jam
-```
-
-> [!IMPORTANT]
-> **Fase 1 bisa kamu mulai sekarang.** Kamu cuma butuh Python + joblib + pandas. Tidak perlu VPS, tidak perlu Laravel, tidak perlu internet. Itu yang harus kamu kerjakan malam ini.
+- [ ] Kirim pesan WA notifikasi Tier 1 ke guru pengampu mata pelajaran.
+- [ ] Kirim pesan WA pemanggilan Tier 2 dari Guru BK ke orang tua murid (untuk kasus Prioritas Tinggi).
+- [ ] Evaluasi sistem end-to-end.
