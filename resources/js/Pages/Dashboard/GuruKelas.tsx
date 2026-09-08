@@ -245,6 +245,44 @@ export default function GuruKelas({
     )
   }
 
+  // State Modal Eskalasi / Rujuk ke Guru BK
+  const [escalateModalAlert, setEscalateModalAlert] = React.useState<AlertItem | null>(null)
+  const [escalateNotes, setEscalateNotes] = React.useState("")
+  const [isSubmittingEscalate, setIsSubmittingEscalate] = React.useState(false)
+
+  const openEscalateModal = (alert: AlertItem) => {
+    setEscalateModalAlert(alert)
+    setEscalateNotes("")
+  }
+
+  const submitEscalate = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!escalateModalAlert) return
+
+    setIsSubmittingEscalate(true)
+    router.post(
+      "/ews/escalate-to-bk",
+      {
+        alert_id: escalateModalAlert.id,
+        catatan_rujukan: escalateNotes,
+      },
+      {
+        preserveScroll: true,
+        onSuccess: () => {
+          setIsSubmittingEscalate(false)
+          setEscalateModalAlert(null)
+          setEscalateNotes("")
+        },
+        onError: () => {
+          setIsSubmittingEscalate(false)
+        },
+        onFinish: () => {
+          setIsSubmittingEscalate(false)
+        },
+      }
+    )
+  }
+
   // Filtered Alerts
   const filteredAlerts = React.useMemo(() => {
     return (Array.isArray(courseAlerts) ? courseAlerts : []).filter((alert) => {
@@ -660,30 +698,44 @@ export default function GuruKelas({
                       </td>
 
                       <td className="py-4 px-6 whitespace-nowrap">
-                        {alert.status === "pending" && (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-slate-600 border border-slate-200 shadow-2xs whitespace-nowrap">
-                            Menunggu Respon
-                          </span>
-                        )}
-                        {alert.status === "konfirmasi_tugas" && (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs whitespace-nowrap">
-                            Konfirmasi Tugas
-                          </span>
-                        )}
-                        {alert.status === "remedial" && (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200 shadow-2xs whitespace-nowrap">
-                            Program Remedial
-                          </span>
-                        )}
-                        {alert.status === "selesai" && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs whitespace-nowrap">
-                            <IconCheck className="w-3 h-3 shrink-0" /> Selesai Ditangani
-                          </span>
-                        )}
-                        {alert.catatan_guru_mapel && (
-                          <p className="text-[11px] text-slate-500 italic mt-1 truncate max-w-xs" title={alert.catatan_guru_mapel}>
-                            &ldquo;{alert.catatan_guru_mapel}&rdquo;
-                          </p>
+                        {alert.catatan_guru_mapel && alert.catatan_guru_mapel.includes("[DIRUJUK KE BK") ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs whitespace-nowrap">
+                              <IconAlert className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                              <span>Dirujuk ke Guru BK</span>
+                            </span>
+                            <p className="text-[11px] text-slate-500 italic truncate max-w-xs" title={alert.catatan_guru_mapel}>
+                              &ldquo;{alert.catatan_guru_mapel}&rdquo;
+                            </p>
+                          </div>
+                        ) : (
+                          <>
+                            {alert.status === "pending" && (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-slate-600 border border-slate-200 shadow-2xs whitespace-nowrap">
+                                Menunggu Respon
+                              </span>
+                            )}
+                            {alert.status === "konfirmasi_tugas" && (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs whitespace-nowrap">
+                                Konfirmasi Tugas
+                              </span>
+                            )}
+                            {alert.status === "remedial" && (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200 shadow-2xs whitespace-nowrap">
+                                Program Remedial
+                              </span>
+                            )}
+                            {alert.status === "selesai" && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs whitespace-nowrap">
+                                <IconCheck className="w-3 h-3 shrink-0" /> Selesai Ditangani
+                              </span>
+                            )}
+                            {alert.catatan_guru_mapel && (
+                              <p className="text-[11px] text-slate-500 italic mt-1 truncate max-w-xs" title={alert.catatan_guru_mapel}>
+                                &ldquo;{alert.catatan_guru_mapel}&rdquo;
+                              </p>
+                            )}
+                          </>
                         )}
                       </td>
 
@@ -695,6 +747,15 @@ export default function GuruKelas({
                             className="px-3.5 py-1.5 rounded-xl neo-btn bg-white hover:bg-slate-50 text-indigo-700 border border-indigo-200/80 text-xs font-bold shadow-2xs active:scale-95 cursor-pointer"
                           >
                             Tindakan
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => openEscalateModal(alert)}
+                            className="px-3 py-1.5 rounded-xl neo-btn bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold shadow-2xs active:scale-95 cursor-pointer flex items-center gap-1"
+                            title="Rujuk kasus siswa ini ke Guru BK"
+                          >
+                            <IconAlert className="w-3.5 h-3.5 text-rose-600" />
+                            <span>Rujuk BK</span>
                           </button>
                           <button
                             type="button"
@@ -1166,6 +1227,65 @@ export default function GuruKelas({
                   >
                     <IconSave className="w-3.5 h-3.5" />
                     <span>{isSubmittingAction ? "Menyimpan..." : "Simpan Tindakan"}</span>
+                  </button>
+                </DialogFooter>
+              </form>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* SHADCN DIALOG 3: Modal Rujuk / Eskalasi ke Guru BK */}
+      <Dialog open={!!escalateModalAlert} onOpenChange={(open) => !open && setEscalateModalAlert(null)}>
+        <DialogContent className="max-w-md bg-[#EEF2F7] border border-white/90 shadow-2xl rounded-3xl p-6 sm:p-8 space-y-5">
+          {escalateModalAlert && (
+            <>
+              <DialogHeader className="border-b border-slate-200/60 pb-3.5">
+                <span className="text-[11px] font-extrabold font-mono text-rose-600 uppercase tracking-wider">
+                  ESKALASI TIER 1 ➔ TIER 2
+                </span>
+                <DialogTitle className="text-lg font-extrabold text-slate-900 tracking-tight mt-0.5">
+                  Rujuk Kasus Siswa ke Guru BK
+                </DialogTitle>
+                <DialogDescription className="text-xs text-slate-500">
+                  {escalateModalAlert.student?.name || `Siswa ${escalateModalAlert.siswa_id}`} &bull; Modul {escalateModalAlert.nama_mapel}
+                </DialogDescription>
+              </DialogHeader>
+
+              <form onSubmit={submitEscalate} className="space-y-4">
+                <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-800 leading-relaxed shadow-2xs">
+                  Gunakan fitur ini jika remedial atau penanganan internal guru mapel tidak membuahkan hasil, atau siswa tidak kooperatif dan perlu intervensi BK.
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Catatan Alasan Rujukan untuk Guru BK
+                  </label>
+                  <textarea
+                    rows={4}
+                    required
+                    value={escalateNotes}
+                    onChange={(e) => setEscalateNotes(e.target.value)}
+                    placeholder="Contoh: Siswa sudah 2x remedial tidak hadir dan tidak merespon WA. Tugas modul masih kosong. Mohon bantuan BK untuk konseling tatap muka atau pemanggilan orang tua..."
+                    className="w-full p-3 rounded-xl bg-white border border-slate-200 text-sm text-slate-800 focus:border-rose-500 focus:outline-none shadow-2xs"
+                  />
+                </div>
+
+                <DialogFooter className="pt-3 border-t border-slate-200/60 flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setEscalateModalAlert(null)}
+                    className="px-4 py-2.5 rounded-xl neo-btn bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold border border-slate-200/80 cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingEscalate || !escalateNotes.trim()}
+                    className="px-5 py-2.5 rounded-xl neo-btn bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                  >
+                    <IconAlert className="w-3.5 h-3.5" />
+                    <span>{isSubmittingEscalate ? "Mengirim Rujukan..." : "Kirim Rujukan ke Guru BK"}</span>
                   </button>
                 </DialogFooter>
               </form>

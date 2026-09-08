@@ -204,8 +204,8 @@ export function AppLayout({
               <span className="hidden sm:inline">{roleMeta.roleLabel}</span>
             </div>
 
-            {/* Direct Radar EWS Navigation Button - Only for guru_kelas, guru_bk, kepsek */}
-            {["guru_kelas", "guru_bk", "kepsek"].includes(effectiveRole) && (
+            {/* Direct Radar EWS Navigation Button - Only for guru_kelas, kepsek, admin (Guru BK has Tier 2 built-in) */}
+            {["guru_kelas", "kepsek", "admin"].includes(effectiveRole) && (
               <Link
                 href="/ews"
                 className={cn(

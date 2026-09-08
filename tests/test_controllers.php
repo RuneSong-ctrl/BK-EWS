@@ -47,12 +47,22 @@ try {
 }
 
 // 4. EwsMonitoringController
-$req = Request::create('/ews', 'GET');
-$req->setUserResolver(fn() => $bkUser);
+// 4. EwsMonitoringController
 try {
     $c = new App\Http\Controllers\EwsMonitoringController();
-    $res = $c->index($req);
-    echo "4. EwsMonitoringController: OK" . PHP_EOL;
+    
+    // 4a. Akses oleh Guru BK -> Auto Redirect ke /guru-bk/dashboard
+    $reqBk = Request::create('/ews', 'GET');
+    $reqBk->setUserResolver(fn() => $bkUser);
+    $resBk = $c->index($reqBk);
+    assert($resBk->isRedirect(route('guru-bk.dashboard')));
+    
+    // 4b. Akses oleh Guru Mapel -> Render Radar EWS
+    $reqGuru = Request::create('/ews', 'GET');
+    $reqGuru->setUserResolver(fn() => $guruUser);
+    $resGuru = $c->index($reqGuru);
+    
+    echo "4. EwsMonitoringController: OK (BK Auto-Redirect & Teacher Render Verified)" . PHP_EOL;
 } catch (\Throwable $e) {
     echo "4. EwsMonitoringController ERROR: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine() . PHP_EOL;
 }

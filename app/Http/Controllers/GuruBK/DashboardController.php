@@ -45,22 +45,26 @@ class DashboardController extends Controller
             ->orderBy('inaktivitas_terlama_hari', 'desc')
             ->get();
 
-        // 2. Metrik Triage
+        // 2. Metrik Triage BK (Fokus pada status penanganan & prioritas)
         $allSummaries = EwsStudentSummary::all();
         $totalSummaries = $allSummaries->count();
+        $needsAction = $allSummaries->where('status_penanganan', 'open')->count();
+        $inCounseling = $allSummaries->where('status_penanganan', 'in_counseling')->count();
+        $resolved = $allSummaries->where('status_penanganan', 'resolved')->count();
         $highPriority = $allSummaries->where('prioritas_konseling', 'TINGGI')->count();
         $mediumPriority = $allSummaries->where('prioritas_konseling', 'SEDANG')->count();
         $lowPriority = $allSummaries->where('prioritas_konseling', 'RENDAH')->count();
         $inactiveCritical = $allSummaries->where('inaktivitas_terlama_hari', '>', 14)->count();
-        $inCounseling = $allSummaries->where('status_penanganan', 'in_counseling')->count();
 
         $triageStats = [
             'total' => $totalSummaries,
+            'needs_action' => $needsAction,
+            'in_counseling' => $inCounseling,
+            'resolved' => $resolved,
             'high_priority' => $highPriority,
             'medium_priority' => $mediumPriority,
             'low_priority' => $lowPriority,
             'inactive_critical' => $inactiveCritical,
-            'in_counseling' => $inCounseling,
         ];
 
         // 3. Jurnal Konseling Terkini

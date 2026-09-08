@@ -67,6 +67,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin,guru_bk,guru_kelas,kepsek'])->group(function () {
         Route::get('/ews', [EwsMonitoringController::class, 'index'])->name('ews.index');
         Route::post('/ews/interventions', [EwsMonitoringController::class, 'storeIntervention'])->name('ews.interventions.store');
+        Route::post('/ews/escalate-to-bk', [EwsMonitoringController::class, 'escalateToBk'])->name('ews.escalate-to-bk');
     });
 
     // ==========================================
