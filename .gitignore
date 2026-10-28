@@ -76,3 +76,6 @@ Thumbs.db
 .gemini/
 .claude/
 .agents/
+
+# graphify knowledge graph (lokal)
+graphify-out/
