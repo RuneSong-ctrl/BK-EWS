@@ -127,19 +127,23 @@ Route::middleware(['auth'])->group(function () {
 // 3. EWS Moodle 2-Tier APIs
 // ==========================================
 Route::prefix('api/ews')->name('api.ews.')->group(function () {
-    // Ingestion dari Pipeline Python / Moodle LMS
-    Route::post('/tier1/alerts', [EwsApiController::class, 'storeTier1Alerts'])->name('tier1.alerts');
-    Route::post('/tier2/summaries', [EwsApiController::class, 'storeTier2Summaries'])->name('tier2.summaries');
+    // Ingestion dari Pipeline Python (run_pipeline.py --push), wajib header X-EWS-Token
+    Route::middleware('ews.token')->group(function () {
+        Route::post('/tier1/alerts', [EwsApiController::class, 'storeTier1Alerts'])->name('tier1.alerts');
+        Route::post('/tier2/summaries', [EwsApiController::class, 'storeTier2Summaries'])->name('tier2.summaries');
+    });
 
-    // Guru Mapel Endpoints
-    Route::get('/teacher/my-courses', [EwsApiController::class, 'getTeacherAlerts'])->name('teacher.alerts');
-    Route::patch('/teacher/alerts/{id}/status', [EwsApiController::class, 'updateAlertStatus'])->name('teacher.alerts.status');
+    // Endpoint baca/tulis pengguna: wajib login dan dibatasi sesuai peran
+    Route::middleware(['auth', 'role:guru_kelas,admin'])->group(function () {
+        Route::get('/teacher/my-courses', [EwsApiController::class, 'getTeacherAlerts'])->name('teacher.alerts');
+        Route::patch('/teacher/alerts/{id}/status', [EwsApiController::class, 'updateAlertStatus'])->name('teacher.alerts.status');
+    });
 
-    // Guru BK Endpoints
-    Route::get('/bk/triage', [EwsApiController::class, 'getBkTriage'])->name('bk.triage');
-    Route::post('/counseling/record', [EwsApiController::class, 'storeCounselingRecord'])->name('counseling.record');
+    Route::middleware(['auth', 'role:guru_bk'])->group(function () {
+        Route::get('/bk/triage', [EwsApiController::class, 'getBkTriage'])->name('bk.triage');
+        Route::post('/counseling/record', [EwsApiController::class, 'storeCounselingRecord'])->name('counseling.record');
+    });
 
-    // Kepsek Overview
-    Route::get('/kepsek/overview', [EwsApiController::class, 'getKepsekOverview'])->name('kepsek.overview');
+    Route::middleware(['auth', 'role:kepsek,admin'])->get('/kepsek/overview', [EwsApiController::class, 'getKepsekOverview'])->name('kepsek.overview');
 });
 

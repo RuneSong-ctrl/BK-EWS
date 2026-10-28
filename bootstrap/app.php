@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
+            'ews.token' => \App\Http\Middleware\VerifyEwsToken::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -11,6 +11,7 @@ use App\Models\EwsStudentSummary;
 use App\Models\SchoolClass;
 use App\Models\Student;
 use App\Models\User;
+use App\Services\Ews\EwsIngestionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -21,70 +22,16 @@ class EwsApiController extends Controller
      * POST /api/ews/tier1/alerts
      * Ingestion batch/single payload Tier 1 (Guru Mapel) dari pipeline Python/Moodle.
      */
-    public function storeTier1Alerts(Request $request): JsonResponse
+    public function storeTier1Alerts(Request $request, EwsIngestionService $ingestion): JsonResponse
     {
         $payload = $request->all();
-        $items = isset($payload['tier1_subject_teacher']) ? $payload['tier1_subject_teacher'] : (is_array($payload) && isset($payload[0]) ? $payload : [$payload]);
-
-        $created = 0;
-        $updated = 0;
-
-        foreach ($items as $item) {
-            $idSiswa = $item['id_siswa'] ?? null;
-            if (!$idSiswa) continue;
-
-            $namaSiswa = $item['nama_siswa'] ?? "Siswa {$idSiswa}";
-            $kelasNama = $item['kelas'] ?? 'X-RPL-1';
-
-            $student = Student::firstOrCreate(
-                ['nis' => (string) $idSiswa],
-                [
-                    'nisn' => '008' . str_pad($idSiswa, 7, '0', STR_PAD_LEFT),
-                    'name' => $namaSiswa,
-                    'gender' => 'L',
-                    'status' => 'AKTIF',
-                ]
-            );
-
-            $m24 = $item['metrik_24_fitur_model'] ?? [];
-
-            $alert = EwsCourseAlert::updateOrCreate(
-                [
-                    'siswa_id' => $student->id,
-                    'kode_modul' => $item['mata_pelajaran']['kode_modul'] ?? 'AAA',
-                ],
-                [
-                    'nama_mapel' => $item['mata_pelajaran']['nama_mapel'] ?? 'Mata Pelajaran',
-                    'kategori_mapel' => $item['mata_pelajaran']['kategori'] ?? 'Kejuruan/Produktif',
-                    'guru_pengampu' => $item['mata_pelajaran']['guru_pengampu'] ?? 'Guru Mapel',
-                    'kkm' => (int) ($item['mata_pelajaran']['kkm'] ?? 75),
-                    'tingkat_risiko' => $item['analisis_risiko']['tingkat_risiko'] ?? 'RENDAH',
-                    'probabilitas_risiko' => (float) ($item['analisis_risiko']['probabilitas_risiko'] ?? 0.0),
-                    'durasi_belajar_jam' => (float) ($m24['engagement_dan_durasi']['course_duration_hours'] ?? 0.0),
-                    'lesson_attempts' => (int) ($m24['aktivitas_lesson']['lesson_attempts_count'] ?? 0),
-                    'rasio_ketuntasan_lesson' => (float) ($m24['aktivitas_lesson']['lesson_completion_ratio'] ?? 0.0),
-                    'nilai_rata_rata_lesson' => (float) ($m24['aktivitas_lesson']['lesson_avg_score'] ?? 0.0),
-                    'tugas_belum_dikumpul' => (int) ($m24['kepatuhan_tugas']['missing_assignments'] ?? 0),
-                    'tugas_terlambat' => (int) ($m24['kepatuhan_tugas']['late_submission_count'] ?? 0),
-                    'nilai_rata_rata_tugas' => (float) ($m24['akademik']['avg_score'] ?? 0.0),
-                    'metrik_24_fitur_model' => $m24,
-                    'faktor_pemicu' => $item['faktor_pemicu'] ?? [],
-                    'rekomendasi_tindakan' => $item['rekomendasi_tindakan'] ?? '',
-                    'status' => 'pending',
-                ]
-            );
-
-            if ($alert->wasRecentlyCreated) {
-                $created++;
-            } else {
-                $updated++;
-            }
-        }
+        $items = $payload['tier1_subject_teacher'] ?? (isset($payload[0]) ? $payload : [$payload]);
+        $counts = $ingestion->ingestTier1($items);
 
         return response()->json([
             'success' => true,
-            'message' => "Tier 1 Alerts berhasil diproses: {$created} baru, {$updated} diperbarui.",
-            'counts' => ['created' => $created, 'updated' => $updated],
+            'message' => "Tier 1 Alerts berhasil diproses: {$counts['created']} baru, {$counts['updated']} diperbarui.",
+            'counts' => $counts,
         ]);
     }
 
@@ -92,60 +39,16 @@ class EwsApiController extends Controller
      * POST /api/ews/tier2/summaries
      * Ingestion batch/single payload Tier 2 (Guru BK) dari pipeline Python.
      */
-    public function storeTier2Summaries(Request $request): JsonResponse
+    public function storeTier2Summaries(Request $request, EwsIngestionService $ingestion): JsonResponse
     {
         $payload = $request->all();
-        $items = isset($payload['tier2_counselor_bk']) ? $payload['tier2_counselor_bk'] : (is_array($payload) && isset($payload[0]) ? $payload : [$payload]);
-
-        $created = 0;
-        $updated = 0;
-
-        foreach ($items as $item) {
-            $idSiswa = $item['id_siswa'] ?? null;
-            if (!$idSiswa) continue;
-
-            $student = Student::where('nis', (string) $idSiswa)->first();
-            if (!$student) {
-                $namaSiswa = $item['nama_siswa'] ?? "Siswa {$idSiswa}";
-                $student = Student::create([
-                    'nis' => (string) $idSiswa,
-                    'nisn' => '008' . str_pad($idSiswa, 7, '0', STR_PAD_LEFT),
-                    'name' => $namaSiswa,
-                    'gender' => 'L',
-                    'status' => 'AKTIF',
-                ]);
-            }
-
-            $rekap = $item['rekapitulasi_semester'] ?? [];
-
-            $summary = EwsStudentSummary::updateOrCreate(
-                ['siswa_id' => $student->id],
-                [
-                    'total_mapel_diambil' => (int) ($rekap['total_mapel_diambil'] ?? 0),
-                    'total_mapel_berisiko' => (int) ($rekap['total_mapel_berisiko'] ?? 0),
-                    'total_jam_belajar' => (float) ($rekap['total_jam_belajar'] ?? 0.0),
-                    'total_tugas_belum_dikumpul' => (int) ($rekap['total_tugas_belum_dikumpul'] ?? 0),
-                    'total_tugas_terlambat' => (int) ($rekap['total_tugas_terlambat'] ?? 0),
-                    'inaktivitas_terlama_hari' => (int) ($rekap['inaktivitas_terlama_hari'] ?? 0),
-                    'profil_karakter_belajar' => $item['profil_karakter_belajar'] ?? 'Normal',
-                    'prioritas_konseling' => $item['prioritas_konseling'] ?? 'RENDAH',
-                    'rekomendasi_tindakan' => $item['rekomendasi_tindakan'] ?? '',
-                    'rincian_per_mata_pelajaran' => $item['rincian_per_mata_pelajaran'] ?? [],
-                    'status_penanganan' => ($item['prioritas_konseling'] === 'TINGGI') ? 'in_counseling' : 'open',
-                ]
-            );
-
-            if ($summary->wasRecentlyCreated) {
-                $created++;
-            } else {
-                $updated++;
-            }
-        }
+        $items = $payload['tier2_counselor_bk'] ?? (isset($payload[0]) ? $payload : [$payload]);
+        $counts = $ingestion->ingestTier2($items);
 
         return response()->json([
             'success' => true,
-            'message' => "Tier 2 Summaries berhasil diproses: {$created} baru, {$updated} diperbarui.",
-            'counts' => ['created' => $created, 'updated' => $updated],
+            'message' => "Tier 2 Summaries berhasil diproses: {$counts['created']} baru, {$counts['updated']} diperbarui.",
+            'counts' => $counts,
         ]);
     }
 

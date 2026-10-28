@@ -11,6 +11,7 @@ class CourseMappingSeeder extends Seeder
     public function run(): void
     {
         $csvPaths = [
+            config('services.ews.course_mapping'),
             base_path('../Model-BK-Ews/course_mapping.csv'),
             'c:/Users/ramad/Documents/PROJECT/Model-BK-Ews/course_mapping.csv',
             base_path('course_mapping.csv'),

@@ -6,17 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\EwsCourseAlert;
 use App\Models\EwsStudentSummary;
 use App\Models\MoodleSyncLog;
-use Database\Seeders\Ews2TierSeeder;
+use App\Services\Ews\EwsIngestionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Process;
 
 class MoodleSyncController extends Controller
 {
     /**
      * Memicu sinkronisasi manual Moodle on-demand.
      */
-    public function syncNow(Request $request): RedirectResponse|JsonResponse
+    public function syncNow(Request $request, EwsIngestionService $ingestion): RedirectResponse|JsonResponse
     {
         $startTime = microtime(true);
         $user = $request->user();
@@ -32,18 +33,35 @@ class MoodleSyncController extends Controller
         ]);
 
         try {
-            // Jalankan seeder 2-tier untuk memproses ulang data terkini
-            $seeder = new Ews2TierSeeder();
-            $seeder->run();
+            // Jalankan pipeline ML (EWS_Moodle/run_pipeline.py): fitur siswa -> model -> JSON Tier 1 & Tier 2.
+            // Pada prototipe, sumber fitur adalah data simulasi kelas STIKMAS; pada penerapan nyata diganti ekstraksi Moodle.
+            $cfg = config('services.ews');
+            $process = Process::path(dirname($cfg['pipeline']))
+                ->timeout(300)
+                // Windows: Python butuh SYSTEMROOT agar modul jaringan (asyncio/joblib) dapat dimuat
+                ->env(array_filter([
+                    'SYSTEMROOT' => getenv('SYSTEMROOT') ?: (PHP_OS_FAMILY === 'Windows' ? 'C:\\Windows' : null),
+                    'PATH' => getenv('PATH') ?: null,
+                    'PYTHONIOENCODING' => 'utf-8',
+                ]))
+                ->run([$cfg['python'], $cfg['pipeline'], '--input', $cfg['input'], '--export', $cfg['output'], '--quiet']);
+
+            if ($process->failed()) {
+                throw new \RuntimeException('Pipeline model gagal dijalankan: ' . trim($process->errorOutput() ?: $process->output()));
+            }
+
+            // Simpan hasil model ke basis data (status tindak lanjut guru tetap dipertahankan)
+            $result = $ingestion->ingestFile($cfg['output']);
 
             $studentsProcessed = EwsStudentSummary::count();
             $alertsProcessed = EwsCourseAlert::count();
             $duration = round(microtime(true) - $startTime, 2);
+            $versi = $result['versi_model'] ?? '-';
 
             $log->update([
                 'status' => 'success',
                 'students_processed' => $studentsProcessed,
-                'message' => "Sinkronisasi berhasil: {$studentsProcessed} profil siswa dan {$alertsProcessed} alert mapel diproses dalam {$duration} detik.",
+                'message' => "Sinkronisasi berhasil (model v{$versi}): {$studentsProcessed} profil siswa dan {$alertsProcessed} alert mapel diproses dalam {$duration} detik.",
                 'completed_at' => now(),
             ]);
 
