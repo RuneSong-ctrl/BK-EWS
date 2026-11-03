@@ -41,8 +41,18 @@ class EwsStudentSummary extends Model
         return $this->belongsTo(Student::class, 'siswa_id');
     }
 
+    public function siswa(): BelongsTo
+    {
+        return $this->belongsTo(Student::class, 'siswa_id');
+    }
+
     public function counselingJournals(): HasMany
     {
         return $this->hasMany(EwsCounselingJournal::class, 'summary_id');
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(EwsNotification::class, 'summary_id');
     }
 }

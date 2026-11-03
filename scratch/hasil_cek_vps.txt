@@ -1,0 +1,72 @@
+
+== 1. Sistem & Resource ==
+         Host: eduflowwebid | OS: Ubuntu 24.04.5 LTS | Uptime: up 4 days, 22 hours, 12 minutes
+  [OK]   RAM tersedia 912/1967 MiB
+  [OK]   Swap aktif 2047 MiB
+  [OK]   Disk terpakai 43%
+         Load average: 0.04 0.46 1.03 | CPU core: 2
+         Top 5 proses (CPU):
+               PID USER     %CPU %MEM     ELAPSED COMMAND
+            178548 root      100  0.2       00:00 ps
+            178527 root      2.5  0.4       00:03 sshd
+            123572 mysql     1.0 20.9  1-14:40:59 mysqld
+                17 root      0.4  0.0  4-22:12:27 rcu_preempt
+            178529 root      0.3  0.4       00:02 sshd
+
+== 2. User terisolasi ==
+  [OK]   User bk-ews ada (home: /home/bk-ews)
+  [WARN] Skrip dijalankan sebagai root, bukan bk-ews (cek PM2/crontab bisa tidak akurat)
+
+== 3. Pipeline Python & Model ML (/home/bk-ews/pipeline) ==
+  [OK]   Folder pipeline ada
+  [FAIL] ews_moodle_model.pkl tidak ditemukan
+  [FAIL] course_mapping.csv tidak ditemukan
+  [FAIL] sample_output.json tidak ditemukan
+  [FAIL] test_pipeline.py tidak ditemukan
+  [WARN] worker_pipeline.py belum ada
+  [WARN] digest_generator.py belum ada
+  [WARN] laravel_client.py belum ada
+  [WARN] test_llm_grouped_digest.py belum ada
+  [OK]   venv: Python 3.12.3
+         [OK]   numpy 1.26.4
+         [OK]   pandas 3.0.5
+         [OK]   sklearn 1.9.1
+         [OK]   joblib 1.6.0
+  [WARN] .env pipeline belum ada
+
+== 4. Local LLM Qwen 0.5B (/home/bk-ews/llm-server) ==
+  [OK]   Model GGUF: qwen2.5-0.5b-instruct-q4_k_m.gguf (469M)
+  [OK]   Binary llama-server: /home/bk-ews/llm-server/bin/llama-b10876/llama-server
+  [OK]   bk-ews-llm.service active (enabled)
+  [OK]   Restart count: 0
+  [OK]   Pagar MemoryMax=580M
+  [OK]   Pagar CPUQuota=55%
+  [OK]   --threads 1
+         Pemakaian RAM LLM saat ini: 53 MiB
+  [OK]   Endpoint /health port 8080: {"status":"ok"}
+  [OK]   Uji generate 23 dtk, 5.363485473412171 token/dtk
+
+== 5. Gateway lama WhatsApp (harus MATI sebelum pindah Telegram) ==
+  [OK]   Tidak ada proses PM2 ews-wa-bot
+  [OK]   Tidak ada proses Baileys berjalan
+  [WARN] Sesi Baileys lama masih ada di /home/bk-ews/wa-gateway/auth_info_baileys (arsipkan/hapus manual)
+
+== 6. Jadwal (crontab bk-ews) ==
+         Crontab kosong
+         Tue 2026-10-27 07:54:37 WIB      10h Mon 2026-10-26 20:58:43 WIB     35min ago motd-news.timer                motd-news.service
+
+== 7. Jaringan & Keamanan ==
+         Port LISTEN publik (bukan 127.0.0.1/::1):
+           0.0.0.0:22
+           0.0.0.0:443
+           0.0.0.0:80
+           [::]:22
+           [::]:443
+           [::]:80
+  [OK]   Koneksi TCP established: 4
+  [OK]   UFW aktif
+  [WARN] fail2ban sshd tidak aktif
+  [OK]   api.telegram.org terjangkau (HTTP 302)
+
+== RINGKASAN ==
+  OK: 20 | WARN: 8 | FAIL: 4

@@ -51,4 +51,14 @@ class EwsCourseAlert extends Model
     {
         return $this->belongsTo(Student::class, 'siswa_id');
     }
+
+    public function siswa(): BelongsTo
+    {
+        return $this->belongsTo(Student::class, 'siswa_id');
+    }
+
+    public function notifications(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(EwsNotification::class, 'alert_id');
+    }
 }

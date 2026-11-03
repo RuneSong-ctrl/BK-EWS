@@ -80,6 +80,9 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/course-mapping/{id}', [\App\Http\Controllers\Admin\CourseMappingController::class, 'update'])->name('course-mapping.update');
         Route::post('/course-mapping/upload', [\App\Http\Controllers\Admin\CourseMappingController::class, 'uploadCsv'])->name('course-mapping.upload');
         Route::get('/course-mapping/download', [\App\Http\Controllers\Admin\CourseMappingController::class, 'downloadCsv'])->name('course-mapping.download');
+        Route::post('/notifications/force-push', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'forcePush'])->name('notifications.force-push');
+        Route::post('/notifications/test-send', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'testSend'])->name('notifications.test-send');
+        Route::post('/notifications/{id}/retry', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'retryNotification'])->name('notifications.retry');
     });
 
     // Internal AI Structuring Helper APIs (Wajib terautentikasi & rate-limited)
@@ -127,13 +130,7 @@ Route::middleware(['auth'])->group(function () {
 // 3. EWS Moodle 2-Tier APIs
 // ==========================================
 Route::prefix('api/ews')->name('api.ews.')->group(function () {
-    // Ingestion dari Pipeline Python (run_pipeline.py --push), wajib header X-EWS-Token
-    Route::middleware('ews.token')->group(function () {
-        Route::post('/tier1/alerts', [EwsApiController::class, 'storeTier1Alerts'])->name('tier1.alerts');
-        Route::post('/tier2/summaries', [EwsApiController::class, 'storeTier2Summaries'])->name('tier2.summaries');
-    });
-
-    // Endpoint baca/tulis pengguna: wajib login dan dibatasi sesuai peran
+    // Endpoint baca/tulis pengguna web: wajib login dan dibatasi sesuai peran
     Route::middleware(['auth', 'role:guru_kelas,admin'])->group(function () {
         Route::get('/teacher/my-courses', [EwsApiController::class, 'getTeacherAlerts'])->name('teacher.alerts');
         Route::patch('/teacher/alerts/{id}/status', [EwsApiController::class, 'updateAlertStatus'])->name('teacher.alerts.status');
@@ -145,5 +142,20 @@ Route::prefix('api/ews')->name('api.ews.')->group(function () {
     });
 
     Route::middleware(['auth', 'role:kepsek,admin'])->get('/kepsek/overview', [EwsApiController::class, 'getKepsekOverview'])->name('kepsek.overview');
+
+    // Ingestion dari Pipeline ML (lokal / VPS): wajib header X-EWS-Token atau X-EWS-Key
+    Route::middleware('ews.token')->group(function () {
+        Route::post('/tier1/alerts', [EwsApiController::class, 'storeTier1Alerts'])->name('tier1.alerts');
+        Route::post('/tier2/summaries', [EwsApiController::class, 'storeTier2Summaries'])->name('tier2.summaries');
+    });
+
+    // Endpoint mesin: pipeline & worker Telegram di VPS (wajib header X-EWS-Key)
+    Route::middleware(\App\Http\Middleware\VerifyEwsApiKey::class)->group(function () {
+        Route::get('/notifications/pending', [EwsApiController::class, 'getPendingNotifications'])->name('notifications.pending');
+        Route::patch('/notifications/{id}/status', [EwsApiController::class, 'updateNotificationStatus'])->name('notifications.status');
+        Route::post('/bot/heartbeat', [EwsApiController::class, 'recordBotHeartbeat'])->name('bot.heartbeat');
+        Route::post('/telegram/link', [EwsApiController::class, 'linkTelegram'])->name('telegram.link');
+    });
+    Route::get('/bot/status', [EwsApiController::class, 'getBotStatus'])->name('bot.status');
 });
 

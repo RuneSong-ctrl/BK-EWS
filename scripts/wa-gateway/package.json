@@ -1,0 +1,16 @@
+{
+  "name": "bk-ews-wa-gateway",
+  "version": "1.0.0",
+  "description": "WhatsApp Gateway Worker for E-Jurnal STIKMAS EWS based on Baileys",
+  "type": "module",
+  "main": "bot.mjs",
+  "scripts": {
+    "start": "node bot.mjs"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.19",
+    "axios": "^1.7.9",
+    "pino": "^9.6.0",
+    "qrcode-terminal": "^0.12.0"
+  }
+}

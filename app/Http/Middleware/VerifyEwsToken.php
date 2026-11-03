@@ -16,16 +16,24 @@ class VerifyEwsToken
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $expected = (string) config('services.ews.token');
+        $token = (string) config('services.ews.token');
+        $apiKey = (string) config('services.ews.api_key');
 
-        if ($expected === '') {
-            return response()->json(['success' => false, 'message' => 'EWS_API_TOKEN belum dikonfigurasi di server.'], 503);
+        $headerToken = (string) $request->header('X-EWS-Token');
+        $headerKey = (string) $request->header('X-EWS-Key');
+
+        if ($token !== '' && hash_equals($token, $headerToken)) {
+            return $next($request);
         }
 
-        if (!hash_equals($expected, (string) $request->header('X-EWS-Token'))) {
-            return response()->json(['success' => false, 'message' => 'Token EWS tidak valid.'], 401);
+        if ($apiKey !== '' && hash_equals($apiKey, $headerKey)) {
+            return $next($request);
         }
 
-        return $next($request);
+        if ($token === '' && $apiKey === '') {
+            return response()->json(['success' => false, 'message' => 'EWS_API_TOKEN atau EWS_API_KEY belum dikonfigurasi di server.'], 503);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Kredensial EWS tidak valid (X-EWS-Token / X-EWS-Key).'], 401);
     }
 }

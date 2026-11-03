@@ -42,9 +42,11 @@ return [
         'provider' => env('AI_PROVIDER', 'auto'),
     ],
 
-    // Integrasi modul ML EWS 2-Tier (folder EWS_Moodle), default: data asli Moodle sekolah pelanggan
+    // Integrasi modul ML EWS 2-Tier & VPS Telegram Gateway
     'ews' => [
         'token' => env('EWS_API_TOKEN', ''),
+        'api_key' => env('EWS_API_KEY'),
+        'telegram_bot_username' => env('TELEGRAM_BOT_USERNAME'),
         'python' => env('EWS_PYTHON', 'python'),
         'pipeline' => env('EWS_PIPELINE_PATH', base_path('../EWS_Moodle/run_pipeline.py')),
         'model' => env('EWS_MODEL_PATH', base_path('../EWS_Moodle/ews_kokar_model.pkl')),
