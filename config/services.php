@@ -49,4 +49,10 @@ return [
         'provider' => env('AI_PROVIDER', 'auto'),
     ],
 
+    'ews' => [
+        // Kunci bersama pipeline/worker VPS -> Laravel (header X-EWS-Key)
+        'api_key' => env('EWS_API_KEY'),
+        'telegram_bot_username' => env('TELEGRAM_BOT_USERNAME'),
+    ],
+
 ];
