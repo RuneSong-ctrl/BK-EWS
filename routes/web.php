@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes - E-Jurnal STIKMAS (Early Warning System & AI Jurnal)
+| Web Routes - BK-EWS (Early Warning System & AI Jurnal)
 |--------------------------------------------------------------------------
 |
 | Seluruh rute aplikasi diatur dengan standar keamanan:

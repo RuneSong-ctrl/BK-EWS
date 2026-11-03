@@ -1,11 +1,12 @@
-# E-Jurnal STIKMAS Design & Engineering Guidelines
+# BK-EWS Design & Engineering Guidelines
 
 ## UI/UX & Design System Standards
 - **Framework & Libraries**: React 19 + TypeScript + Inertia.js + Tailwind CSS v4 + Shadcn UI + Lucide Icons.
 - **Gold Standard Reference**: All pages and forms MUST follow the layout, proportions, and aesthetic established in `GuruKelas.tsx`.
 - **Branding & Assets**:
-  - Application Name: **E-Jurnal STIKMAS** (Sistem Jurnal Observasi & Early Warning System AI).
-  - Official Logo: `/storage/stikmas.png` (from `public/storage/stikmas.png`).
+  - Application Name: **BK-EWS** (produk PT. Jaya Kartha Solusindo untuk banyak sekolah).
+  - School identity is configurable, never hardcoded: `APP_NAME`, `SCHOOL_NAME`, `SCHOOL_LOGO` in `.env`
+    (default "Sekolah Mitra JKS", `/images/logo-sekolah.svg`). Read it in React with `useBrand()` from `@/lib/brand`.
 - **Single-Page / Sub-Feature Architecture**:
   - Embedded layout: No vertical sidebar navigation. Use sticky Top Navigation Header (`AppLayout.tsx`).
   - Container width: `max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8`.

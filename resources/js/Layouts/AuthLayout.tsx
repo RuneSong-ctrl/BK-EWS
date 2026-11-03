@@ -2,6 +2,7 @@ import * as React from "react"
 import { IconShieldCheck } from "@/components/ui/storage-icon"
 import { Link } from "@inertiajs/react"
 import { cn } from "@/lib/utils"
+import { useBrand } from "@/lib/brand"
 
 interface AuthLayoutProps {
   children: React.ReactNode
@@ -16,6 +17,7 @@ export function AuthLayout({
   subtitle,
   maxWidth = "md",
 }: AuthLayoutProps) {
+  const brand = useBrand()
   return (
     <div className="min-h-screen bg-[#EEF2F7] text-slate-900 flex flex-col justify-between p-4 sm:p-6 lg:p-8 relative overflow-hidden font-sans antialiased">
       {/* Background Soft Ambient Radial Glows */}
@@ -33,26 +35,26 @@ export function AuthLayout({
         )}
       >
         <div className="p-7 sm:p-9 rounded-3xl neo-card bg-[#EEF2F7] border border-white/80 relative">
-          {/* Unified Card Header: Logo STIKMAS & App Branding */}
+          {/* Unified Card Header: Logo sekolah & App Branding */}
           <div className="flex flex-col items-center text-center mb-6">
             <Link href="/" className="group flex flex-col items-center">
               <div className="w-14 h-14 rounded-2xl neo-btn bg-[#EEF2F7] p-2.5 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform shrink-0">
                 <img
-                  src="/storage/stikmas.png"
-                  alt="E-Jurnal STIKMAS"
+                  src={brand.schoolLogo}
+                  alt={`Logo ${brand.schoolName}`}
                   className="w-full h-full object-contain drop-shadow-xs"
                 />
               </div>
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-xl sm:text-2xl text-slate-900 tracking-tight">
-                  E-Jurnal STIKMAS
+                  {brand.appName}
                 </span>
                 <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200/80">
                   AI EWS
                 </span>
               </div>
               <p className="text-xs text-slate-500 font-medium mt-1">
-                Sistem Observasi Jurnal &amp; Early Warning
+                {brand.schoolName} • Sistem Bimbingan Konseling &amp; Early Warning
               </p>
             </Link>
 

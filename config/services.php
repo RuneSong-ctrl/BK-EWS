@@ -42,7 +42,7 @@ return [
         'provider' => env('AI_PROVIDER', 'auto'),
     ],
 
-    // Integrasi modul ML EWS 2-Tier (folder EWS_Moodle), default: data asli Moodle SMKN 3 Sukawati
+    // Integrasi modul ML EWS 2-Tier (folder EWS_Moodle), default: data asli Moodle sekolah pelanggan
     'ews' => [
         'token' => env('EWS_API_TOKEN', ''),
         'python' => env('EWS_PYTHON', 'python'),

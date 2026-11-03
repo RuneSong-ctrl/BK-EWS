@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * Service: EwsScoringService
  * 
- * Core Engine Sistem Peringatan Dini (Early Warning System - EWS) E-Jurnal STIKMAS.
+ * Core Engine Sistem Peringatan Dini (Early Warning System - EWS) BK-EWS.
  * Mengimplementasikan algoritma deterministik multi-pilar dengan paradigma Max-Severity (Worst-Case).
  * 
  * 4 Pilar Pemantauan:

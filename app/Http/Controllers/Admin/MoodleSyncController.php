@@ -34,7 +34,7 @@ class MoodleSyncController extends Controller
 
         try {
             // Jalankan pipeline ML (EWS_Moodle/run_pipeline.py): fitur siswa -> model -> JSON Tier 1 & Tier 2.
-            // Sumber fitur: hasil ekstraksi dump database Moodle SMKN 3 Sukawati (EWS_Moodle/train_kokar.py).
+            // Sumber fitur: hasil ekstraksi dump database Moodle sekolah pelanggan (EWS_Moodle/train_kokar.py).
             $cfg = config('services.ews');
             $process = Process::path(dirname($cfg['pipeline']))
                 ->timeout(300)
@@ -104,7 +104,7 @@ class MoodleSyncController extends Controller
             'moodle_token' => 'nullable|string',
         ]);
 
-        $url = $validated['moodle_url'] ?? config('services.moodle.url', 'https://kokar.melajah.id');
+        $url = $validated['moodle_url'] ?? config('services.moodle.url', 'https://moodle.sekolah.sch.id');
 
         // Simulasi pemeriksaan heartbeat endpoint Moodle
         $latency = rand(28, 55);

@@ -33,7 +33,7 @@ export default function Register() {
   return (
     <AuthLayout
       title="Registrasi Staf Pendidik"
-      subtitle="Daftarkan akun pendidik atau konselor untuk akses sistem E-Jurnal STIKMAS"
+      subtitle="Daftarkan akun pendidik atau konselor untuk akses sistem BK-EWS"
       maxWidth="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4">

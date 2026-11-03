@@ -1,5 +1,6 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
+import { useBrand } from '@/lib/brand';
 import { motion } from 'framer-motion';
 import {
     IconUserCheck,
@@ -14,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { EwsStatusBadge } from '@/components/ews/EwsStatusBadge';
 
 export default function Welcome() {
+    const brand = useBrand()
     const roles = [
         {
             title: 'Guru / Wali Kelas',
@@ -46,7 +48,7 @@ export default function Welcome() {
 
     return (
         <>
-            <Head title="E-Jurnal STIKMAS - Sistem Observasi & Early Warning System" />
+            <Head title={`${brand.appName} - ${brand.schoolName}`} />
 
             <div className="relative min-h-screen bg-[#F0F3F8] text-slate-900 selection:bg-blue-600 selection:text-white font-sans antialiased overflow-hidden flex flex-col justify-between">
                 {/* Background Soft Glows */}
@@ -57,12 +59,12 @@ export default function Welcome() {
                 <header className="relative z-10 border-b border-slate-200/80 bg-white/80 backdrop-blur-xl sticky top-0 px-6 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-11 h-11 rounded-2xl bg-white border border-slate-200/80 p-1.5 flex items-center justify-center shadow-md shadow-blue-500/10 overflow-hidden shrink-0">
-                            <img src="/storage/stikmas.png" alt="Logo E-Jurnal STIKMAS" width={38} height={38} loading="eager" className="w-full h-full object-contain" />
+                            <img src={brand.schoolLogo} alt={`Logo ${brand.schoolName}`} width={38} height={38} loading="eager" className="w-full h-full object-contain" />
                         </div>
                         <div>
                             <div className="flex items-center gap-1.5">
                                 <span className="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight">
-                                    E-Jurnal STIKMAS
+                                    {brand.appName}
                                 </span>
                                 <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
                                     AI
@@ -96,7 +98,7 @@ export default function Welcome() {
                     <div className="text-center space-y-5 max-w-3xl mx-auto">
                         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/90 border border-slate-200/80 text-blue-700 text-xs font-bold shadow-2xs">
                             <span className="w-2 h-2 rounded-full bg-blue-600 ring-3 ring-blue-500/20" />
-                            <span>E-Jurnal Observasi &amp; Early Warning System AI</span>
+                            <span>{brand.schoolName} • Early Warning System AI</span>
                         </div>
 
                         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight">
@@ -199,7 +201,7 @@ export default function Welcome() {
 
                 {/* Footer */}
                 <footer className="relative z-10 border-t border-slate-200/80 bg-white/50 backdrop-blur-md py-6 text-center text-xs text-slate-500 space-y-1">
-                    <p className="font-semibold text-slate-700">E-Jurnal STIKMAS • Sistem Observasi &amp; Early Warning 2026</p>
+                    <p className="font-semibold text-slate-700">{brand.appName} • {brand.schoolName} • Produk PT. Jaya Kartha Solusindo</p>
                     <p className="text-[11px] text-slate-400">Arsitektur Laravel 13 + Inertia React 19 + Tailwind v4 + Soft Neomorphism</p>
                 </footer>
             </div>

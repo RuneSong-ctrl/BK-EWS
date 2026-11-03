@@ -19,7 +19,7 @@ use Inertia\Response;
 /**
  * Controller: DashboardController (Modul Kepala Sekolah)
  * 
- * Pusat Komando Eksekutif & Manajemen Risiko Sekolah E-Jurnal STIKMAS.
+ * Pusat Komando Eksekutif & Manajemen Risiko Sekolah BK-EWS.
  * Menyajikan statistik makro sekolah, daftar siswa anomali prioritas (Kritis & Waspada),
  * lembar disposisi instruksi tindak lanjut BK, dan matriks kesehatan kelas.
  */

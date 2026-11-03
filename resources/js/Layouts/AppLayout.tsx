@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/storage-icon"
 import { Link, router, usePage } from "@inertiajs/react"
 import { cn } from "@/lib/utils"
+import { useBrand } from "@/lib/brand"
 
 export type UserRole = "admin" | "guru_kelas" | "guru_bk" | "kepsek"
 
@@ -45,6 +46,7 @@ export function AppLayout({
   title,
   subtitle,
 }: AppLayoutProps) {
+  const brand = useBrand()
   const { auth, notifications: serverNotifications = [] } = usePage<{
     auth?: { user?: AuthUser }
     notifications?: NotificationItem[]
@@ -175,18 +177,18 @@ export function AppLayout({
           <div className="flex items-center gap-3">
             <Link href={roleMeta.dashboardHref} className="flex items-center gap-3 group">
               <div className="w-11 h-11 rounded-2xl bg-white border border-slate-200 flex items-center justify-center p-1.5 overflow-hidden shrink-0 shadow-xs group-hover:border-blue-300 group-hover:shadow-sm transition-all">
-                <img src="/storage/stikmas.png" alt="Logo E-Jurnal STIKMAS" width={38} height={38} loading="eager" className="w-full h-full object-contain" />
+                <img src={brand.schoolLogo} alt={`Logo ${brand.schoolName}`} width={38} height={38} loading="eager" className="w-full h-full object-contain" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight block leading-tight">
-                    E-Jurnal STIKMAS
+                    {brand.appName}
                   </span>
                   <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200/80">
                     AI EWS
                   </span>
                 </div>
-                <span className="text-[11px] font-semibold text-slate-500">Sistem Jurnal &amp; Early Warning</span>
+                <span className="text-[11px] font-semibold text-slate-500">{brand.schoolName}</span>
               </div>
             </Link>
           </div>
@@ -310,7 +312,7 @@ export function AppLayout({
 
                   <div className="pt-2 border-t border-slate-100 text-center">
                     <span className="text-[11px] font-semibold text-slate-400">
-                      Sistem Otomatis EWS E-Jurnal STIKMAS
+                      Sistem Otomatis {brand.appName}
                     </span>
                   </div>
                 </div>

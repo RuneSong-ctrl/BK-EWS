@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useBrand } from "@/lib/brand"
 import { router } from "@inertiajs/react"
 import {
   IconClose,
@@ -77,6 +78,7 @@ export function EwsDetailModal({
   onClose,
   userRole = "guru_bk",
 }: EwsDetailModalProps) {
+  const brand = useBrand()
   const [activeTab, setActiveTab] = React.useState<"ai" | "metrics" | "factors" | "wa" | "interventions">("ai")
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [isCopied, setIsCopied] = React.useState(false)
@@ -615,7 +617,7 @@ export function EwsDetailModal({
         {/* Modal Footer */}
         <div className="p-4 sm:p-5 bg-white/90 border-t border-slate-200/80 flex items-center justify-between gap-3 shrink-0">
           <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
-            E-Jurnal STIKMAS • Early Warning System LMS Moodle
+            {brand.appName} • Early Warning System LMS Moodle
           </span>
           <Button
             type="button"

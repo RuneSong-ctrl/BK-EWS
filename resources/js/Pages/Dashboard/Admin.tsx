@@ -78,7 +78,7 @@ export default function AdminDashboard({
 
   // State Pengaturan API & Web Service Moodle
   const [apiForm, setApiForm] = React.useState({
-    moodle_url: kpi?.moodle_url || "https://kokar.melajah.id",
+    moodle_url: kpi?.moodle_url || "https://moodle.sekolah.sch.id",
     moodle_token: "9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c",
     ws_function: "core_webservice_get_site_info",
     auto_sync_schedule: "02:00 WITA",
@@ -711,7 +711,7 @@ export default function AdminDashboard({
                   Konfigurasi Server LMS Moodle
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                  Kredensial dan parameter REST API resmi untuk mengalirkan log aktivitas belajar siswa ke mesin inferensi EWS STIKMAS.
+                  Kredensial dan parameter REST API resmi untuk mengalirkan log aktivitas belajar siswa ke mesin inferensi BK-EWS.
                 </p>
               </div>
 
@@ -726,7 +726,7 @@ export default function AdminDashboard({
                       type="url"
                       value={apiForm.moodle_url}
                       onChange={(e) => setApiForm({ ...apiForm, moodle_url: e.target.value })}
-                      placeholder="https://kokar.melajah.id"
+                      placeholder="https://moodle.sekolah.sch.id"
                       required
                       className="w-full h-11 px-4 text-xs sm:text-sm rounded-xl neo-inset bg-white border border-slate-200 focus:outline-none focus:border-indigo-500 font-mono text-slate-800"
                     />

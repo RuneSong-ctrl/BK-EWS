@@ -13,7 +13,13 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'E-Jurnal STIKMAS'),
+    'name' => env('APP_NAME', 'BK-EWS'),
+
+    // Identitas sekolah pelanggan; diganti per sekolah lewat .env tanpa mengubah kode
+    'school' => [
+        'name' => env('SCHOOL_NAME', 'Sekolah Mitra JKS'),
+        'logo' => env('SCHOOL_LOGO', '/images/logo-sekolah.svg'),
+    ],
 
     /*
     |--------------------------------------------------------------------------

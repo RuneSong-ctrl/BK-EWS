@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useBrand } from "@/lib/brand"
 import { Link, router } from "@inertiajs/react"
 import { AppLayout } from "@/Layouts/AppLayout"
 import {
@@ -118,6 +119,7 @@ export default function Kepsek({
   escalatedCases = [],
   classes = [],
 }: KepsekProps) {
+  const brand = useBrand()
   const [selectedCaseForDisposition, setSelectedCaseForDisposition] = React.useState<EscalatedCase | null>(null)
   const [dispositionInstruction, setDispositionInstruction] = React.useState("")
   const [isSubmittingDisposition, setIsSubmittingDisposition] = React.useState(false)
@@ -1096,8 +1098,8 @@ export default function Kepsek({
         {/* Official Letterhead (Kop Laporan Resmi) */}
         <div className="flex items-center gap-4 border-b-2 border-slate-900 pb-3 mb-4">
           <img
-            src="/storage/stikmas.png"
-            alt="Logo E-Jurnal STIKMAS"
+            src={brand.schoolLogo}
+            alt={`Logo ${brand.schoolName}`}
             className="w-16 h-16 object-contain shrink-0"
             onError={(e) => {
               (e.target as HTMLElement).style.display = "none"
