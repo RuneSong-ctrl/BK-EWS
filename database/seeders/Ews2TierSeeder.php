@@ -12,7 +12,7 @@ class Ews2TierSeeder extends Seeder
 {
     /**
      * Mengisi data EWS 2-Tier dari berkas keluaran run_pipeline.py
-     * (default: ../EWS_Moodle/sample_output.json, dapat diubah lewat EWS_OUTPUT_PATH).
+     * (default: ../EWS_Moodle/data_kokar/output_kokar.json, dapat diubah lewat EWS_OUTPUT_PATH).
      */
     public function run(EwsIngestionService $ingestion): void
     {
@@ -20,7 +20,7 @@ class Ews2TierSeeder extends Seeder
 
         if (!is_file($path)) {
             $this->command?->error("File keluaran model tidak ditemukan: {$path}");
-            $this->command?->line('Jalankan dulu: python run_pipeline.py --export sample_output.json (di folder EWS_Moodle).');
+            $this->command?->line('Jalankan dulu: python train_kokar.py lalu python run_pipeline.py (di folder EWS_Moodle).');
             return;
         }
 

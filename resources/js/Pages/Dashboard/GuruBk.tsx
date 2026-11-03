@@ -132,14 +132,14 @@ export default function GuruBkDashboard({
   const [isSubmittingJournal, setIsSubmittingJournal] = React.useState(false)
 
   // Hitung jumlah praktis
-  const countNeedsAction = stats.needs_action ?? studentSummaries.filter((s) => s.status_penanganan === "open").length
+  const countNeedsAction = stats.needs_action ?? studentSummaries.filter((s) => s.status_penanganan === "open" && s.prioritas_konseling === "TINGGI").length
   const countInCounseling = stats.in_counseling ?? studentSummaries.filter((s) => s.status_penanganan === "in_counseling").length
   const countResolved = stats.resolved ?? studentSummaries.filter((s) => s.status_penanganan === "resolved").length
 
   // Filter siswa sesuai status penanganan & pencarian nama/NIS
   const filteredSummaries = React.useMemo(() => {
     return (Array.isArray(studentSummaries) ? studentSummaries : []).filter((s) => {
-      if (statusFilter === "OPEN" && s.status_penanganan !== "open") return false
+      if (statusFilter === "OPEN" && (s.status_penanganan !== "open" || s.prioritas_konseling !== "TINGGI")) return false
       if (statusFilter === "IN_COUNSELING" && s.status_penanganan !== "in_counseling") return false
       if (statusFilter === "RESOLVED" && s.status_penanganan !== "resolved") return false
 

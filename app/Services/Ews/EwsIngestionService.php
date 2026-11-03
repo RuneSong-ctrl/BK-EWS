@@ -170,9 +170,12 @@ class EwsIngestionService
 
         if (!empty($item['kelas'])) {
             $waliKelas = User::where('role', 'guru_kelas')->first() ?? User::first();
+            // Tingkat dari nama rombel Moodle, mis. "XII PH 1" -> 12
+            preg_match('/^(XII|XI|X)\b/', $item['kelas'], $m);
+            $gradeLevel = ['X' => 10, 'XI' => 11, 'XII' => 12][$m[1] ?? 'X'];
             $class = SchoolClass::firstOrCreate(
                 ['name' => $item['kelas']],
-                ['grade_level' => 10, 'homeroom_teacher_id' => $waliKelas?->id, 'academic_year' => '2026/2027']
+                ['grade_level' => $gradeLevel, 'homeroom_teacher_id' => $waliKelas?->id, 'academic_year' => '2026/2027']
             );
             ClassEnrollment::updateOrCreate(
                 ['student_id' => $student->id, 'academic_year' => '2026/2027'],

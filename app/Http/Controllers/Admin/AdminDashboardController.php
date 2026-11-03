@@ -28,7 +28,7 @@ class AdminDashboardController extends Controller
         return Inertia::render('Dashboard/Admin', [
             'kpi' => [
                 'moodle_status' => 'connected',
-                'moodle_url' => config('services.moodle.url', 'https://moodle.smkn1mas.sch.id'),
+                'moodle_url' => config('services.moodle.url', 'https://kokar.melajah.id'),
                 'last_sync_at' => $lastSync?->created_at?->diffForHumans() ?? 'Belum pernah',
                 'last_sync_full' => $lastSync?->created_at?->format('d M Y, H:i') ?? '-',
                 'total_courses' => $totalCourses,

@@ -48,7 +48,8 @@ class DashboardController extends Controller
         // 2. Metrik Triage BK (Fokus pada status penanganan & prioritas)
         $allSummaries = EwsStudentSummary::all();
         $totalSummaries = $allSummaries->count();
-        $needsAction = $allSummaries->where('status_penanganan', 'open')->count();
+        // Perlu bimbingan segera = belum ditangani dan prioritas TINGGI
+        $needsAction = $allSummaries->where('status_penanganan', 'open')->where('prioritas_konseling', 'TINGGI')->count();
         $inCounseling = $allSummaries->where('status_penanganan', 'in_counseling')->count();
         $resolved = $allSummaries->where('status_penanganan', 'resolved')->count();
         $highPriority = $allSummaries->where('prioritas_konseling', 'TINGGI')->count();

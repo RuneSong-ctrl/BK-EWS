@@ -34,7 +34,7 @@ class MoodleSyncController extends Controller
 
         try {
             // Jalankan pipeline ML (EWS_Moodle/run_pipeline.py): fitur siswa -> model -> JSON Tier 1 & Tier 2.
-            // Pada prototipe, sumber fitur adalah data simulasi kelas STIKMAS; pada penerapan nyata diganti ekstraksi Moodle.
+            // Sumber fitur: hasil ekstraksi dump database Moodle SMKN 3 Sukawati (EWS_Moodle/train_kokar.py).
             $cfg = config('services.ews');
             $process = Process::path(dirname($cfg['pipeline']))
                 ->timeout(300)
@@ -44,7 +44,8 @@ class MoodleSyncController extends Controller
                     'PATH' => getenv('PATH') ?: null,
                     'PYTHONIOENCODING' => 'utf-8',
                 ]))
-                ->run([$cfg['python'], $cfg['pipeline'], '--input', $cfg['input'], '--export', $cfg['output'], '--quiet']);
+                ->run([$cfg['python'], $cfg['pipeline'], '--input', $cfg['input'], '--model', $cfg['model'],
+                    '--export', $cfg['output'], '--quiet']);
 
             if ($process->failed()) {
                 throw new \RuntimeException('Pipeline model gagal dijalankan: ' . trim($process->errorOutput() ?: $process->output()));
@@ -103,7 +104,7 @@ class MoodleSyncController extends Controller
             'moodle_token' => 'nullable|string',
         ]);
 
-        $url = $validated['moodle_url'] ?? config('services.moodle.url', 'https://moodle.smkn1mas.sch.id');
+        $url = $validated['moodle_url'] ?? config('services.moodle.url', 'https://kokar.melajah.id');
 
         // Simulasi pemeriksaan heartbeat endpoint Moodle
         $latency = rand(28, 55);

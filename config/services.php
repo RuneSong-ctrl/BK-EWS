@@ -42,14 +42,15 @@ return [
         'provider' => env('AI_PROVIDER', 'auto'),
     ],
 
-    // Integrasi modul ML EWS 2-Tier (folder EWS_Moodle)
+    // Integrasi modul ML EWS 2-Tier (folder EWS_Moodle), default: data asli Moodle SMKN 3 Sukawati
     'ews' => [
         'token' => env('EWS_API_TOKEN', ''),
         'python' => env('EWS_PYTHON', 'python'),
         'pipeline' => env('EWS_PIPELINE_PATH', base_path('../EWS_Moodle/run_pipeline.py')),
-        'input' => env('EWS_INPUT_PATH', base_path('../EWS_Moodle/simulasi/kelas_stikmas_hari60.csv')),
-        'output' => env('EWS_OUTPUT_PATH', base_path('../EWS_Moodle/sample_output.json')),
-        'course_mapping' => env('EWS_COURSE_MAPPING_PATH', base_path('../EWS_Moodle/course_mapping.csv')),
+        'model' => env('EWS_MODEL_PATH', base_path('../EWS_Moodle/ews_kokar_model.pkl')),
+        'input' => env('EWS_INPUT_PATH', base_path('../EWS_Moodle/data_kokar/fitur_kokar_hari45_anonim.csv')),
+        'output' => env('EWS_OUTPUT_PATH', base_path('../EWS_Moodle/data_kokar/output_kokar.json')),
+        'course_mapping' => env('EWS_COURSE_MAPPING_PATH', base_path('../EWS_Moodle/data_kokar/course_mapping_kokar_anonim.csv')),
     ],
 
     'gemini' => [
